@@ -38,7 +38,7 @@ css_login = Bundle(
 js_login = Bundle(
     "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js",
-    Bundle("../app/custom/js/login.js", filters="jsmin"),
+    Bundle("../app/custom/js/login.js", filters="rjsmin"),
     output="login.js",
 )
 
@@ -56,24 +56,18 @@ css_main = Bundle(
         "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.6.1/font/bootstrap-icons.min.css",
         filters=bs_icons,
     ),
-    # "https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/css/adminlte.min.css",
     "https://rawcdn.githack.com/darkterminal/tagin/6fa2863c13aa1841f33cf6dcbbf266c92fbf5412/dist/css/tagin.min.css",
     output="main.css",
 )
 
 js_main = Bundle(
-    # "node_modules/moment/moment.js",
-    # "node_modules/jquery.quicksearch/src/jquery.quicksearch.js",
     "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js",
     "https://rawcdn.githack.com/darkterminal/tagin/6fa2863c13aa1841f33cf6dcbbf266c92fbf5412/dist/js/tagin.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js",
-    # "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js",
-    # "https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.1.0/js/adminlte.min.js",
     output="main.js",
 )
 
-js_custom = Bundle("../app/custom/js/custom.js", output="custom.js")
-# js_custom = Bundle("../app/custom/js/custom.js", filters="rjsmin", output="custom.js")
+js_custom = Bundle("../app/custom/js/custom.js", filters="rjsmin", output="custom.js")
 css_custom = Bundle(
     "../app/custom/css/custom.css", filters="cssmin", output="custom.css"
 )
