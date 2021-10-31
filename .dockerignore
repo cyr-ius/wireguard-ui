@@ -29,7 +29,7 @@
 **/database
 .venv
 migrations
-.pre-commit-config.yaml
+**/.pre-commit-config.yaml
 flask_session
-README.md
+**/README.md
 **/*.code-workspace
