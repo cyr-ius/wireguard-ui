@@ -1,0 +1,77 @@
+{% import "_macros.html" as render %}
+{% from "security/_macros.html" import render_field_with_errors, render_field, render_field_errors %}
+<!-- Email Client -->
+<div class="modal fade" id="modal_email_client">
+    <div class="modal-dialog" role="document">
+        <form name="frm_email_client" id="frm_email_client">
+        {{ form_email.hidden_tag() }}
+            <div class="modal-content rounded-6 shadow">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title">Email Configuration</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">{{ render.field(form_email.email)}}</div>
+                </div>
+                <div class="modal-footer flex-nowrap p-0">
+                    <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0  border-right" data-bs-dismiss="modal">Cancel</button>
+                    {{ render.button(form_email.submit, class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 ") }}
+                </div>                
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Edit Client -->
+<div class="modal fade" id="modal_edit_client">
+    <div class="modal-dialog" role="document">
+        <form name="frm_edit_client" id="frm_edit_client">
+        {{ form_edit_client.hidden_tag() }}        
+            <div class="modal-content rounded-6 shadow">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title">Edit</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">{{ render.field_with_label(form_edit_client.name) }}</div>
+                    <div class="form-group">{{ render.field_with_label(form_edit_client.email) }}</div>
+                    <div class="form-group">{{ render.field_with_label_tagin(form_edit_client.allocated_ips) }}</div>
+                    <div class="form-group">{{ render.field_with_label_tagin(form_edit_client.allowed_ips) }}</div>
+                    <div class="form-group">{{ render.field_switch(form_edit_client.use_server_dns) }}</div>
+                    <div class="form-group">{{ render.field_switch(form_edit_client.enabled) }}</div>
+                </div>
+                <div class="modal-footer flex-nowrap p-0">
+                    <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0  border-right" data-bs-dismiss="modal">Cancel</button>
+                    {{ render.button(form_edit_client.submit, class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 ") }}
+                </div>                
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Disable Client -->
+<div class="modal fade" id="modal_pause_client">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-6 shadow">
+            <div class="modal-header bg-warning border-bottom-0">
+                <h5 class="modal-title">Disable client</h5>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer flex-nowrap p-0">
+                <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0  border-right" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0" id="pause_client_confirm">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Remove Client -->
+<div class="modal fade" id="modal_remove_client">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-6 shadow">
+            <div class="modal-header bg-danger border-bottom-0">
+                <h5 class="modal-title">Remove</h5>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer flex-nowrap p-0">
+                <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0  border-right" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0" id="remove_client_confirm">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>

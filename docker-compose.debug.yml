@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  wireguardui:
+    image: wireguardui
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m flask run --no-debugger --no-reload --host 0.0.0.0 --port 5000"]
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 5000:5000
+      - 5678:5678
+    environment:
+      - FLASK_APP=app/__init__.py
+      - SALT=123456789
+      - SECRET_KEY=123456789      
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1

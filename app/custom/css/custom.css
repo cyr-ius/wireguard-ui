@@ -1,0 +1,158 @@
+#menu .nav-link.active, .nav-pills .show > .nav-link {
+    background-color: #333a40;
+    border:0px !important;
+    border-radius:0px !important;
+    color: red ! important;
+}
+
+#menu a:hover {
+    color: #8c2024 ! important;
+    
+}
+
+body {
+	font-family:Source Sans Pro, sans-serif;
+	font-weight:400;
+}
+
+main {
+	min-height:calc(100vh - 5.50rem);
+}
+
+#sidebar {
+	background-color:#333a40;
+	max-width:200px;
+}
+
+#submenu1 a {
+	color: white;
+}
+
+.overlay {
+	width: 100%;
+	height: 100%;
+	opacity: 0.7;
+	background-color: rgba(57, 57, 50, 0.38);
+	left: 0px;
+	top: 0px;
+	position: absolute;
+	z-index:1;
+}
+
+.paused-client  {
+	top: 30%;
+	position: absolute;
+	left: 42%;
+}
+
+.rounded-4 { border-radius: .5rem; }
+.rounded-5 { border-radius: .75rem; }
+.rounded-6 { border-radius: 1rem; }
+
+.border-right { border-right: 1px solid #eee; }
+
+
+/* Shrinking the sidebar from 250px to 80px and center aligining its content*/
+#sidebar.active {
+    min-width: 76px;
+    max-width: 76px;
+    text-align: center;
+}
+
+#sidebar.active span {
+    display: none !important;
+}
+
+#sidebar.active ul ul a {
+    padding: 10px !important;
+}
+
+#sidebar.active #brand {
+	display: unset !important;
+	margin-right: 0px !important;
+	margin-left: 0px !important;	
+}
+
+#sidebar.active #logo {
+	margin-right: 0px !important;
+	margin-left: 0px !important;
+}
+
+#sidebar.active ul, #sidebar.active nav {
+	align-items: unset !important;
+}
+
+/* Changing the arrow position to bottom center position, 
+   translateX(50%) works with right: 50% 
+   to accurately  center the arrow */
+#sidebar.active .dropdown-toggle::after {
+    top: auto;
+    bottom: 10px;
+    right: 50%;
+    -webkit-transform: translateX(50%);
+    -ms-transform: translateX(50%);
+    transform: translateX(50%);
+}
+
+
+@media (min-width:568px) and (max-width: 768px) {
+    /* 80px and its content aligned to centre. Pushing it off the screen with the
+       negative left margin
+    */
+    #sidebar {
+        min-width: 76px;
+        max-width: 76px;
+        text-align: center;
+    }
+
+	/* Toggling the sidebar header content, hide the big heading [h3] and showing the small heading [strong] and vice versa*/
+	#sidebar span {
+		display: none !important;
+	}
+
+	/* Same dropdown links padding*/
+	#sidebar ul ul a {
+		padding: 10px !important;
+	}
+
+	#sidebar #brand {
+		display: unset !important;
+		margin-right: 0px !important;
+		margin-left: 0px !important;	
+	}
+
+	#sidebar #logo {
+		margin-right: 0px !important;
+		margin-left: 0px !important;
+	}
+
+	#sidebar ul, #sidebar nav {
+		align-items: unset !important;
+	}
+
+	/* Changing the arrow position to bottom center position, 
+	translateX(50%) works with right: 50% 
+	to accurately  center the arrow */
+	#sidebar .dropdown-toggle::after {
+		top: auto;
+		bottom: 10px;
+		right: 50%;
+		-webkit-transform: translateX(50%);
+		-ms-transform: translateX(50%);
+		transform: translateX(50%);
+	}
+}
+
+@media (max-width: 568px) {
+	#sidebar, #sidebar.active {
+		margin-left: 0px;
+	}
+	
+	#sidebar {
+		display:none;
+	}
+
+	#sidebar.active {
+		display:unset;
+	}	
+}

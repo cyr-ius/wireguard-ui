@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% set active_page = "server" %}
+{% block title %}<title>Wireguard Server - {{ SITE_NAME }}</title>{% endblock %}
+{% block content_header %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <ol class="breadcrumb">
+    <li><a href="{{ url_for('index.server') }}"><i class="bi bi-hdd-stack-fill"></i> Wireguard Server</a></li>
+    </ol>
+</section>
+{% endblock %}
+{% block content %}
+ <!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <form role="form" id="frm_server_interface" name="frm_server_interface" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header"><span class="fs-5">Interface</span></div>
+                        <div class="card-body">  
+                            <div class="form-group">{{ render.field_with_label(form.address)}}</div>
+                            <div class="form-group">{{ render.field_with_label(form.listen_port)}}</div>
+                            <div class="form-group">{{ render.field_with_label(form.postup)}}</div>
+                            <div class="form-group">{{ render.field_with_label(form.postdown)}}</div>
+                        </div>
+                        <div class="card-footer">
+                        {% if g.first_run is false %}
+                        {{ render.button(form.submit, class="btn btn-primary float-right") }}
+                        {% else %}
+                        {{ render.button(form.submit, class="btn btn-primary float-right", value="Create") }}
+                        {% endif %}
+                        </div>
+                    </form> 
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-secondary">
+                    <div class="card-header"><span class="fs-5">Keys pair</span></div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                {{ form.private_key.label(class_="control-label") }} 
+                                <div class="input-group">
+                                    {{ form.private_key(class_="form-control") }}
+                                    <div class="invalid-feedback">{{ form.private_key.errors[0] }}</div>   
+                                    <span class="input-group-append">
+                                        <button type="button" class="btn btn-danger btn-flat" id="btn_show_private_key">Show</button>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">{{ render.field_with_label(form.public_key)}} </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-secondary float-right" data-bs-toggle="modal" data-bs-target="#modal_keypair_confirmation">Generate</button>
+                        </div>
+                </div>
+            </div>
+        </div>
+        </form>
+    </div>
+</section>
+{% endblock%}
+{% block extramodals%}
+<div class="modal fade" id="modal_keypair_confirmation">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-6 shadow">
+            <div class="modal-header bg-danger">
+                <p class="modal-title">KeyPair Generation</p>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>        
+            </div>
+            <div class="modal-body ">
+                <p>Are you sure to generate a new key pair for the Wireguard server?<br/>
+                The existing Clients's peer public key need to be updated to keep the connection working.</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-dark" id="btn_generate_confirm">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extrascripts %}
+<script>
+    // Wireguard Key Pair generation confirmation button
+    $(document).ready(function () {
+        $("#btn_generate_confirm").click(function () {
+            $.ajax({
+                cache: false,
+                method: 'POST',
+                url: '/api/keypair',
+                dataType: 'json',
+                contentType: "application/json",
+                success: function(responseJson) {
+                    $("#modal_keypair_confirmation").modal('hide');
+                    flashMessage('Generate new key pair successfully','success');
+                    // update the UI
+                    $("#private_key").val(responseJson['data']['PrivateKey']);
+                    $("#public_key").val(responseJson['data']['PublicKey']);
+                },
+                error: function(jqXHR, exception) {
+                    const responseJson = jQuery.parseJSON(jqXHR.responseText);
+                    flashMessage(responseJson['message'],'error');
+                }
+            });
+        });
+    });
+
+    // Show private key button event
+    $(document).ready(function () {
+        $("#btn_show_private_key").click(function () {
+            const privateElement = document.getElementById("private_key");
+            const btnElement = document.getElementById("btn_show_private_key");
+            if (privateElement.type === 'password') {
+                privateElement.type = 'text';
+                btnElement.innerText = 'Hide';
+            } else {
+                privateElement.type = 'password';
+                btnElement.innerText = 'Show';
+            }
+        });
+    });
+</script>
+{% endblock%}

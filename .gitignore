@@ -7,3 +7,4 @@ flask_session
 database
 static
 .env-dev.py
+docker-compose.dev*

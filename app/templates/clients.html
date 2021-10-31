@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% set active_page = "clients" %}
+{% block title %}<title>Clients - {{ SITE_NAME }}</title>{% endblock %}
+{% block content_header %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <ol class="breadcrumb">
+        <li><a href="{{ url_for('index.clients') }}"><i class="bi bi-people"></i> Status</a></li>
+      </ol>
+    </section>
+{% endblock %}
+{% block content %}
+ <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <!-- <h5 class="mt-4 mb-2">Wireguard Clients</h5> -->
+            <div class="row" id="client-list">
+            {% for client in clients_list %}
+            <div id="client_{{client.id}}" class="card p-0 m-1" style="max-width: 480px;">
+            <div class="overlay" id="paused_{{client.id}}" {% if client.enabled %} style="position:absolute;visibility: hidden;" {%endif%}><i class="paused-client bi-play-btn-fill" style="font-size: 5rem;" onclick="resumeClient('{{client.id}}')"></i></div>
+            <div class="row g-0">
+                <div class="card-header"><h5><i class="bi bi-person"></i> {{client.name}}</h5></div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-5">
+                            <img src="{{ qrcode(client.config) }}" class="img-fluid" alt="...">
+                        </div>
+                        <div class="col-md-7">
+                            <p class="card-text">
+                                <span class="info-box-text"><i class="bi bi-envelope"></i> {{client.email}}</span><br/>
+                                <span class="info-box-text"><i class="bi bi-server" style="{{ 'opacity: 1.0' if client.use_server_dns else 'opacity: 0.5' }}"></i>{{ 'DNS enabled' if client.use_server_dns else 'DNS disabled'}}</span><br/>
+                            </p>
+                            <p class="card-text">
+                                <span><strong>IP Allocation</strong><br/>
+                                {% set allocated_ips = client.allocated_ips.split(',')%}
+                                {% for allocated_ip in allocated_ips %}
+                                <small class="badge bg-secondary">{{allocated_ip}}</small></span>
+                                {%endfor%}                    
+                                </span>
+                            </p>
+                            <p class="card-text">
+                                <span><strong>Allowed IPs</strong><br/>
+                                {% set allowed_ips = client.allowed_ips.split(',')%}
+                                {% for allowed_ip in allowed_ips %}
+                                <small class="badge bg-secondary">{{allowed_ip}}</small></span>
+                                {%endfor%}
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted"><i class="bi bi-clock"></i> Created at {{client.created_at.strftime('%Y/%m/%d %H:%M:%S')}}</small><br/>
+                                <small class="text-muted"><i class="bi bi-clock-history"></i> Last updated {{client.updated_at.strftime('%Y/%m/%d %H:%M:%S')}}</small>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="btn-group">
+                            <button onclick="location.href='{{ url_for("index.download", id=client.id) }}'" type="button" class="btn btn-outline-success btn-sm">Download</button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modal_email_client" data-bs-clientid="{{client.id}}" data-bs-clientname="{{client.name}}">Email</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal_edit_client" data-bs-clientid="{{client.id}}" data-bs-clientname="{{client.name}}">Edit</button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modal_pause_client" data-bs-clientid="{{client.id}}" data-bs-clientname="{{client.name}}">Disable</button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal_remove_client" data-bs-clientid="{{client.id}}" data-bs-clientname="{{client.name}}">Remove</button>
+                        </div>   
+                    </div>                    
+                </div>
+
+            </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extramodals%}
+{% include "clients_modals.html"%}
+{% endblock %}
+{% block extrascripts %}
+<script>
+    function setClientStatus(clientID, status) {
+        const data = {"id": clientID, "status": status};
+        $.ajax({
+            cache: false,
+            method: 'POST',
+            url: '/api/set-status',
+            dataType: 'json',
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (responseJson) {
+                flashMessage(responseJson['message'],'success');
+            },
+            error: function (jqXHR, exception) {
+                const responseJson = jQuery.parseJSON(jqXHR.responseText);
+                flashMessage(responseJson['message'],'error');
+            }
+        });
+    }
+
+    function resumeClient(clientID) {
+        setClientStatus(clientID, true);
+        const divElement = document.getElementById("paused_" + clientID);
+        divElement.style.visibility = "hidden";
+    }
+
+    function pauseClient(clientID) {
+        setClientStatus(clientID, false);
+        const divElement = document.getElementById("paused_" + clientID);
+        divElement.style.visibility = "visible";
+    }
+
+    function taginInput(){
+        for (const el of document.querySelectorAll('.tagin')) {tagin(el)} 
+    }
+
+    // modal_pause_client modal event
+    $("#modal_pause_client").on('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const client_id = button.getAttribute('data-bs-clientid');
+        const client_name = button.getAttribute('data-bs-clientname');
+        const modal = $(this);
+        modal.find('.modal-body').text("You are about to disable client " + client_name);
+        modal.find('#pause_client_confirm').val(client_id);
+    })
+
+    // pause_client_confirm button event
+    $("#pause_client_confirm").click(function () {
+        const client_id = $(this).val();
+        pauseClient(client_id);
+        $("#modal_pause_client").modal('hide');
+    });
+
+    // modal_remove_client modal event
+    $("#modal_remove_client").on('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const client_id = button.getAttribute('data-bs-clientid');
+        const client_name = button.getAttribute('data-bs-clientname');
+        const modal = $(this);
+        modal.find('.modal-body').text("You are about to remove client " + client_name);
+        modal.find('#remove_client_confirm').val(client_id);
+    })
+
+    // remove_client_confirm button event
+    $("#remove_client_confirm").click(function () {
+        const client_id = $(this).val();
+        const data = {"id": client_id};
+        $.ajax({
+            cache: false,
+            method: 'DELETE',
+            url: '/api/client/'+client_id,
+            dataType: 'json',
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function(responseJson) {
+                $("#modal_remove_client").modal('hide');
+                flashMessage(responseJson['message'],'success');
+                const divElement = document.getElementById('client_' + client_id);
+                divElement.style.display = "none";
+            },
+            error: function(jqXHR, exception) {
+                const responseJson = jQuery.parseJSON(jqXHR.responseText);
+                flashMessage(responseJson['message'],'error');
+            }
+        });
+    });
+
+    // Edit client modal event
+    $("#modal_edit_client").on('shown.bs.modal', function (event) {
+        let modal = $(this);
+        const button = event.relatedTarget;
+        const client_id = button.getAttribute('data-bs-clientid');     
+        $(".tagin-wrapper").remove()
+        // update client modal data
+        $.ajax({
+            cache: false,
+            method: 'GET',
+            url: '/api/client/' + client_id,
+            dataType: 'json',
+            contentType: "application/json",
+            success: function (resp) {
+                const client = resp.client;
+                modal.find(".modal-title").text("Edit " + client.name);
+                modal.find("#client_id").val(client.id);
+                modal.find("#name").val(client.name);
+                modal.find("#email").val(client.email);
+                modal.find("#allocated_ips").val(client.allocated_ips);
+                modal.find("#allowed_ips").val(client.allowed_ips);
+                modal.find("#use_server_dns").prop("checked", client.use_server_dns);
+                modal.find("#enabled").prop("checked", client.enabled);
+                for (const el of document.querySelectorAll('.tagin')) {tagin(el)} 
+            },
+            error: function (jqXHR, exception) {
+                const responseJson = jQuery.parseJSON(jqXHR.responseText);
+                flashMessage(responseJson['message'],'error');
+            }
+        });
+    });
+
+    // Mail modal event
+    $("#modal_email_client").on('show.bs.modal', function (event) {
+        let modal = $(this);
+        const button = event.relatedTarget;
+        const client_id = button.getAttribute('data-bs-clientid');
+        const client_name = button.getAttribute('data-bs-clientname');
+        modal.find("#client_id").val(client_id);
+    })
+
+
+    // submitEditClient function for updating an existing client
+    function submitEditClient(form) {
+        const client_id = form.client_id.value;
+        const name = form.name.value;
+        const email = form.email.value;
+        const allocated_ips = form.allocated_ips.value;
+        const allowed_ips = form.allowed_ips.value;
+        const csrf_token = form.csrf_token.value;
+
+        let use_server_dns = false;
+        if (form.use_server_dns.checked){
+            use_server_dns = true;
+        }
+
+        let enabled = false;
+        if (form.enabled.checked){
+            enabled = true;
+        }
+
+        const data = {"id": client_id, "name": name, "email": email, "allocated_ips": allocated_ips,
+            "allowed_ips": allowed_ips, "use_server_dns": use_server_dns, "enabled": enabled, "csrf_token": csrf_token};
+
+        $.ajax({
+            cache: false,
+            method: 'PUT',
+            url: '/api/client/'+client_id,
+            dataType: 'json',
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function(responseJson) {
+                $("#modal_edit_client").modal('hide');
+                flashMessage(responseJson['message'],'success');
+                // Refresh the home page (clients page) after updating successfully
+                location.reload();
+            },
+            error: function(jqXHR, exception) {
+                const responseJson = jQuery.parseJSON(jqXHR.responseText);
+                flashMessage(responseJson['message'],'error');
+            }
+        });
+    }
+
+    // submitEmailClient function for sending an email to the client with the configuration
+    function submitEmailClient(form) {
+        var data = {"id": form.client_id.value, "email": form.email.value};
+        $.ajax({
+            cache: false,
+            method: 'POST',
+            url: '/api/email-client',
+            dataType: 'json',
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function(responseJson) {
+                $("#modal_email_client").modal('hide');
+                flashMessage(responseJson['message'],'success');
+            },
+            error: function(jqXHR, exception) {
+                const responseJson = jQuery.parseJSON(jqXHR.responseText);
+                flashMessage(responseJson['message'],'error');
+            }
+        });
+    }
+
+    // submitHandler
+    function submitHandler(form) {
+        const formId = $(form).attr('id');
+        if (formId === "frm_edit_client") {
+            submitEditClient(form);
+        }else if (formId === "frm_email_client") {
+            submitEmailClient(form);
+        }
+    }
+
+    $(document).ready(function () {
+        $.validator.setDefaults({
+            submitHandler: function (form) {
+                submitHandler(form);
+            }
+        });
+        // Edit client form validation
+        $("#frm_edit_client").validate({
+            rules: {
+                name: {
+                    required: true,
+                },
+                email: {
+                    required: true,
+                    email: true,
+                },
+            },
+            messages: {
+                name: {
+                    required: "Please enter a name"
+                },
+                email: {
+                    required: "Please enter an email address",
+                    email: "Please enter a valid email address"
+                },
+            },
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+
+        // Email client form validation
+        $("#frm_email_client").validate({
+            rules: {
+                email: {
+                    required: true,
+                    email: true,
+                },
+            },
+            messages: {
+                email: {
+                    required: "Please enter an email address",
+                    email: "Please enter a valid email address"
+                },
+            },
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock%}

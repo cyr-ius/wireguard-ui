@@ -1,0 +1,34 @@
+<!-- Navbar -->
+<nav class="navbar navbar-light bg-light">
+    <div class="container-fluid px-1">
+        <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+            <li class="nav-item ms-3">
+                <a role="button" type="button"id="sidebarCollapse"><i class="bi bi-justify"></i></a>
+            </li>
+        </ul>
+        <!-- Right navbar links -->
+        {% if current_user.has_role('admin')%}     
+        {% if g.wg == "started" %}
+        <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#modal_wg_service" data-bs-service-status="restart">
+                <i class="nav-icon bi bi-start"></i>Restart Wireguard
+            </button> 
+            <div class="btn-group" role="group">
+                <button id="btnGroupDrop1" type="button" class="btn btn-outline-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                    <livar><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modal_wg_service" data-bs-service-status="stop">Stop</a></li>
+                </ul>
+            </div>    
+        </div>                    
+        {% else %}
+        <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#modal_wg_service" data-bs-service-status="start">
+            <i class="nav-icon bi bi-start"></i>Start Wireguard
+        </button>                  
+        {% endif%}     
+        <button type="button" class="btn btn-outline-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#modal_new_client">
+            <i class="nav-icon bi bi-plus"></i> New Client
+        </button>
+        {% endif%}
+    </div>
+</nav>
+<!-- /.navbar -->

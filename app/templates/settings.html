@@ -1,0 +1,105 @@
+
+{% extends "base.html" %}
+{% set active_page = "settings" %}
+{% block title %}<title>Global settings - {{ SITE_NAME }}</title>{% endblock %}
+{% block content_header %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <ol class="breadcrumb">
+        <li><a href="{{ url_for('index.clients') }}"><i class="bi bi-gear"></i> Global settings</a></li>
+      </ol>
+    </section>
+{% endblock %}
+{% block content %}
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <form role="form" id="frm_global_settings" name="frm_global_settings" method="POST" novalidate>
+                {{ form.hidden_tag() }}                      
+                <div class="card card-primary">
+                    <div class="card-header"><span class="fs-5">Wireguard Global Settings</span></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            {{ form.endpoint_address.label(class_="control-label") }}
+                            <div class="input-group input-group">
+                                {{ form.endpoint_address(class_="form-control is-invalid" if form.endpoint_address.errors else "form-control") }}
+                                <span class="input-group-append">
+                                    <button type="button" class="btn btn-light btn-flat" data-bs-toggle="modal"
+                                        data-bs-target="#modal_endpoint_address_suggestion"><i class="nav-icon bi bi-magic"></i> Suggest</button>
+                                </span>
+                            </div>
+                            <div class="invalid-feedback">{{ form.endpoint_address.errors[0] }}</div>
+                        </div>
+                        <div class="form-group">{{ render.field_with_label_tagin(form.dns_servers)}}</div>
+                        <div class="form-group">{{ render.field_with_label(form.mtu)}}</div>
+                        <div class="form-group">{{ render.field_with_label(form.persistent_keepalive)}}</div>                        
+                        <div class="form-group">{{ render.field_with_label(form.config_file_path)}}</div>
+                    </div>
+                    <div class="card-footer">
+                    {% if g.first_run is false %}
+                    {{ render.button(form.submit, class="btn btn-primary float-right") }}
+                    {% else %}
+                    {{ render.button(form.submit, class="btn btn-primary float-right", value="Create") }}
+                    {% endif %}
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block extramodals %}
+<div class="modal fade" id="modal_endpoint_address_suggestion">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-6 shadow">
+            <div class="modal-header">
+                <h4 class="modal-title">Endpoint Address Suggestion</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Following is the list of public and local IP addresses for your consideration.</p>
+                <select id="ip_suggestion" class="select2" data-bs-placeholder="Select an IP address" style="width: 100%;">
+                </select>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="btn_use_ip" disabled>Use selected IP address</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extrascripts %}
+    <script>
+        function updateEndpointSuggestionIP() {
+            $.getJSON("/api/machine-ips", null, function(data) {
+                $("#ip_suggestion option").remove();
+                $.each(data, function(index, item) {
+                    $("#ip_suggestion").append(
+                        $("<option></option>")
+                            .text(item.ip_address + ' - ' + item.name)
+                            .val(item.ip_address)
+                    );
+                });
+                document.getElementById("btn_use_ip").disabled = false;
+            });
+        }
+
+        // Endpoint IP suggestion modal event
+        $("#modal_endpoint_address_suggestion").on('shown.bs.modal', function (e) {
+            updateEndpointSuggestionIP();
+        });
+
+        // Use selected IP address from suggestion form
+        $("#btn_use_ip").click(function () {
+            var ip = $("#ip_suggestion").select().val();
+            $("#endpoint_address").val(ip);
+            $("#modal_endpoint_address_suggestion").modal('hide');
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "profile.html" %} {% block tabcontent%}
+<div class="col-sm-6">
+  <div class="card">
+    <div class="card-body">
+      <form id="frm_user_profile" method="post" class="card-text" role="form" novalidate>
+        {{ form.csrf_token }}
+        <div class="form-group">{{ render.field_with_label(form.first_name)}}</div>
+        <div class="form-group">{{ render.field_with_label(form.last_name)}}</div>
+        <div class="form-group">{{ render.field_with_label(form.email)}}</div>
+        <div class="form-group">{{ render.field_with_label(form.gravatar_url)}}</div>
+        <div class="form-group text-end mt-3">{{ render.button(form.submit) }}</div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
