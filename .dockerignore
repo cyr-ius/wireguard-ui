@@ -22,11 +22,14 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/*.db
-**/.env.py
+**/.env-dev.py
+**/.env.dev.py
+**/env.dev.py
+**/static
+**/database
 .venv
 migrations
 .pre-commit-config.yaml
 flask_session
 README.md
-*.code-workspace
-*-dev*
+**/*.code-workspace
