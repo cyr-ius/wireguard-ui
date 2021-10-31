@@ -6,4 +6,4 @@ migrations
 flask_session
 database
 static
-.env.dev
+.env-dev.py
