@@ -32,6 +32,6 @@ RUN chmod +x entrypoint.sh
 
 WORKDIR /app
 COPY . /app
-COPY ./app/custom/img /app/static/img
+COPY ./app/custom/img /app/static/img/
 
 ENTRYPOINT ["/entrypoint.sh"]
