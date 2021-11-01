@@ -14,7 +14,7 @@ Default username and password are `admin`.
 
 ### Using docker compose
 
-You can take a look at this example of [docker-compose.yml](https://github.com/cyr-ius/wireguard-ui/blob/master/docker-compose.yaml). Please adjust volume mount points to work with your setup. Then run it like below:
+You can take a look at this example of [docker-compose.yml](https://github.com/Cyr-ius/wireguard-ui/tree/master/example). Please adjust volume mount points to work with your setup. Then run it like below:
 
 ```
 docker-compose up
@@ -24,7 +24,6 @@ Note:
 
 There is a Status option that needs docker to be able to access the network of the host in order to read the 
 wireguard interface stats. See the `cap_add` and `network_mode` options on the docker-compose.yaml
-
 
 ### Environment Variables
 
@@ -45,7 +44,6 @@ SECURITY_RECOVERABLE:[True|False] Enable recoverable account (send mail)
 SECURITY_REGISTERABLE:[True|False] Accept register account at login page (Strongly discouraged )
 SECURITY_CONFIRMABLE:[True|False] Confirm account A valid email address is required for root account
 ```
-
 
 ## License
 MIT. See [LICENSE](https://github.com/cyr-ius/wireguard-ui/blob/master/LICENSE).
