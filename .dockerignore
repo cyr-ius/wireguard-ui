@@ -27,6 +27,7 @@
 **/env.dev.py
 **/static
 **/database
+**/example
 .venv
 migrations
 **/.pre-commit-config.yaml
