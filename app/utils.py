@@ -156,9 +156,9 @@ def wireguard_status():
             key = arr[0].strip()
             val = arr[1].strip()
             if key == "transfer":
-                result = re.match(r"^(.*) KiB received, (.*) KiB sent$", val)
+                result = re.match(r"^(.*) (.*) received, (.*) (.*) sent$", val)
                 section.update(
-                    {"received_bytes": result[1], "transmit_bytes": result[2]}
+                    {"received_bytes": f"{result[1]} {result[2]}", "transmit_bytes": f"{result[3]} {result[4]}"}
                 )
             if key == "latest handshake":
                 section.update({"connected": True})
