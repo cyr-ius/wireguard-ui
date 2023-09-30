@@ -124,50 +124,50 @@ function flashMessage(message, type="success", time="", img=""){
 
 $(document).ready(function () {
 
-    $.validator.setDefaults({
-        submitHandler: function () {
-            submitNewClient();
-        }
-    });
-   
-// New client form validation
-$("#frm_new_client").validate({
-    rules: {
-        name: {
-            required: true,
-        },
-        email: {
-            required: true,
-            email: true,
-        },
-    },
-    messages: {
-        name: {
-            required: "Please enter a name"
-        },
-        email: {
-            required: "Please enter an email address",
-            email: "Please enter a valid email address"
-        },
-    },
-    errorElement: 'span',
-    errorPlacement: function (error, element) {
-        error.addClass('invalid-feedback');
-        element.closest('.form-group').append(error);
-    },
-    highlight: function (element, errorClass, validClass) {
-        $(element).addClass('is-invalid');
-    },
-    unhighlight: function (element, errorClass, validClass) {
-        $(element).removeClass('is-invalid');
-    }
-});
+	$.validator.setDefaults({
+		submitHandler: function () {
+		    submitNewClient();
+		}
+	});
+	   
+	// New client form validation
+	$("#frm_new_client").validate({
+	    rules: {
+		name: {
+		    required: true,
+		},
+		email: {
+		    required: true,
+		    email: true,
+		},
+	    },
+	    messages: {
+		name: {
+		    required: "Please enter a name"
+		},
+		email: {
+		    required: "Please enter an email address",
+		    email: "Please enter a valid email address"
+		},
+	    },
+	    errorElement: 'span',
+	    errorPlacement: function (error, element) {
+		error.addClass('invalid-feedback');
+		element.closest('.form-group').append(error);
+	    },
+	    highlight: function (element, errorClass, validClass) {
+		$(element).addClass('is-invalid');
+	    },
+	    unhighlight: function (element, errorClass, validClass) {
+		$(element).removeClass('is-invalid');
+	    }
+	});
 
 
-    for (const el of document.querySelectorAll('.tagin')) {tagin(el)} 
+	for (const el of document.querySelectorAll('.tagin')) {tagin(el)} 
 
-    // Run observer to toast
-    eventToast('toast')
+	    // Run observer to toast
+	    eventToast('toast')
 });
 
 // New Client modal event
