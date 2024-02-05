@@ -9,7 +9,7 @@ Flask-SeaSurf==0.3.1
 Flask-WTF==0.15.1
 Flask-QRcode==3.0.0
 Flask-Admin==1.5.8
-Flask-Security-Too==4.1.2
+Flask-Security-Too==5.3.3
 cssmin>=0.2.0
 jsmin>=3.0.1
 pyotp>=2.9.0
