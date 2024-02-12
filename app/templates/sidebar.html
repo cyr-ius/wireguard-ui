@@ -30,16 +30,6 @@
             </a>
         </li>
         {% endif%}
-        {% if current_user.has_role('dba') %}
-        <li>
-            <a href="#submenu" data-bs-toggle="collapse" class="nav-link px-0 align-middle text-white">
-                <i class="fs-4 bi-speedometer2"></i><span class="ms-1 d-sm-inline">Administration</span></a>
-            <ul class="collapse nav flex-column ms-1" id="submenu" data-bs-parent="#menu">
-                {% import 'admin/layout.html' as layout with context -%}
-                {{ layout.menu() }}
-            </ul>
-        </li>   
-        {% endif%}     
     </ul>
     <ul class="navbar-nav">
         <li class="nav-item dropdown dropup">

@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, flash, g, render_template, request
+from flask import Blueprint, flash, g, render_template, request
 from flask_security import (
     auth_required,
     current_user,
@@ -7,7 +7,7 @@ from flask_security import (
 
 from ..forms.forms import frm_user_profile
 from ..helpers.wireguard import wireguard_state
-from ..models import Role, Setting, User, db, is_first_run
+from ..models import Setting, User, db, is_first_run
 
 user_bp = Blueprint("user", __name__, template_folder="templates", url_prefix="/user")
 
@@ -54,18 +54,10 @@ def profile():
 @auth_required()
 @permissions_required("admin-write", "admin-read")
 def advanced():
-    role = Role.query.filter_by(name="dba").first()
     if request.method == "POST":
         Setting().set_maintenance(request.form.get("maintenance") == "on")
-        if request.form.get("explore_db") == "on":
-            current_app.user_datastore.add_role_to_user(current_user, role)
-            db.session.commit()
-        else:
-            current_app.user_datastore.remove_role_from_user(current_user, role)
-            db.session.commit()
 
     dict = {
         "maintenance": bool(Setting().get("maintenance")),
-        "explore_db": current_user.has_role("dba"),
     }
     return render_template("profile_adv.html", **dict)
