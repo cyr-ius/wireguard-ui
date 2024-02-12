@@ -31,6 +31,11 @@ main > .container-fluid {
 	color: white;
 }
 
+.form-signin {
+	max-width: 330px;
+	padding: 1rem;
+}
+
 .overlay {
 	width: 100%;
 	height: 100%;

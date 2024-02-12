@@ -18,6 +18,7 @@
     <body>
         <!-- Scripts -->
         {% block header_scripts %}{% endblock %}
+        {% block container %}
         <div class="container-fluid">
             <div class="row">
                 <!-- Sidebar Container -->
@@ -54,7 +55,7 @@
                 </div>
             </div>
         </div>
-
+        {% endblock container %}
         <!-- Toast box -->
         {% block taost %}
         {% include "base_toast.html" %}

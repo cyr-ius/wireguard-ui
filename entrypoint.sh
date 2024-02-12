@@ -1,7 +1,7 @@
 #!/bin/sh
 set -euo pipefail
 cd /app
-ls -al /app/*
+
 GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-120}"
 GUNICORN_WORKERS="${GUNICORN_WORKERS:-2}"
 GUNICORN_LOGLEVEL="${GUNICORN_LOGLEVEL:-info}"
