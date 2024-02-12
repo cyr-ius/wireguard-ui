@@ -34,9 +34,9 @@ def broadcast_address(network):
 
 def is_first_run():
     if (
-        db.session.bind.has_table("server")
-        or db.session.bind.has_table("global_settings")
-        or db.session.bind.has_table("clients")
+        db.metadata.tables.get("server") is not None
+        or db.metadata.tables.get("global_settings") is not None
+        or db.metadata.tables.get("clients") is not None
     ):
         settings = db.session.query(GlobalSettings).first()
         server = db.session.query(Server).first()
@@ -122,9 +122,9 @@ def wireguard_build_client_config(id):
 def wireguard_build_server_config():
     try:
         if (
-            db.session.bind.has_table("server")
-            or db.session.bind.has_table("global_settings")
-            or db.session.bind.has_table("clients")
+            db.metadata.tables.get("server") is not None
+            or db.metadata.tables.get("global_settings") is not None
+            or db.metadata.tables.get("clients") is not None
         ) is False:
             current_app.logger.warning("Please to set your server. Tables not found")
             return
@@ -158,7 +158,10 @@ def wireguard_status():
             if key == "transfer":
                 result = re.match(r"^(.*) (.*) received, (.*) (.*) sent$", val)
                 section.update(
-                    {"received_bytes": f"{result[1]} {result[2]}", "transmit_bytes": f"{result[3]} {result[4]}"}
+                    {
+                        "received_bytes": f"{result[1]} {result[2]}",
+                        "transmit_bytes": f"{result[3]} {result[4]}",
+                    }
                 )
             if key == "latest handshake":
                 section.update({"connected": True})

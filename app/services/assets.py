@@ -1,6 +1,8 @@
-from flask_assets import Bundle, Filter
-from webassets.filter import get_filter
+"""Use Flask-Asssets for build and minified css and js."""
 import re
+
+from flask_assets import Bundle, Environment, Filter
+from webassets.filter import get_filter
 
 
 class ConcatFilter(Filter):
@@ -71,3 +73,10 @@ js_custom = Bundle("../app/custom/js/custom.js", filters="rjsmin", output="custo
 css_custom = Bundle(
     "../app/custom/css/custom.css", filters="cssmin", output="custom.css"
 )
+
+# Register Assets
+assets = Environment()
+assets.register("css_custom", css_custom)
+assets.register("css_main", css_main)
+assets.register("js_custom", js_custom)
+assets.register("js_main", js_main)

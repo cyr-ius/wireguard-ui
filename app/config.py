@@ -4,7 +4,7 @@ basedir = os.path.abspath(os.path.abspath(os.path.dirname(__file__)))
 
 # GENERAL SETTINGS
 SITE_NAME = "Wireguard UI"
-WUI_VERSION = "1.1"
+WUI_VERSION = "1.2"
 
 # ADMIN
 FLASK_ADMIN_SWATCH = "cerulean"

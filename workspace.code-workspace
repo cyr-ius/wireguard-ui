@@ -5,9 +5,6 @@
 	"settings": {
 		"cSpell.enabled": true,
 		"editor.formatOnSave": true,
-		"python.linting.flake8Args": [
-			"--ignore=E501,D100,D101,D102,D103"
-		],
 		"liveSassCompile.settings.formats": [{
 			"format": "expanded",
 			"extensionName": ".css",
@@ -109,6 +106,13 @@
 			"wtforms",
 			"xlink",
 			"znmgnx"
+		],
+		"editor.defaultFormatter": "ms-python.black-formatter",
+		"flake8.args": [
+			"--ignore=E501,D100,D101,D102,D103,W503"
+		],
+		"pylint.args": [
+			"--disable=E0402,C0116"
 		]
 	}
 }

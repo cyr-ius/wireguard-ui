@@ -4,7 +4,13 @@
 <form  action="{{ url_for_security('login') }}"  method="POST"  name="login_user_form"  novalidate>
   {{ login_user_form.hidden_tag() }}
   <div class="input-group mb-3">
-    {{ render.field(login_user_form.email, placeholder="Email or account") }}
+    {% if "email" in identity_attributes %}
+    {{ render.field(login_user_form.email, placeholder="Email") }}
+    {%endif%}
+    {% if login_user_form.username and "username" in identity_attributes %}
+      {% if "email" in identity_attributes %}{{ _fsdomain("or") }}{% endif %}
+      {{ render.field(login_user_form.username, placeholder="Account") }}
+     {% endif %}
   </div>
   <div class="input-group mb-3">
     {{ render.field(login_user_form.password) }}
