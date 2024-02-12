@@ -1,4 +1,4 @@
-version: "3.6"
+version: "3.8"
 services:
   wireguard:
     image: wireguardui:latest
@@ -10,13 +10,10 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
       - SALT=123456789
       - SECRET_KEY=123456789
     ports:
-      - 51820:51820/udp
+      # - 51820:51820/udp
       - 8000:8000/tcp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1

@@ -8,8 +8,6 @@ ARG WIREGUARDUI_RELEASE
 LABEL build_version="version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="cyr-ius"
 
-EXPOSE 8000
-
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -31,6 +29,9 @@ COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 WORKDIR /app
-COPY . /app
+COPY app /app/app
+COPY migrations /app/migrations
 
+EXPOSE 8000/tcp
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn","app:create_app()"]

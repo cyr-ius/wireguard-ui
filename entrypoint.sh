@@ -1,16 +1,16 @@
 #!/bin/sh
+set -euo pipefail
+cd /app
+ls -al /app/*
+GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-120}"
+GUNICORN_WORKERS="${GUNICORN_WORKERS:-2}"
+GUNICORN_LOGLEVEL="${GUNICORN_LOGLEVEL:-info}"
+BIND_ADDRESS="${BIND_ADDRESS:-0.0.0.0:8000}"
 
-# Database
-dbm="/app/database/migration"
-[ -d "$dbm" ] || flask db init --directory $dbm
-flask db migrate --directory $dbm
-flask db upgrade --directory $dbm
-
-# Assets
-flask assets build
-
-# Static ressources
-mkdir -p ./static/img
-cp -Rv ./app/custom/img ./static
-
-exec gunicorn --bind 0.0.0.0:8000 --workers 2 'app:create_app()' "$@"
+GUNICORN_ARGS="-t ${GUNICORN_TIMEOUT} --workers ${GUNICORN_WORKERS} --bind ${BIND_ADDRESS} --log-level ${GUNICORN_LOGLEVEL}"
+if [ "$1" == gunicorn ]; then
+    /bin/sh -c "flask db upgrade"
+    exec "$@" $GUNICORN_ARGS
+else
+    exec "$@"
+fi
