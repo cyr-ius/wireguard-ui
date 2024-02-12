@@ -2,54 +2,44 @@
 {% extends "base.html" %}
 {% set active_page = "settings" %}
 {% block title %}<title>Global settings - {{ SITE_NAME }}</title>{% endblock %}
-{% block content_header %}
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <ol class="breadcrumb">
-        <li><a href="{{ url_for('index.clients') }}"><i class="bi bi-gear"></i> Global settings</a></li>
-      </ol>
-    </section>
-{% endblock %}
 {% block content %}
 <!-- Main content -->
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-6">
-                <form role="form" id="frm_global_settings" name="frm_global_settings" method="POST" novalidate>
-                {{ form.hidden_tag() }}                      
-                <div class="card card-primary">
-                    <div class="card-header"><span class="fs-5">Wireguard Global Settings</span></div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            {{ form.endpoint_address.label(class_="control-label") }}
-                            <div class="input-group input-group">
-                                {{ form.endpoint_address(class_="form-control is-invalid" if form.endpoint_address.errors else "form-control") }}
-                                <span class="input-group-append">
-                                    <button type="button" class="btn btn-light btn-flat" data-bs-toggle="modal"
-                                        data-bs-target="#modal_endpoint_address_suggestion"><i class="nav-icon bi bi-magic"></i> Suggest</button>
-                                </span>
-                            </div>
-                            <div class="invalid-feedback">{{ form.endpoint_address.errors[0] }}</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <form role="form" id="frm_global_settings" name="frm_global_settings" method="POST" novalidate>
+            {{ form.hidden_tag() }}                      
+            <div class="card card-primary">
+                <div class="card-header"><span class="fs-5">Wireguard Global Settings</span></div>
+                <div class="card-body">
+                    <div class="form-group">
+                        {{ form.endpoint_address.label(class_="control-label") }}
+                        <div class="input-group input-group">
+                            {{ form.endpoint_address(class_="form-control is-invalid" if form.endpoint_address.errors else "form-control") }}
+                            <span class="input-group-append">
+                                <button type="button" class="btn btn-light btn-flat" data-bs-toggle="modal"
+                                    data-bs-target="#modal_endpoint_address_suggestion"><i class="nav-icon bi bi-magic"></i> Suggest</button>
+                            </span>
                         </div>
-                        <div class="form-group">{{ render.field_with_label_tagin(form.dns_servers)}}</div>
-                        <div class="form-group">{{ render.field_with_label(form.mtu)}}</div>
-                        <div class="form-group">{{ render.field_with_label(form.persistent_keepalive)}}</div>                        
-                        <div class="form-group">{{ render.field_with_label(form.config_file_path)}}</div>
+                        <div class="invalid-feedback">{{ form.endpoint_address.errors[0] }}</div>
                     </div>
-                    <div class="card-footer">
-                    {% if g.first_run is false %}
-                    {{ render.button(form.submit, class="btn btn-primary float-right") }}
-                    {% else %}
-                    {{ render.button(form.submit, class="btn btn-primary float-right", value="Create") }}
-                    {% endif %}
-                    </div>
+                    <div class="form-group">{{ render.field_with_label_tagin(form.dns_servers)}}</div>
+                    <div class="form-group">{{ render.field_with_label(form.mtu)}}</div>
+                    <div class="form-group">{{ render.field_with_label(form.persistent_keepalive)}}</div>                        
+                    <div class="form-group">{{ render.field_with_label(form.config_file_path)}}</div>
                 </div>
-                </form>
+                <div class="card-footer">
+                {% if g.first_run is false %}
+                {{ render.button(form.submit, class="btn btn-primary float-right") }}
+                {% else %}
+                {{ render.button(form.submit, class="btn btn-primary float-right", value="Create") }}
+                {% endif %}
+                </div>
             </div>
+            </form>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}
 {% block extramodals %}
 <div class="modal fade" id="modal_endpoint_address_suggestion">

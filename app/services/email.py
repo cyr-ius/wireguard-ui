@@ -1,11 +1,11 @@
 import traceback
-from flask_mail import Message
+
 from flask import current_app, render_template
+from flask_mail import Message
 
-from ..models import Setting, Clients
-
-from ..utils import wireguard_build_client_config
-from .. import mail
+from ..helpers.wireguard import wireguard_build_client_config
+from ..models import Clients, Setting
+from .base import mail
 
 
 def send_account_configuration(id, user_email):

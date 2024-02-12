@@ -1,65 +1,55 @@
 {% extends "base.html" %}
 {% set active_page = "server" %}
 {% block title %}<title>Wireguard Server - {{ SITE_NAME }}</title>{% endblock %}
-{% block content_header %}
-<!-- Content Header (Page header) -->
-<section class="content-header">
-    <ol class="breadcrumb">
-    <li><a href="{{ url_for('index.server') }}"><i class="bi bi-hdd-stack-fill"></i> Wireguard Server</a></li>
-    </ol>
-</section>
-{% endblock %}
 {% block content %}
  <!-- Main content -->
-<section class="content">
-    <div class="container-fluid">
-        <form role="form" id="frm_server_interface" name="frm_server_interface" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card card-primary">
-                    <div class="card-header"><span class="fs-5">Interface</span></div>
-                        <div class="card-body">  
-                            <div class="form-group">{{ render.field_with_label(form.address)}}</div>
-                            <div class="form-group">{{ render.field_with_label(form.listen_port)}}</div>
-                            <div class="form-group">{{ render.field_with_label(form.postup)}}</div>
-                            <div class="form-group">{{ render.field_with_label(form.postdown)}}</div>
-                        </div>
-                        <div class="card-footer">
-                        {% if g.first_run is false %}
-                        {{ render.button(form.submit, class="btn btn-primary float-right") }}
-                        {% else %}
-                        {{ render.button(form.submit, class="btn btn-primary float-right", value="Create") }}
-                        {% endif %}
-                        </div>
-                    </form> 
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card card-secondary">
-                    <div class="card-header"><span class="fs-5">Keys pair</span></div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                {{ form.private_key.label(class_="control-label") }} 
-                                <div class="input-group">
-                                    {{ form.private_key(class_="form-control") }}
-                                    <div class="invalid-feedback">{{ form.private_key.errors[0] }}</div>   
-                                    <span class="input-group-append">
-                                        <button type="button" class="btn btn-danger btn-flat" id="btn_show_private_key">Show</button>
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="form-group">{{ render.field_with_label(form.public_key)}} </div>
-                        </div>
-                        <div class="card-footer">
-                            <button type="button" class="btn btn-secondary float-right" data-bs-toggle="modal" data-bs-target="#modal_keypair_confirmation">Generate</button>
-                        </div>
-                </div>
+<div class="container">
+    <form role="form" id="frm_server_interface" name="frm_server_interface" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-primary">
+                <div class="card-header"><span class="fs-5">Interface</span></div>
+                    <div class="card-body">  
+                        <div class="form-group">{{ render.field_with_label(form.address)}}</div>
+                        <div class="form-group">{{ render.field_with_label(form.listen_port)}}</div>
+                        <div class="form-group">{{ render.field_with_label(form.postup)}}</div>
+                        <div class="form-group">{{ render.field_with_label(form.postdown)}}</div>
+                    </div>
+                    <div class="card-footer">
+                    {% if g.first_run is false %}
+                    {{ render.button(form.submit, class="btn btn-primary float-right") }}
+                    {% else %}
+                    {{ render.button(form.submit, class="btn btn-primary float-right", value="Create") }}
+                    {% endif %}
+                    </div>
+                </form> 
             </div>
         </div>
-        </form>
+        <div class="col-md-6">
+            <div class="card card-secondary">
+                <div class="card-header"><span class="fs-5">Keys pair</span></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            {{ form.private_key.label(class_="control-label") }} 
+                            <div class="input-group">
+                                {{ form.private_key(class_="form-control") }}
+                                <div class="invalid-feedback">{{ form.private_key.errors[0] }}</div>   
+                                <span class="input-group-append">
+                                    <button type="button" class="btn btn-danger btn-flat" id="btn_show_private_key">Show</button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group">{{ render.field_with_label(form.public_key)}} </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-secondary float-right" data-bs-toggle="modal" data-bs-target="#modal_keypair_confirmation">Generate</button>
+                    </div>
+            </div>
+        </div>
     </div>
-</section>
+    </form>
+</div>
 {% endblock%}
 {% block extramodals%}
 <div class="modal fade" id="modal_keypair_confirmation">

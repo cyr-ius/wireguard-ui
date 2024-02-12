@@ -1,11 +1,11 @@
 <!-- Sidebar -->
-<nav class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
-    <a id="brand" href="/" class="d-flex align-items-center py-1  mb-md-0 me-md-auto text-white text-decoration-none">
-    <img id="logo" class="d-inline-block me-3" src="{{ url_for('static', filename='img/logo.png') }}" width="28">
-        <span class="fs-6 d-sm-inline">{{ SITE_NAME }}</span>
+<nav class="d-flex flex-column text-white min-vh-100 align-items-justify px-3">
+    <a id="brand" href="/" class="pt-2  text-white text-decoration-none">
+    <img id="logo" class="me-3" src="{{ url_for('static', filename='img/logo.png') }}" width="28">
+        <span>{{ SITE_NAME }}</span>
     </a>
     <hr style="width:100%;" />
-    <ul class="nav nav-pills flex-column mb-auto align-items-center align-items-sm-start" id="menu">
+    <ul class="nav nav-pills flex-column mb-auto" id="menu">
         <li class="nav-item">
             <a href="{{ url_for("index.status")}}" class="nav-link align-middle px-0 text-white {% if active_page == "status" %}active{%endif%}">
                 <i class="fs-4 bi-newspaper"></i><span class="ms-1 d-sm-inline">Status</span>
@@ -32,38 +32,39 @@
         {% endif%}
         {% if current_user.has_role('dba') %}
         <li>
-            <a href="#submenu1" data-bs-toggle="collapse" class="nav-link px-0 align-middle text-white">
-                <i class="fs-4 bi-speedometer2"></i> <span class="ms-1 d-sm-inline">Administration</span> </a>
-            <ul class="collapse nav flex-column ms-1" id="submenu1" data-bs-parent="#menu">
+            <a href="#submenu" data-bs-toggle="collapse" class="nav-link px-0 align-middle text-white">
+                <i class="fs-4 bi-speedometer2"></i><span class="ms-1 d-sm-inline">Administration</span></a>
+            <ul class="collapse nav flex-column ms-1" id="submenu" data-bs-parent="#menu">
                 {% import 'admin/layout.html' as layout with context -%}
                 {{ layout.menu() }}
             </ul>
         </li>   
         {% endif%}     
     </ul>
-    <hr>
-    <div class="dropdown dropup pb-4">
-        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-            {%if current_user.gravatar_url %}
-            <img src="{{current_user.gravatar_url}}" alt="hugenerd" width="30" height="30" class="rounded-circle">
-            {% else %}
-            <i class="bi-person" style="font-size:30px"></i>
-            {% endif %}
-            <span class="d-none d-sm-inline mx-1">{{ current_user.username}}</span>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
-            <li><a class="dropdown-item" href="{{ url_for('user.profile')}}">Profile</a></li>
-            <li><a class="dropdown-item" href="{{ url_for_security('change_password')}}">Change Password</a></li>
-            <li><a class="dropdown-item" href="{{ url_for_security('two_factor_setup')}}">TOTP</a></li>
-            {% if current_user.has_role('admin')%}
-            <li><a class="dropdown-item" href="{{ url_for('user.advanced')}}">Advanced settings</a></li>
-            {% endif %}
-            <li>
-                <hr class="dropdown-divider">
-            </li>
-            <li><a class="dropdown-item" onclick="location.href='{{ url_for_security('logout') }}';">Sign out</a></li>
-        </ul>
-    </div>
+    <ul class="navbar-nav">
+        <li class="nav-item dropdown dropup">
+            <a class="nav-link  dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                {%if current_user.gravatar_url %}
+                <img src="{{current_user.gravatar_url}}" alt="hugenerd" width="30" height="30" class="rounded-circle">
+                {% else %}
+                <i class="bi-person" style="font-size:30px"></i>
+                {% endif %}
+                <span>{{ current_user.username}}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark">
+                <li><a class="dropdown-item" href="{{ url_for('user.profile')}}">Profile</a></li>
+                <li><a class="dropdown-item" href="{{ url_for_security('change_password')}}">Change Password</a></li>
+                <li><a class="dropdown-item" href="{{ url_for_security('two_factor_setup')}}">TOTP</a></li>
+                {% if current_user.has_role('admin')%}
+                <li><a class="dropdown-item" href="{{ url_for('user.advanced')}}">Advanced settings</a></li>
+                {% endif %}
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" onclick="location.href='{{ url_for_security('logout') }}';">Sign out</a></li>
+            </ul>
+        </li>
+    </ul>
     <!-- /.sidebar-menu -->
 </nav>
 <!-- /.sidebar -->

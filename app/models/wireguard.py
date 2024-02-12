@@ -2,8 +2,22 @@ from datetime import datetime
 
 from flask import current_app
 
-from .. import db
-from .utils import Serializer
+from ..helpers.utils import Serializer
+from .base import db
+
+
+class Server(db.Model):
+    __tablename__ = "server"
+    address = db.Column(db.String, nullable=False, primary_key=True)
+    listen_port = db.Column(db.Integer, nullable=False)
+    private_key = db.Column(db.String, nullable=False)
+    public_key = db.Column(db.String, nullable=False)
+    postup = db.Column(db.String, nullable=True)
+    postdown = db.Column(db.String, nullable=True)
+    update_at = db.Column(db.DateTime, default=datetime.now)
+
+    def __repr__(self):
+        return "<Server {0}r>".format(self.name)
 
 
 class Clients(db.Model, Serializer):

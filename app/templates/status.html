@@ -1,54 +1,44 @@
 
 {% extends "base.html" %}
 {% set active_page = "status" %}
-{% block extrameta%}<meta http-equiv="refresh" content="10">{% endblock%}
+{# {% block extrameta%}<meta http-equiv="refresh" content="10">{% endblock%} #}
 {% block title %}<title>Status - {{ SITE_NAME }}</title>{% endblock %}
-{% block content_header %}
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <ol class="breadcrumb">
-        <li><a href="{{ url_for('index.clients') }}"><i class="bi bi-newspaper"></i> Status</a></li>
-      </ol>
-    </section>
-{% endblock %}
 {% block content %}
  <!-- Main content -->
-<section class="content">
-    <div class="container-fluid">
-        {% if error %}
-        <div class="alert alert-warning" role="alert">{{error}}</div>
-        {% endif %}
-        
-            <table class="table table-sm">
-                <caption>List of connected peers for device with name</caption>
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Public Key</th>
-                  <th scope="col">ReceiveBytes</th>
-                  <th scope="col">TransmitBytes</th>
-                  <th scope="col">Connected (Approximation)</th>
-                  <th scope="col">LastHandshakeTime</th>
-                </tr>
-              </thead>
-              <tbody>
-              {% for peer in peers %}
-              <tr {% if peer.connected %} class="table-success" {% endif %}>
-                <td><a href="{{url_for('index.clients')}}">{{ peer.idx }}</a></td>
-                <td>{{ peer.name }}</td>
-                <td>{{ peer.email }}</td>
-                <td>{{ peer.public_key }}</td>
-                <td>{{ peer.received_bytes }}</td>
-                <td>{{ peer.transmit_bytes }}</td>
-                <td>{{ peer.connected }}</td>
-                <td>{{ peer.last_handshake_time }}</td>
-               </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-       
+<div class="container">
+    {% if error %}
+    <div class="alert alert-warning" role="alert">{{error}}</div>
+    {% endif %}
+    <div class="table-responsive">
+        <table class="table table-sm">
+        <caption>List of connected peers for device with name</caption>
+        <thead class="table-light">
+            <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Public Key</th>
+            <th scope="col">ReceiveBytes</th>
+            <th scope="col">TransmitBytes</th>
+            <th scope="col">Connected (Approximation)</th>
+            <th scope="col">LastHandshakeTime</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for peer in peers %}
+        <tr {% if peer.connected %} class="table-success" {% endif %}>
+            <th scope="row"><a href="{{url_for('index.clients')}}">{{ peer.idx }}</a></th>
+            <td>{{ peer.name }}</td>
+            <td>{{ peer.email }}</td>
+            <td>{{ peer.public_key }}</td>
+            <td>{{ peer.received_bytes }}</td>
+            <td>{{ peer.transmit_bytes }}</td>
+            <td>{{ peer.connected }}</td>
+            <td>{{ peer.last_handshake_time }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
     </div>
-</section>
+</div>
 {% endblock %}

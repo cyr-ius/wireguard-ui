@@ -1,22 +1,11 @@
 {% extends "base.html" %}
 {% set active_page = "clients" %}
 {% block title %}<title>Clients - {{ SITE_NAME }}</title>{% endblock %}
-{% block content_header %}
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <ol class="breadcrumb">
-        <li><a href="{{ url_for('index.clients') }}"><i class="bi bi-people"></i> Status</a></li>
-      </ol>
-    </section>
-{% endblock %}
 {% block content %}
- <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
-            <!-- <h5 class="mt-4 mb-2">Wireguard Clients</h5> -->
-            <div class="row" id="client-list">
-            {% for client in clients_list %}
-            <div id="client_{{client.id}}" class="card p-0 m-1" style="max-width: 480px;">
+<div class="container">
+    <div class="row" id="client-list">
+        {% for client in clients_list %}
+        <div id="client_{{client.id}}" class="card p-0 m-1" style="max-width: 480px;">
             <div class="overlay" id="paused_{{client.id}}" {% if client.enabled %} style="position:absolute;visibility: hidden;" {%endif%}><i class="paused-client bi-play-btn-fill" style="font-size: 5rem;" onclick="resumeClient('{{client.id}}')"></i></div>
             <div class="row g-0">
                 <div class="card-header"><h5><i class="bi bi-person"></i> {{client.name}}</h5></div>
@@ -61,15 +50,12 @@
                         </div>   
                     </div>                    
                 </div>
-
-            </div>
-            </div>
-            {% endfor %}
             </div>
         </div>
-    </section>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
-
 {% block extramodals%}
 {% include "clients_modals.html"%}
 {% endblock %}

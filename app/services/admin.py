@@ -1,8 +1,8 @@
 from flask_admin import AdminIndexView
 from flask_admin.contrib.sqla import ModelView
-
-from .handle import handle_access_forbidden
 from flask_login import current_user
+
+from ..blueprints.base import handle_access_forbidden
 
 
 class GlobalView(ModelView):
