@@ -1,7 +1,9 @@
-.venv
-.vscode
-db.sqlite3
 __pycache__
+*_cache
+.webassets-cache
+.venv
+*.code-workspace
+.vscode
 flask_session
 database
 static
