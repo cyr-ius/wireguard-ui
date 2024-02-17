@@ -62,10 +62,10 @@ class KeyPair(Resource):
             abort(422, "Error to generate key pair")
 
 
-@api.route("/machine-ips", endpoint="suggest_computer_ips")
+@api.route("/machine-ips")
 # @auth_required()
 # @permissions_accepted("admin-read")
-class MachineIPAddresses(Resource):
+class SuggestHostIPAddresses(Resource):
     """MachineIPAddresses handler to get local interface ip addresses"""
 
     @api.marshal_list_with(ip_addresses)
@@ -90,7 +90,7 @@ class MachineIPAddresses(Resource):
 @api.response(404, "SuggestNotFound", message)
 @api.route("/suggest-client-ips")
 # @auth_required()
-class SuggestIPAllocation(Resource):
+class SuggestClientIPAddress(Resource):
     """Suggest IP Allocation handler to get the list of ip address for client"""
 
     @api.marshal_with(suggest_client_ip)
@@ -110,7 +110,7 @@ class SuggestIPAllocation(Resource):
 
 @api.response(204, "Success")
 @api.response(422, "Error", message)
-@api.route("/set-status/<int:id>", endpoint="status")
+@api.route("/set-status/<int:id>")
 # @auth_required()
 # @permissions_required("admin-write", "admin-read")
 class ClientStatus(Resource):
@@ -179,7 +179,7 @@ class Client(Resource):
 
 @api.response(204, "Success")
 @api.response(422, "Error", message)
-@api.route("/service", endpoint="service")
+@api.route("/service")
 # @auth_required()
 # @permissions_required("admin-write", "admin-read")
 class Service(Resource):
@@ -222,10 +222,10 @@ class Config(Resource):
 
 @api.response(204, "Success")
 @api.response(422, "Error", message)
-@api.route("/email-client/<int:id>", endpoint="email")
+@api.route("/email-client/<int:id>")
 # @auth_required()
 # @permissions_required("admin-write", "admin-read")
-class EmailClient(Resource):
+class SendEmail(Resource):
     """// EmailClient handler to sent the configuration via email"""
 
     def post(self, id: int):
@@ -236,36 +236,9 @@ class EmailClient(Resource):
         except Exception as error:
             abort(422, str(error))
 
-
-@api.response(422, "Error", message)
-@api.route("/version")
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
-class Version(Resource):
-    @api.marshal_with(version)
-    def get(self):
-        try:
-            response = requests.get(ca.config["GIT_URL"], timeout=ca.config["TIMEOUT"])
-            response.raise_for_status()
-            rjson = response.json()
-            rjson["app_version"] = rjson.get("tag_name").replace("v", "")
-            current_version = ca.config["VERSION"].replace("v", "")
-            rjson.update(
-                {
-                    "current_version": current_version,
-                    # "update_available": semver.compare(
-                    #     rjson["app_version"], current_version
-                    # ),
-                }
-            )
-            return rjson
-        except requests.RequestException as error:
-            abort(422, str(error))
-
-
 @api.response(204, "Success")
 @api.response(422, "Error", message)
-@api.route("/setting", endpoint="setting")
+@api.route("/setting")
 # @auth_required()
 # @permissions_required("admin-write", "admin-read")
 class Setting(Resource):

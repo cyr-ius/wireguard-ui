@@ -56,7 +56,7 @@ function updateIPAllocationSuggestion() {
     success = function(data) {
         $("#allocated_ips").val(data["ip_address"])
     }
-    $.queryData({method: 'GET', url: '{{url_for("api.wireguard_suggest_ip_allocation")}}', success: success })
+    $.queryData({method: 'GET', url: '{{url_for("api.wireguard_suggest_client_ip_address")}}', success: success })
 }
 
 // New Client modal event

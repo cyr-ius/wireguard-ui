@@ -67,7 +67,7 @@
         $('#frm_global_settings').submit(function(e){
             e.preventDefault();
             let data = $(this).serializeObject({"checkboxesAsBools":true});
-            $.queryData({method: 'POST', url: '{{url_for("api.setting")}}', data:data})
+            $.queryData({method: 'POST', url: '{{url_for("api.wireguard_setting")}}', data:data})
         });
 
         // Endpoint IP suggestion modal event
@@ -83,7 +83,7 @@
                 }); 
                 document.getElementById("btn_use_ip").disabled = false;
             }
-            $.queryData({method: 'GET', url: '{{url_for("api.suggest_computer_ips")}}', success:success})
+            $.queryData({method: 'GET', url: '{{url_for("api.wireguard_suggest_host_ip_addresses")}}', success:success})
         });
 
         // Use selected IP address from suggestion form

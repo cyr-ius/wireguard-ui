@@ -49,6 +49,6 @@ $("#apply_wg_service_confirm").click(function (event) {
             location.reload()
         }
     };
-    $.queryData({url: '{{ url_for("api.service") }}', data: data, success: success });
+    $.queryData({url: '{{ url_for("api.wireguard_service") }}', data: data, success: success });
 }); 
 </script>

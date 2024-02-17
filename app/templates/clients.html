@@ -63,7 +63,7 @@
 <script>
     function setClientStatus(clientID, status) {
         let data = {"status": status};
-        $.queryData({url: '{{url_for("api.status", id=0)}}'.replace(0, clientID), data:data})
+        $.queryData({url: '{{url_for("api.wireguard_client_status", id=0)}}'.replace(0, clientID), data:data})
     }
 
     function resumeClient(clientID) {
@@ -167,7 +167,7 @@
         success = function(data) {
             $("#modal_email_client").modal('hide');
         }        
-        $.queryData({method: 'POST', url: '{{url_for("api.email", id=0)}}'.replace(0,form.client_id.value), data:data, success: success})
+        $.queryData({method: 'POST', url: '{{url_for("api.wireguard_send_email", id=0)}}'.replace(0,form.client_id.value), data:data, success: success})
     }
 
     // submitHandler
