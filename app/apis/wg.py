@@ -3,8 +3,6 @@ import ipaddress
 from ipaddress import IPv4Network
 
 import netifaces
-import requests
-from flask import current_app as ca
 from flask_restx import Namespace, Resource, abort
 
 from ..forms.forms import frm_client, frm_global_settings, frm_server_interface
@@ -235,6 +233,7 @@ class SendEmail(Resource):
             return "", 204
         except Exception as error:
             abort(422, str(error))
+
 
 @api.response(204, "Success")
 @api.response(422, "Error", message)
