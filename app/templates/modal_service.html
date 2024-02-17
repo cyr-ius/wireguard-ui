@@ -1,0 +1,54 @@
+<!-- Modal service -->
+<div class="modal fade" id="modal_wg_service">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-6 shadow">
+      <div class="modal-header border-bottom-0">
+        <h5 class="modal-title">Wireguard service</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>        
+      </div>
+      <div class="modal-body"></div>
+      <div id="modal_wg_service_alert"></div>
+      <div class="modal-footer flex-nowrap p-0">
+        <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 border-right" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 btn-danger" id="apply_wg_service_confirm" >Apply</button>
+        <input class="modal-service" type="hidden" name="service">
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// Wireguard service modal event
+$("#modal_wg_service").on('shown.bs.modal', function (event) {
+    let modal = $(this);
+    var button = event.relatedTarget
+    var service = button.getAttribute('data-bs-service-status') 
+    modal.find('#modal_wg_service_alert').children().remove()
+    modal.find('.modal-service').val(service)
+    var modalTitle = modal.find('.modal-title')
+    var modalBodyInput = modal.find('.modal-body')
+    if (service == 'stop') {
+        modalTitle.html("Stop Wireguard")
+        modalBodyInput.html("Are you sure to stop the service ?")  
+    } else if (service == 'start') {
+        modalTitle.html("Start Wireguard service")
+        modalBodyInput.html("Are you sure to start the service ?")                  
+    } else if (service == 'restart'){
+        modalTitle.html("Restart Wireguard")
+        modalBodyInput.html("Are you sure to restart the service ?")    
+    }
+});
+
+// Button service stop/start/restart
+$("#apply_wg_service_confirm").click(function (event) {
+    let service = $('#modal_wg_service .modal-service').val();
+    let data = {"state": service};
+    success = function(data) {
+        if (service == 'restart') {
+            $("#modal_wg_service").modal('hide');
+        } else {
+            location.reload()
+        }
+    };
+    $.queryData({url: '{{ url_for("api.service") }}', data: data, success: success });
+}); 
+</script>

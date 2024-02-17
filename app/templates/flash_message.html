@@ -1,0 +1,13 @@
+<div class="position-relative bd-toasts" role="status" aria-live="polite" aria-atomic="true">
+    <div class="toast-container position-absolute bottom-0 end-0 p-3">
+        {% for message in get_flashed_messages(with_categories=true) %}
+        <div class="toast">
+            <div class="toast-header {{ category }}">
+                <strong class="me-auto">Flash message</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">{{message}}</div>
+        </div>
+        {% endfor %} 
+    </div>
+</div>

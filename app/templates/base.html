@@ -58,24 +58,26 @@
         {% endblock container %}
         <!-- Toast box -->
         {% block taost %}
-        {% include "base_toast.html" %}
+        {% include "toast.html" %}
+        {% include "flash_message.html"%}
         {% endblock %}
         <!-- Extra toast -->
         {% block extratoasts %}{% endblock %}
-        <!-- Modals-->
-        {% block modals %}
-        {% include "base_modals.html" %}
-        {% endblock %}
-        <!-- Extra modals -->
-        {% block extramodals %}{% endblock %}
         <!-- Scripts -->
         {% block scripts %}
         {% assets "js_main" -%}<script type="text/javascript" src="{{ ASSET_URL }}"></script>{%- endassets %}
         {% assets "js_validation" -%}<script type="text/javascript" src="{{ ASSET_URL }}"></script>{%- endassets %}
         {% assets "js_custom" -%}<script type="text/javascript" src="{{ ASSET_URL }}"></script>{%- endassets %}
         {% endblock %}
+        <!-- Modals-->
+        {% block modals %}
+        {% include "modal_new_client.html" %}
+        {% include "modal_service.html" %}
+        {% endblock %}
+        <!-- Extra modals -->
+        {% block extramodals %}{% endblock %}        
         <!-- Extra scripts -->
-        {% block extrascripts %}{% endblock %}  
+        {% block extrascripts %}{% endblock %}          
     </body>
     {% endblock %}
 </html>

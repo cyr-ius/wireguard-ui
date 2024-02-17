@@ -1,0 +1,113 @@
+<!-- Modal new client -->
+<div class="modal fade" id="modal_new_client">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content rounded-6 shadow">
+    <form name="frm_new_client" id="frm_new_client">
+      <div class="modal-header border-bottom-0">
+        <h5 class="modal-title">New client</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>        
+      </div>
+      <div class="modal-body py-0">
+          {{ form_client.hidden_tag() }}
+          <div class="modal-body">
+            <div class="form-group">
+              {{ render.field_with_label(form_client.name) }}
+            </div>
+            <div class="form-group">
+              {{ render.field_with_label(form_client.email) }}
+            </div>
+            <div class="form-group">
+              {{ render.field_with_label(form_client.allocated_ips)}}
+            </div>
+            <div class="form-group">
+              {{ render.field_with_label_tagin(form_client.allowed_ips)}}
+            </div>
+            <div class="mt-2">
+              {{ render.field_switch(form_client.use_server_dns)}}
+            </div>
+            <div class="mt-2">
+            {{ render.field_switch(form_client.enabled)}}
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer flex-nowrap p-0">
+        <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 border-right" data-bs-dismiss="modal">Cancel</button>
+        {{ render.button(form_client.submit, class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 ") }}
+      </div>
+    </form>      
+    </div>
+  </div>
+</div>
+<script>
+// submitNewClient function for new client form submission
+function submitNewClient() {
+    let data = $('#frm_new_client').serializeObject({"checkboxesAsBools":true})
+    success = function(data) {
+        $("#modal_new_client").modal('hide');
+        if (window.location.pathname === "/clients") {
+            location.reload();
+        }
+    }
+    $.queryData({method: 'POST', url: '{{url_for("api.clients")}}', data:data, success: success })
+}
+
+// updateIPAllocationSuggestion function for automatically fill the IP Allocation input with suggested ip addresses
+function updateIPAllocationSuggestion() {
+    success = function(data) {
+        $("#allocated_ips").val(data["ip_address"])
+    }
+    $.queryData({method: 'GET', url: '{{url_for("api.wireguard_suggest_ip_allocation")}}', success: success })
+}
+
+// New Client modal event
+$("#modal_new_client").on('shown.bs.modal', function (e) {
+    $("#name").val("");
+    $("#email").val("");
+    updateIPAllocationSuggestion();
+});
+
+$(document).ready(function () {
+
+	$.validator.setDefaults({
+		submitHandler: function () {
+		    submitNewClient();
+		}
+	});
+	   
+	// New client form validation
+	$("#frm_new_client").validate({
+	  rules: {
+		  name: {
+		      required: true,
+		  },
+		  email: {
+		      required: true,
+		      email: true,
+		  },
+	  },
+	  messages: {
+		  name: {
+		      required: "Please enter a name"
+		  },
+		  email: {
+		      required: "Please enter an email address",
+		      email: "Please enter a valid email address"
+		  },
+	  },
+	  errorElement: 'span',
+	  errorPlacement: function (error, element) {
+		  error.addClass('invalid-feedback');
+		  element.closest('.form-group').append(error);
+	  },
+	  highlight: function (element, errorClass, validClass) {
+		  $(element).addClass('is-invalid');
+	  },
+	  unhighlight: function (element, errorClass, validClass) {
+		  $(element).removeClass('is-invalid');
+	  }
+	});
+
+  // Display tagin
+	for (const el of document.querySelectorAll('.tagin')) {tagin(el)} 
+});
+</script>

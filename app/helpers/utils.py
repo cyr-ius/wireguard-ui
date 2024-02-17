@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
+from datetime import date, datetime
 
 from requests import get
 from sqlalchemy.inspection import inspect
@@ -35,8 +36,10 @@ def broadcast_address(network) -> str:
 
 class Serializer(object):
     def serialize(self):
-        return {c: getattr(self, c) for c in inspect(self).attrs.keys()}
+        return {c: self.serialize_date(getattr(self, c)) for c in inspect(self).attrs.keys()}
 
     @staticmethod
-    def serialize_list(lst):
-        return [m.serialize() for m in lst]
+    def serialize_date(obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        return obj

@@ -1,9 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SubmitField, BooleanField
+from wtforms import BooleanField, IntegerField, StringField, SubmitField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Email, NumberRange, Optional
 from wtforms.widgets import PasswordInput
+
 from .validators import CIDRList, IPAddressList, IPNetwork, IPNetworkList
+from .wtforms_button import ButtonField
 
 
 class frm_server_interface(FlaskForm):
@@ -122,3 +124,7 @@ class frm_user_profile(FlaskForm):
         render_kw={"placeholder": "URI"},
     )
     submit = SubmitField("Save")
+
+
+class frm_gravatar(FlaskForm):
+    generate = ButtonField("Generate")

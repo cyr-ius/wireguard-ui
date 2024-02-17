@@ -7,7 +7,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from flask_session import Session
 
-from . import blueprints, models, services
+from . import blueprints, models, services, apis
 from .forms.forms import frm_client
 from .helpers.utils import email_to_gravatar_url, show_all_attrs
 from .helpers.wireguard import WireguardError, wireguard_service
@@ -83,6 +83,7 @@ def create_app(config=None):
     app.jinja_env.filters["email_to_gravatar_url"] = email_to_gravatar_url
 
     # Load app's components
+    apis.init_app(app)
     blueprints.init_app(app)
     models.init_app(app)
     services.init_app(app)

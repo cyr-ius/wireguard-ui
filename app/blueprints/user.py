@@ -5,7 +5,8 @@ from flask_security import (
     permissions_required,
 )
 
-from ..forms.forms import frm_user_profile
+from ..forms.forms import frm_gravatar, frm_user_profile
+from ..helpers.utils import email_to_gravatar_url
 from ..helpers.wireguard import wireguard_state
 from ..models import Setting, User, db, is_first_run
 
@@ -38,8 +39,8 @@ def before_request():
 def profile():
     form = frm_user_profile()
     if request.method == "GET":
-        profile = User.query.filter_by(username=current_user.username).first()
-        form = frm_user_profile(obj=profile)
+        user = User.query.filter_by(username=current_user.username).first()
+        form = frm_user_profile(obj=user)
 
     if form.validate_on_submit():
         user = User.query.filter_by(username=current_user.username).first()
@@ -47,7 +48,7 @@ def profile():
         db.session.add(user)
         db.session.commit()
 
-    return render_template("profile_user.html", form=form)
+    return render_template("profile_user.html", form=form, gravatar=frm_gravatar())
 
 
 @user_bp.route("/advanced", methods=["GET", "POST"])
@@ -61,3 +62,16 @@ def advanced():
         "maintenance": bool(Setting().get("maintenance")),
     }
     return render_template("profile_adv.html", **dict)
+
+
+@user_bp.route("/gravatar", methods=["POST"])
+@auth_required()
+@permissions_required("admin-write")
+def gravatar():
+    gravatar_url = {}
+    gravatar = frm_gravatar()
+    if gravatar.validate_on_submit():
+        user = User.query.filter_by(username=current_user.username).first()
+        gravatar_url = email_to_gravatar_url(user.email)
+
+    return {"gravatar_url": gravatar_url}

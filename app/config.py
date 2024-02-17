@@ -5,6 +5,7 @@ basedir = os.path.abspath(os.path.abspath(os.path.dirname(__file__)))
 # GENERAL SETTINGS
 SITE_NAME = "Wireguard UI"
 WUI_VERSION = "1.2"
+GIT_URL = "https://api.github.com/repos/cyr-ius/wireguard-ui/releases/latest"
 
 # ADMIN
 FLASK_ADMIN_SWATCH = "cerulean"
@@ -68,3 +69,13 @@ USER_MAIL = os.getenv("USER_MAIL", "please_change_me@localhost")
 
 # WIREGUARD
 WIREGUARD_STARTUP = os.getenv("WIREGUARD_STARTUP", True)
+
+# IPTABLES DEFAULTS
+POSTUP = "iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
+POSTDOWN = "iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE"
+
+# API Swagger documentation
+SWAGGER_UI_DOC_EXPANSION = "list"
+SWAGGER_UI_OPERATION_ID = True
+SWAGGER_UI_REQUEST_DURATION = True
+RESTX_MASK_SWAGGER = False

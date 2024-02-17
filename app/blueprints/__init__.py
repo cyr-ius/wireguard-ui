@@ -1,5 +1,4 @@
 # Create app blueprints
-from .api import api_bp
 from .base import (
     handle_access_forbidden,
     handle_bad_gateway,
@@ -13,7 +12,6 @@ from .user import user_bp
 
 def init_app(app):
     """Init Blueprint."""
-    app.register_blueprint(api_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(user_bp)
 

@@ -73,43 +73,36 @@
 {% endblock %}
 {% block extrascripts %}
 <script>
+    $('#frm_server_interface').unbind();
+    $('#frm_server_interface').submit(function(e){
+        e.preventDefault();
+        let data = $(this).serializeObject({"checkboxesAsBools":true});
+        $.queryData({method: 'POST', url: '{{url_for("api.wireguard_server")}}', data:data})
+    });
+
     // Wireguard Key Pair generation confirmation button
-    $(document).ready(function () {
-        $("#btn_generate_confirm").click(function () {
-            $.ajax({
-                cache: false,
-                method: 'POST',
-                url: '/api/keypair',
-                dataType: 'json',
-                contentType: "application/json",
-                success: function(responseJson) {
-                    $("#modal_keypair_confirmation").modal('hide');
-                    flashMessage('Generate new key pair successfully','success');
-                    // update the UI
-                    $("#private_key").val(responseJson['data']['PrivateKey']);
-                    $("#public_key").val(responseJson['data']['PublicKey']);
-                },
-                error: function(jqXHR, exception) {
-                    const responseJson = jQuery.parseJSON(jqXHR.responseText);
-                    flashMessage(responseJson['message'],'error');
-                }
-            });
-        });
+    $("#btn_generate_confirm").unbind();
+    $("#btn_generate_confirm").click(function () {
+        success = function(data) {
+            $("#modal_keypair_confirmation").modal('hide');
+            $("#private_key").val(data['PrivateKey']);
+            $("#public_key").val(data['PublicKey']);
+        }
+        $.queryData({method: 'GET', url: '{{url_for("api.wireguard_key_pair")}}', success: success})
     });
 
     // Show private key button event
-    $(document).ready(function () {
-        $("#btn_show_private_key").click(function () {
-            const privateElement = document.getElementById("private_key");
-            const btnElement = document.getElementById("btn_show_private_key");
-            if (privateElement.type === 'password') {
-                privateElement.type = 'text';
-                btnElement.innerText = 'Hide';
-            } else {
-                privateElement.type = 'password';
-                btnElement.innerText = 'Show';
-            }
-        });
+    $("#btn_show_private_key").unbind();
+    $("#btn_show_private_key").click(function () {
+        const privateElement = document.getElementById("private_key");
+        const btnElement = document.getElementById("btn_show_private_key");
+        if (privateElement.type === 'password') {
+            privateElement.type = 'text';
+            btnElement.innerText = 'Hide';
+        } else {
+            privateElement.type = 'password';
+            btnElement.innerText = 'Show';
+        }
     });
 </script>
 {% endblock%}

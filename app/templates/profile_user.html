@@ -2,7 +2,7 @@
 <div class="col-sm-6">
   <div class="card">
     <div class="card-body">
-      <form id="frm_user_profile" method="post" class="card-text" role="form" novalidate>
+      <form id="frm_user_profile" ation="{{ url_for('user.profile')}}" method="post" class="card-text" role="form" novalidate>
         {{ form.csrf_token }}
         <div class="form-group">{{ render.field_with_label(form.first_name)}}</div>
         <div class="form-group">{{ render.field_with_label(form.last_name)}}</div>
@@ -10,7 +10,18 @@
         <div class="form-group">{{ render.field_with_label(form.gravatar_url)}}</div>
         <div class="form-group text-end mt-3">{{ render.button(form.submit) }}</div>
       </form>
+      <form id="frm_gravatar">{{gravatar.hidden_tag()}} {{render.button(gravatar.generate, id="gravatar_generate")}}</form>
     </div>
   </div>
 </div>
 {% endblock %}
+{% block extrascripts%}
+<script>
+$('#gravatar_generate').unbind();
+$('#gravatar_generate').click(function(){
+  let data = $('#frm_gravatar').serializeObject();
+  let success = function(data){ $('#gravatar_url').val(data.gravatar_url) }
+  $.queryData({ url: "{{url_for('user.gravatar')}}", data: data, success: success });
+});
+</script>
+{% endblock%}   

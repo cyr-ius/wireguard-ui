@@ -63,5 +63,8 @@ js_main = Bundle(
 )
 
 js_custom = Bundle(
-    "../app/resources/js/custom.js", filters="jinja2,rjsmin", output="js/custom.js"
+    "../app/resources/js/custom.js",
+    "../app/resources/js/libs.js",
+    filters="jinja2,rjsmin",
+    output="js/custom.js",
 )

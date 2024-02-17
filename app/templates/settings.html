@@ -3,7 +3,6 @@
 {% set active_page = "settings" %}
 {% block title %}<title>Global settings - {{ SITE_NAME }}</title>{% endblock %}
 {% block content %}
-<!-- Main content -->
 <div class="container">
     <div class="row">
         <div class="col-md-6">
@@ -47,9 +46,7 @@
         <div class="modal-content rounded-6 shadow">
             <div class="modal-header">
                 <h4 class="modal-title">Endpoint Address Suggestion</h4>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Following is the list of public and local IP addresses for your consideration.</p>
@@ -57,7 +54,7 @@
                 </select>
             </div>
             <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-success" id="btn_use_ip" disabled>Use selected IP address</button>
             </div>
         </div>
@@ -66,8 +63,16 @@
 {% endblock %}
 {% block extrascripts %}
     <script>
-        function updateEndpointSuggestionIP() {
-            $.getJSON("/api/machine-ips", null, function(data) {
+        $('#frm_global_settings').unbind();
+        $('#frm_global_settings').submit(function(e){
+            e.preventDefault();
+            let data = $(this).serializeObject({"checkboxesAsBools":true});
+            $.queryData({method: 'POST', url: '{{url_for("api.setting")}}', data:data})
+        });
+
+        // Endpoint IP suggestion modal event
+        $("#modal_endpoint_address_suggestion").on('shown.bs.modal', function (e) {
+            success = function(data){
                 $("#ip_suggestion option").remove();
                 $.each(data, function(index, item) {
                     $("#ip_suggestion").append(
@@ -75,14 +80,10 @@
                             .text(item.ip_address + ' - ' + item.name)
                             .val(item.ip_address)
                     );
-                });
+                }); 
                 document.getElementById("btn_use_ip").disabled = false;
-            });
-        }
-
-        // Endpoint IP suggestion modal event
-        $("#modal_endpoint_address_suggestion").on('shown.bs.modal', function (e) {
-            updateEndpointSuggestionIP();
+            }
+            $.queryData({method: 'GET', url: '{{url_for("api.suggest_computer_ips")}}', success:success})
         });
 
         // Use selected IP address from suggestion form
