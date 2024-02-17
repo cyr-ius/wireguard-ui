@@ -1,5 +1,3 @@
-from flask import g, request
-
 from ..forms.forms_security import ExtendedRegisterForm
 from .assets import (
     css_custom,
@@ -31,8 +29,3 @@ def init_app(app):
     assets.register("js_login", js_login)
     assets.register("js_main", js_main)
     assets.register("js_validation", js_validation)
-
-    @security.context_processor
-    def sidebar_context_processor():
-        g.collapsed = request.cookies.get("sidebar-collapsed", False) == "true"
-        return dict()
