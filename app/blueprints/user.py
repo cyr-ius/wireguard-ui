@@ -8,30 +8,30 @@ from flask_security import (
 from ..forms.forms import frm_gravatar, frm_user_profile
 from ..helpers.utils import email_to_gravatar_url
 from ..helpers.wireguard import wireguard_state
-from ..models import Setting, User, db, is_first_run
+from ..models import Setting, User, db, first_run
 
 user_bp = Blueprint("user", __name__, template_folder="templates", url_prefix="/user")
 
 
 @user_bp.before_request
 def before_request():
+    # Check wireguard service status
     g.wg = wireguard_state()
-    g.collapsed = request.cookies.get("sidebar-collapsed", False) == "true"
+
+    # Check first run
+    if first_run():
+        flash(
+            "Please create endpoint server in Global settings and generate key pair in Server section",
+            "first_run",
+        )
 
     # Check site is in maintenance mode
-    maintenance = Setting().get("maintenance")
     if (
-        maintenance
+        Setting().get("maintenance")
         and current_user.is_authenticated
         and not current_user.has_role("admin")
     ):
         return render_template("maintenance.html")
-
-    if is_first_run():
-        flash(
-            "Please create endpoint server in Server section and generate key pair in Global settings",
-            "first_run",
-        )
 
 
 @user_bp.route("/profile", methods=["GET", "POST"])

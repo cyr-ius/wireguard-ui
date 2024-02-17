@@ -2,12 +2,12 @@ import logging
 import os
 import shutil
 
-from flask import Flask
+from flask import Flask, g, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from flask_session import Session
 
-from . import blueprints, models, services, apis
+from . import apis, blueprints, models, services
 from .forms.forms import frm_client
 from .helpers.utils import email_to_gravatar_url, show_all_attrs
 from .helpers.wireguard import WireguardError, wireguard_service
@@ -118,5 +118,9 @@ def create_app(config=None):
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         return response
+
+    @app.before_request
+    def sidebar_collapsed():
+        g.collapsed = request.cookies.get("sidebar-collapsed", False) == "true"
 
     return app

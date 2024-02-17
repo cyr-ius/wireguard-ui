@@ -4,7 +4,6 @@ from flask import (
     flash,
     g,
     render_template,
-    request,
     stream_with_context,
 )
 from flask_login import current_user
@@ -22,30 +21,30 @@ from ..helpers.wireguard import (
     wireguard_state,
     wireguard_status,
 )
-from ..models import Clients, GlobalSettings, Server, Setting, db, is_first_run
+from ..models import Clients, GlobalSettings, Server, Setting, db, first_run
 
 main_bp = Blueprint("index", __name__, template_folder="templates", url_prefix="/")
 
 
 @main_bp.before_request
 def before_request():
+    # Check wireguard service status
     g.wg = wireguard_state()
-    g.collapsed = request.cookies.get("sidebar-collapsed", False) == "true"
 
-    # Check site is in maintenance mode
-    maintenance = Setting().get("maintenance")
-    if (
-        maintenance
-        and current_user.is_authenticated
-        and not current_user.has_role("admin")
-    ):
-        return render_template("maintenance.html")
-
-    if is_first_run():
+    # Check first run
+    if first_run():
         flash(
             "Please create endpoint server in Global settings and generate key pair in Server section",
             "first_run",
         )
+
+    # Check site is in maintenance mode
+    if (
+        Setting().get("maintenance")
+        and current_user.is_authenticated
+        and not current_user.has_role("admin")
+    ):
+        return render_template("maintenance.html")
 
 
 @main_bp.route("/clients", methods=["GET"])
