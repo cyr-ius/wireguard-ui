@@ -112,13 +112,12 @@
     // remove_client_confirm button event
     $("#remove_client_confirm").on('click', function (event) {
         let client_id = $(this).val();
-        let data = {"id": client_id};
         success = function(data) {
             $("#modal_remove_client").modal('hide');
             const divElement = document.getElementById('client_' + client_id);
             divElement.style.display = "none";
         }        
-        $.queryData({method: 'DELETE', url: '{{url_for("api.client", id=0)}}'.replace(0, client_id), data:data, success: success})
+        $.queryData({method: 'DELETE', url: '{{url_for("api.client", id=0)}}'.replace(0, client_id), success: success})
     });
 
     // Edit client modal event
@@ -129,7 +128,7 @@
         $(".tagin-wrapper").remove()
         success = function (data) {
             modal.find(".modal-title").text("Edit " + data.name);
-            modal.find("#client_id").val(data.id);
+            modal.find("#id").val(data.id);
             modal.find("#name").val(data.name);
             modal.find("#email").val(data.email);
             modal.find("#allocated_ips").val(data.allocated_ips);
@@ -147,7 +146,7 @@
         const button = event.relatedTarget;
         const client_id = button.getAttribute('data-bs-clientid');
         const client_name = button.getAttribute('data-bs-clientname');
-        modal.find("#client_id").val(client_id);
+        modal.find("#id").val(client_id);
     })
 
 
@@ -158,16 +157,16 @@
             $("#modal_edit_client").modal('hide');
             location.reload();
         },
-        $.queryData({method: 'PUT', url: '{{url_for("api.client", id=0)}}'.replace(0, form.client_id.value), data:data, success: success})
+        $.queryData({method: 'PUT', url: '{{url_for("api.client", id=0)}}'.replace(0, form.id.value), data:data, success: success})
     }
 
     // submitEmailClient function for sending an email to the client with the configuration
     function submitEmailClient(form) {
-        let data = {"id": form.client_id.value, "email": form.email.value};
+        let data = {"id": form.id.value, "email": form.email.value};
         success = function(data) {
             $("#modal_email_client").modal('hide');
         }        
-        $.queryData({method: 'POST', url: '{{url_for("api.wireguard_send_email", id=0)}}'.replace(0,form.client_id.value), data:data, success: success})
+        $.queryData({method: 'POST', url: '{{url_for("api.wireguard_send_email", id=0)}}'.replace(0,form.id.value), data:data, success: success})
     }
 
     // submitHandler

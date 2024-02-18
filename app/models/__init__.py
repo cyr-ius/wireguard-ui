@@ -19,7 +19,7 @@ def init_app(app):
 def first_run():
     settings = db.session.query(GlobalSettings).first()
     server = db.session.query(Server).first()
-    first_run = (settings is None or server is None) or (
+    g.first_run = (settings is None or server is None) or (
         server.address is None and settings.endpoint_address is None
     )
-    return first_run
+    return g.first_run

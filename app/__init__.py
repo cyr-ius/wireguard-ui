@@ -2,7 +2,9 @@ import logging
 import os
 import shutil
 
-from flask import Flask, g, request
+from flask import Flask, g, request, session
+from flask_login import current_user
+from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from flask_session import Session
@@ -16,6 +18,8 @@ from .models import Setting
 
 def create_app(config=None):
     app = Flask(__name__)
+
+    CSRFProtect(app)
 
     # Create static folder outside app folder
     os.makedirs(f"{app.root_path}/../static", exist_ok=True)
@@ -117,6 +121,7 @@ def create_app(config=None):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
+
         return response
 
     @app.before_request

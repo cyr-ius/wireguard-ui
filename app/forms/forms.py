@@ -48,7 +48,7 @@ class frm_email_client(FlaskForm):
         "Email",
         validators=[Email(message="Not a valid email address."), DataRequired()],
     )
-    client_id = HiddenField()
+    id = HiddenField()
     submit = SubmitField("Send")
 
 
@@ -74,7 +74,7 @@ class frm_client(FlaskForm):
 
 
 class frm_edit_client(frm_client):
-    client_id = HiddenField()
+    id = HiddenField()
 
 
 class frm_global_settings(FlaskForm):

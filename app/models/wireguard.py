@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import current_app
+from flask import abort, current_app
 
 from ..helpers.utils import Serializer
 from .base import db
@@ -46,7 +46,7 @@ class Clients(db.Model, Serializer):
         allowed_ips,
         use_server_dns=True,
         enabled=False,
-    ):
+    ) -> None:
         self.name = name
         self.email = email
         self.public_key = public_key
@@ -61,69 +61,57 @@ class Clients(db.Model, Serializer):
     def __repr__(self):
         return "<Clients {0}r>".format(self.name)
 
-    def create_peer(self):
+    def create_peer(self) -> None:
         # check if username existed
         name = Clients.query.filter(Clients.name == self.name).first()
         if name:
-            return {"status": False, "message": "Username is already in use"}
+            abort(422, "Username is already in use")
         # check if email existed
         mail = Clients.query.filter(Clients.email == self.email).first()
         if mail:
-            return {"status": False, "message": "Email address is already in use"}
+            abort(422, "Email address is already in use")
 
         # check allocated ips existed
         for client in Clients.query.all():
             if self.allocated_ips in client.allocated_ips:
-                return {"status": False, "message": "Ip address is already in use"}
+                abort(422, "Ip address is already in use")
 
         db.session.add(self)
         db.session.commit()
-        return {"status": True, "message": "Created user successfully"}
 
-    def update_peer(self):
+    def update_peer(self) -> None:
         """Update local user."""
         # Sanity check - account name
         if self.name == "":
-            return {"status": False, "message": "No user name specified"}
+            abort(422, "No user name specified")
 
         # read user and check that it exists
         peer = Clients.query.filter(Clients.name == self.name).first()
         if not peer:
-            return {"status": False, "message": "User does not exist"}
+            abort(422, "User does not exist")
 
         # check if new email exists (only if changed)
         if peer.email != self.email:
             checkuser = Clients.query.filter(Clients.email == self.email).first()
             if checkuser:
-                return {
-                    "status": False,
-                    "message": "New email address is already in use",
-                }
+                abort(422, "New email address is already in use")
         if peer.allocated_ips != self.allocated_ips:
             checkip = Clients.query.filter(
                 Clients.allocated_ips == self.allocated_ips
             ).first()
             if checkip:
-                return {"status": False, "message": "New ip address is already in use"}
+                abort(422, "New ip address is already in use")
         db.session.commit()
-        return {"status": True, "message": "User updated successfully"}
 
-    def delete_peer(self):
+    def delete_peer(self) -> None:
         try:
             Clients.query.filter(Clients.name == self.name).delete()
             db.session.commit()
-            return {"status": True, "message": "Delete user successful"}
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(
-                "Cannot delete user {0} from DB. DETAIL: {1}".format(self.name, e)
-            )
-            return {
-                "status": True,
-                "message": "Cannot delete user {0} from DB. DETAIL: {1}".format(
-                    self.name, e
-                ),
-            }
+            msg = f"Cannot delete user {self.name} from DB. DETAIL: {str(e)}"
+            current_app.logger.error(msg)
+            abort(422, msg)
 
     def serialize(self):
         return Serializer.serialize(self)

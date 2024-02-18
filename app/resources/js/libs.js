@@ -137,8 +137,8 @@ $.fn.serializeArray = function (options) {
             value:
               o.checkboxesAsBools && this.type === "checkbox"
                 ? this.checked
-                  ? 1
-                  : 0
+                  ? true
+                  : false
                 : val.replace(rCRLF, "\r\n"),
           };
         } else {

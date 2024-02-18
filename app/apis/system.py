@@ -1,27 +1,23 @@
 import requests
 from flask import current_app as ca
 from flask_restx import Namespace, Resource, abort
+from flask_security import auth_required, roles_required
 
-from .models import (
-    message,
-)
+from .models import message
 
-api = Namespace(
-    "system",
-    description="System API",
-    # decorators=[token_required, role_required("max")],
-)
+api = Namespace("system", description="System API")
 
 api.add_model("Error", message)
 
 
 @api.response(422, "Error", message)
 @api.route("/version")
-# @auth_required()
 class Version(Resource):
+    @auth_required()
+    @roles_required("admin")
     def get(self):
         try:
-            response = requests.get(ca.config["GIT_URL"], timeout=ca.config["TIMEOUT"])
+            response = requests.get(ca.config["GIT_URL"], timeout=3)
             response.raise_for_status()
             rjson = response.json()
             rjson["app_version"] = rjson.get("tag_name").replace("v", "")

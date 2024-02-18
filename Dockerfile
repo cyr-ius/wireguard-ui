@@ -32,6 +32,9 @@ WORKDIR /app
 COPY app /app/app
 COPY migrations /app/migrations
 
+ARG VERSION
+ENV VERSION ${VERSION}
+
 EXPOSE 8000/tcp
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["gunicorn","app:create_app()"]

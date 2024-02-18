@@ -4,26 +4,3 @@
         <div class="ms-auto me-1"><span class="fs-6 fw-lighter"><b>vers. {{config.VERSION}}</b></span></div>
     </div>
 </nav>
-<script>
-$(function(){
-  let callback = function(data){
-    sessionStorage.checkUpdate = 1;
-    if (data) {
-      let last_version = data.app_version
-      if (data.update_available == 1) {
-        $('#check-update').html(`New version detected, please restart to update to ${last_version}`)
-      }
-      sessionStorage.app_version = last_version
-    } else {
-      sessionStorage.removeItem('app_version')
-    }
-  }
-
-  if (!sessionStorage.checkUpdate)
-    $.queryData({method:"get", url:"{{url_for('api.system_version')}}", success:callback, error:callback});
-
-  if (sessionStorage.app_version && sessionStorage.app_version != '{{config.VERSION}}')
-    $('#check-update').html(`New version detected, please restart to update to ${last_version}`)
-
-});
-</script>

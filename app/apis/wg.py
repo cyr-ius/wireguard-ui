@@ -4,6 +4,7 @@ from ipaddress import IPv4Network
 
 import netifaces
 from flask_restx import Namespace, Resource, abort
+from flask_security import auth_token_required, roles_required
 
 from ..forms.forms import frm_client, frm_global_settings, frm_server_interface
 from ..helpers.wireguard import (
@@ -24,16 +25,13 @@ from .models import (
     message,
     pairing_key,
     server,
+    service,
     status,
     suggest_client_ip,
     version,
 )
 
-api = Namespace(
-    "wireguard",
-    description="Wireguard API",
-    # decorators=[token_required, role_required("max")],
-)
+api = Namespace("wireguard", description="Wireguard API")
 
 api.add_model("Error", message)
 api.add_model("Forbidden", forbidden)
@@ -45,13 +43,14 @@ api.add_model("IPaddresses", ip_addresses)
 api.add_model("SuggestIP", suggest_client_ip)
 api.add_model("ActiveStatus", status)
 api.add_model("GlobalSettings", global_settings)
+api.add_model("Service", service)
 
 
 @api.response(422, "Error", message)
-@api.response(403, "Forbidden", forbidden)
 @api.route("/keypair")
-# @auth_required()
 class KeyPair(Resource):
+    """Generate Keys for pairing."""
+
     @api.marshal_with(pairing_key)
     def get(self):
         try:
@@ -60,12 +59,13 @@ class KeyPair(Resource):
             abort(422, "Error to generate key pair")
 
 
+@api.response(403, "Forbidden", forbidden)
 @api.route("/machine-ips")
-# @auth_required()
-# @permissions_accepted("admin-read")
 class SuggestHostIPAddresses(Resource):
     """MachineIPAddresses handler to get local interface ip addresses"""
 
+    @auth_token_required
+    @roles_required("admin")
     @api.marshal_list_with(ip_addresses)
     def get(self):
         machine_ip_addresses = []
@@ -85,12 +85,14 @@ class SuggestHostIPAddresses(Resource):
         return machine_ip_addresses
 
 
+@api.response(403, "Forbidden", forbidden)
 @api.response(404, "SuggestNotFound", message)
 @api.route("/suggest-client-ips")
-# @auth_required()
 class SuggestClientIPAddress(Resource):
     """Suggest IP Allocation handler to get the list of ip address for client"""
 
+    @auth_token_required
+    @roles_required("admin")
     @api.marshal_with(suggest_client_ip)
     def get(self):
         subnet_server = tbl_server.query.one().address
@@ -107,34 +109,43 @@ class SuggestClientIPAddress(Resource):
 
 
 @api.response(204, "Success")
+@api.response(403, "Forbidden", forbidden)
+@api.response(404, "NotFound")
 @api.response(422, "Error", message)
 @api.route("/set-status/<int:id>")
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
 class ClientStatus(Resource):
     """// SetClientStatus handler to enable / disable a client"""
 
+    @auth_token_required
+    @roles_required("admin")
     @api.expect(status)
     def post(self, id: int):
         try:
-            client = tbl_clients.query.get(id)
-            client.enabled = api.payload["status"]
-            db.session.commit()
-            return "", 204
+            if client := tbl_clients.query.get(id):
+                client.enabled = api.payload["status"]
+                db.session.commit()
+                return "", 204
+            abort(404, "Client id not found")
         except Exception as error:
             abort(422, str(error))
 
 
-@api.response(204, "Success")
+@api.response(403, "Forbidden", forbidden)
+@api.response(404, "NotFound")
 @api.response(422, "Error", message)
 @api.route("/client/", endpoint="clients", methods=["GET", "POST"])
 @api.route("/client/<int:id>", endpoint="client", methods=["GET", "DELETE", "PUT"])
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
 class Client(Resource):
+    """Client wireguard."""
+
     def __init__(self, id: int = None):
         self.form = frm_client()
 
+    @roles_required("admin")
+    @auth_token_required
+    @api.expect(client, validate=False)
+    @api.response(204, "Success")
+    @api.response(422, "Error", message)
     def post(self):
         keypair = wireguard_keypair()
         private_key = keypair["PrivateKey"]
@@ -155,34 +166,42 @@ class Client(Resource):
             return "", 204
         abort(422, "Incorrect data")
 
+    @auth_token_required
+    @roles_required("admin")
     def delete(self, id: int):
-        client = tbl_clients.query.get(id)
-        client.delete_peer()
-        return "", 204
+        if client := tbl_clients.query.get(id):
+            client.delete_peer()
+            return "", 204
+        abort(404, "Client id not found")
 
+    @auth_token_required
+    @roles_required("admin")
     def get(self, id: int = None):
-        if id:
-            client = tbl_clients.query.get(id)
+        if client := tbl_clients.query.get(id):
             return client.serialize()
-        clients = tbl_clients.query.all()
-        return [client.serialize() for client in clients]
+        return [client.serialize() for client in tbl_clients.query.all()]
 
-    @api.expect(client)
+    @api.expect(client, validate=False)
+    @auth_token_required
+    @roles_required("admin")
     def put(self, id: int):
-        client = tbl_clients.query.get(id)
-        self.form.populate_obj(client)
-        client.update_peer()
-        return "", 204
+        if client := tbl_clients.query.get(id):
+            self.form.populate_obj(client)
+            client.update_peer()
+            return "", 204
+        abort(404, "Client id not found")
 
 
 @api.response(204, "Success")
+@api.response(403, "Forbidden", forbidden)
 @api.response(422, "Error", message)
 @api.route("/service")
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
 class Service(Resource):
     """ApplyServerConfig handler to write config file and restart Wireguard server"""
 
+    @auth_token_required
+    @roles_required("admin")
+    @api.expect(service)
     def post(self):
         try:
             match api.payload["state"]:
@@ -203,13 +222,14 @@ class Service(Resource):
 
 
 @api.response(204, "Success")
+@api.response(403, "Forbidden", forbidden)
 @api.response(422, "Error", message)
 @api.route("/config")
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
 class Config(Resource):
     """Apply server config handler to write config file."""
 
+    @auth_token_required
+    @roles_required("admin")
     def post(self):
         try:
             wireguard_build_server_config()
@@ -219,13 +239,14 @@ class Config(Resource):
 
 
 @api.response(204, "Success")
+@api.response(403, "Forbidden", forbidden)
 @api.response(422, "Error", message)
 @api.route("/email-client/<int:id>")
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
 class SendEmail(Resource):
     """// EmailClient handler to sent the configuration via email"""
 
+    @auth_token_required
+    @roles_required("admin")
     def post(self, id: int):
         try:
             email = api.payload["email"]
@@ -236,13 +257,14 @@ class SendEmail(Resource):
 
 
 @api.response(204, "Success")
+@api.response(403, "Forbidden", forbidden)
 @api.response(422, "Error", message)
 @api.route("/setting")
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
 class Setting(Resource):
     """Apply server config handler to write config file."""
 
+    @auth_token_required
+    @roles_required("admin")
     @api.expect(global_settings)
     def post(self):
         try:
@@ -262,13 +284,14 @@ class Setting(Resource):
 
 
 @api.response(204, "Success")
+@api.response(403, "Forbidden", forbidden)
 @api.response(422, "Error", message)
 @api.route("/server")
-# @auth_required()
-# @permissions_required("admin-write", "admin-read")
 class Server(Resource):
     """Apply server config handler to write config file."""
 
+    @auth_token_required
+    @roles_required("admin")
     @api.expect(server)
     def post(self):
         try:

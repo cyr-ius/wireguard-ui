@@ -1,22 +1,32 @@
 """Models handler."""
+
 from flask_restx import Model, fields
 
 POSTUP = "iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
 POSTDOWN = "iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE"
 
 message = Model("Error", {"message": fields.String(required=True)})
+
 forbidden = Model(
     "Forbidden", {"message": fields.String(default="The provided API key is not valid")}
 )
+
 client = Model(
     "Client",
     {
         "name": fields.String(required=True, description="The user name"),
         "email": fields.String(required=True, description="Email"),
         "allocated_ips": fields.String(required=True, description="IP Allocation"),
-        "allowed_ips": fields.String(description="Allowed IPs", default="0.0.0.0/0"),
-        "use_server_dns": fields.Boolean(description="Use DNS Server", default=True),
-        "enabled": fields.Boolean(description="Enable this client", default=True),
+        "allowed_ips": fields.String(
+            required=True, description="Allowed IPs", default="0.0.0.0/0"
+        ),
+        "use_server_dns": fields.Boolean(
+            required=True, description="Use DNS Server", default=True
+        ),
+        "enabled": fields.Boolean(
+            required=True, description="Enable this client", default=True
+        ),
+        "id": fields.Integer(required=False, description="Unique ID", min=1),
     },
 )
 
@@ -103,5 +113,11 @@ status = Model(
     {
         "id": fields.Integer(required=True, description="Client id"),
         "status": fields.Boolean(required=True, description="To active set True"),
+    },
+)
+service = Model(
+    "Service",
+    {
+        "state": fields.String(required=True, description="State"),
     },
 )
