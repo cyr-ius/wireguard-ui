@@ -16,7 +16,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Install dependencies
 RUN apk add --no-cache --virtual build build-base python3-dev libffi-dev zlib-dev jpeg-dev tiff-dev freetype-dev
-RUN apk add --no-cache zlib jpeg tiff wireguard-tools
+RUN apk add --no-cache zlib jpeg tiff wireguard-tools iptables
 
 # Install pip requirements
 COPY requirements.txt .
