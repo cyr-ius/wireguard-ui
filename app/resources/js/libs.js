@@ -61,12 +61,12 @@ $.queryData = function (options) {
   if (o.convertJson == null) o.convertJson = true;
   if (o.method.toUpperCase() == "GET") o.convertJson = false;
 
-  $.ajax({  
+  $.ajax({
     method: o.method,
     url: o.url,
     data: o.convertJson && o.data != "" ? JSON.stringify(o.data) : o.data,
     contentType: "application/json; charset=utf-8",
-    xhrFields: o.xhrFields,  
+    xhrFields: o.xhrFields,
     success: function (data) {
       $("#toast").removeClass("text-bg-danger").addClass("text-bg-primary");
       if (data && data.responseJSON)

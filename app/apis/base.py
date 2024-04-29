@@ -1,4 +1,5 @@
 """Wireguard Apis."""
+
 from flask import Blueprint, request
 from flask_restx import Api
 from flask_security import current_user
@@ -28,5 +29,8 @@ api = Api(
 def add_security_header_token():
     """Add X-API-KEY header."""
     sec_token_hdr = SECURITY_TOKEN_AUTHENTICATION_HEADER.replace("-", "_")
-    if current_user.is_authenticated and request.headers.get(SECURITY_TOKEN_AUTHENTICATION_HEADER) is None:
+    if (
+        current_user.is_authenticated
+        and request.headers.get(SECURITY_TOKEN_AUTHENTICATION_HEADER) is None
+    ):
         request.environ[f"HTTP_{sec_token_hdr}"] = current_user.get_auth_token()

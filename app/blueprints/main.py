@@ -4,7 +4,6 @@ from flask import (
     flash,
     g,
     render_template,
-    session,
     stream_with_context,
 )
 from flask_login import current_user
@@ -46,6 +45,7 @@ def before_request():
         and not current_user.has_role("admin")
     ):
         return render_template("maintenance.html")
+
 
 @main_bp.route("/clients", methods=["GET"])
 @auth_required()

@@ -5,6 +5,7 @@ Revises:
 Create Date: 2024-02-11 14:53:39.710215
 
 """
+
 import flask_security
 import sqlalchemy as sa
 from alembic import op

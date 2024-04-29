@@ -36,7 +36,9 @@ def broadcast_address(network) -> str:
 
 class Serializer(object):
     def serialize(self):
-        return {c: self.serialize_date(getattr(self, c)) for c in inspect(self).attrs.keys()}
+        return {
+            c: self.serialize_date(getattr(self, c)) for c in inspect(self).attrs.keys()
+        }
 
     @staticmethod
     def serialize_date(obj):

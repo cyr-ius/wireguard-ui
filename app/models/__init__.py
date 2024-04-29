@@ -16,6 +16,7 @@ def init_app(app):
         db.session, user_model=User, role_model=Role, webauthn_model=WebAuthn
     )
 
+
 def first_run():
     settings = db.session.query(GlobalSettings).first()
     server = db.session.query(Server).first()

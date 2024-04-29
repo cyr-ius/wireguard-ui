@@ -1,4 +1,5 @@
 """Wireguard Apis."""
+
 from .base import api, bp
 from .system import api as system
 from .wg import api as wireguard
