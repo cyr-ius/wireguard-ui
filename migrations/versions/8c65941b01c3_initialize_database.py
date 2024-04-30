@@ -5,6 +5,7 @@ Revises:
 Create Date: 2021-10-31 18:56:03.941877
 
 """
+
 import uuid
 
 import flask_security
