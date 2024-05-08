@@ -1,5 +1,6 @@
-from wtforms.validators import ValidationError
 import ipaddress
+
+from wtforms.validators import ValidationError
 
 
 class CIDR(object):
@@ -16,7 +17,7 @@ class CIDR(object):
 
 
 class CIDR_IPAddress(object):
-    """Check if CIDR is ip adress"""
+    """Check if CIDR is ip address"""
 
     def __init__(self, message=None):
         if not message:
@@ -39,8 +40,7 @@ class CIDRList(object):
         self.ip_address = is_ipaddress
 
     def __call__(self, form, field):
-        datas = field.data.split(",")
-        for data in datas:
+        for data in field.data.split(","):
             field.data = data
             try:
                 if self.ip_address:
@@ -58,8 +58,7 @@ class IPAddressList(object):
         self.message = message
 
     def __call__(self, form, field):
-        datas = field.data.split(",")
-        for data in datas:
+        for data in field.data.split(","):
             try:
                 ipaddress.ip_address(data)
             except Exception:
@@ -74,7 +73,6 @@ class IPNetwork(object):
 
     def __call__(self, form, field):
         try:
-
             try:
                 ipaddress.ip_address(field.data)
                 check = False
@@ -106,8 +104,7 @@ class IPNetworkList(object):
         self.message = message
 
     def __call__(self, form, field):
-        datas = field.data.split(",")
-        for data in datas:
+        for data in field.data.split(","):
             field.data = data
             try:
                 IPNetwork().__call__(None, field)
