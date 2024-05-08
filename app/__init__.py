@@ -2,8 +2,7 @@ import logging
 import os
 import shutil
 
-from flask import Flask, g, request, session
-from flask_login import current_user
+from flask import Flask, g, request
 from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -92,7 +91,7 @@ def create_app(config=None):
     models.init_app(app)
     services.init_app(app)
 
-    # Register context proccessors
+    # Register context processors
     @app.context_processor
     def inject_sitename():
         return dict(
