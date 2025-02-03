@@ -1,7 +1,7 @@
 """Add column fs_webauthn_user_handle
 
 Revision ID: 8ddd237ecdd6
-Revises: 
+Revises:
 Create Date: 2024-02-11 14:53:39.710215
 
 """
