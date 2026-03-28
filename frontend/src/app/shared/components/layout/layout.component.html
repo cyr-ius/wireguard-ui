@@ -1,0 +1,105 @@
+<!-- Main application layout: sidebar + content area -->
+<div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a routerLink="/" class="brand">
+        <i class="bi bi-shield-lock-fill brand-icon"></i>
+        <span class="brand-text">WireGuard<span class="accent">UI</span></span>
+      </a>
+      <button
+        class="sidebar-toggle"
+        (click)="toggleSidebar()"
+        title="Toggle sidebar"
+      >
+        <i class="bi bi-layout-sidebar"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-section-label">Overview</span>
+        <a routerLink="/status" routerLinkActive="active" class="nav-item">
+          <i class="bi bi-activity"></i>
+          <span class="nav-label">Status</span>
+        </a>
+      </div>
+
+      <!-- Admin-only navigation items -->
+      @if (auth.isAdmin()) {
+        <div class="nav-section">
+          <span class="nav-section-label">Management</span>
+          <a routerLink="/clients" routerLinkActive="active" class="nav-item">
+            <i class="bi bi-people-fill"></i>
+            <span class="nav-label">Clients</span>
+          </a>
+          <a routerLink="/server" routerLinkActive="active" class="nav-item">
+            <i class="bi bi-hdd-stack-fill"></i>
+            <span class="nav-label">Server</span>
+          </a>
+          <a routerLink="/settings" routerLinkActive="active" class="nav-item">
+            <i class="bi bi-gear-fill"></i>
+            <span class="nav-label">Settings</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-label">Administration</span>
+          <a routerLink="/users" routerLinkActive="active" class="nav-item">
+            <i class="bi bi-person-badge-fill"></i>
+            <span class="nav-label">Users</span>
+          </a>
+          <a routerLink="/oidc" routerLinkActive="active" class="nav-item">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span class="nav-label">OIDC</span>
+          </a>
+        </div>
+      }
+      <div class="nav-section">
+        <span class="nav-section-label">Informations</span>
+        <a routerLink="/about" routerLinkActive="active" class="nav-item">
+          <i class="bi bi-info-circle-fill"></i>
+          <span class="nav-label">About</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- User footer -->
+    <div class="sidebar-footer">
+      <div class="theme-switcher">
+        <label class="theme-label" for="theme-mode">
+          <i class="bi bi-circle-half"></i>
+          <span class="theme-label-text">Theme</span>
+        </label>
+        <select
+          id="theme-mode"
+          class="theme-select"
+          [value]="theme.mode()"
+          (change)="changeThemeMode($any($event.target).value)"
+        >
+          <option value="auto">Auto</option>
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ auth.username() }}</span>
+          <span class="user-role" [class.admin]="auth.isAdmin()">
+            {{ auth.isAdmin() ? "Administrator" : "User" }}
+          </span>
+        </div>
+      </div>
+      <button class="btn-logout" (click)="logout()" title="Sign out">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <router-outlet />
+  </main>
+</div>

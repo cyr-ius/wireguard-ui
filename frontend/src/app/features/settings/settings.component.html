@@ -1,0 +1,134 @@
+<!-- Global settings page - admin only -->
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="bi bi-gear-fill me-2"></i>Global Settings
+      </h1>
+      <p class="page-subtitle">Application and VPN network configuration</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (saveError()) {
+    <div class="alert alert-danger">{{ saveError() }}</div>
+  }
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p>Loading...</p>
+    </div>
+  } @else {
+    <form [formGroup]="settingsForm" (ngSubmit)="save()" class="config-form">
+      <div class="config-card">
+        <h2 class="section-title"><i class="bi bi-globe me-2"></i>Network</h2>
+        <div class="form-group">
+          <label class="form-label">Endpoint Address *</label>
+          <input
+            type="text"
+            formControlName="endpoint_address"
+            class="form-control"
+            [class.is-invalid]="isInvalid('endpoint_address')"
+            placeholder="vpn.yourdomain.com or public IP"
+          />
+          @if (isInvalid("endpoint_address")) {
+            <div class="form-error">Endpoint address is required</div>
+          }
+          <small class="text-muted"
+            >Public hostname or IP used by clients to connect</small
+          >
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">DNS Servers</label>
+            <input
+              type="text"
+              formControlName="dns_servers"
+              class="form-control font-mono"
+              placeholder="1.1.1.1,8.8.8.8"
+            />
+            <small class="text-muted">Comma-separated DNS addresses</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">MTU (optional)</label>
+            <input
+              type="number"
+              formControlName="mtu"
+              class="form-control"
+              placeholder="1420"
+              min="576"
+              max="9000"
+            />
+            <small class="text-muted"
+              >Leave empty to use WireGuard default</small
+            >
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Persistent Keepalive (seconds)</label>
+            <input
+              type="number"
+              formControlName="persistent_keepalive"
+              class="form-control"
+              placeholder="25"
+              min="0"
+              max="65535"
+            />
+            <small class="text-muted">Leave empty to disable keepalive</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Config File Path *</label>
+            <input
+              type="text"
+              formControlName="config_file_path"
+              class="form-control font-mono"
+              placeholder="/etc/wireguard/wg0.conf"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h2 class="section-title">
+          <i class="bi bi-tools me-2"></i>Maintenance
+        </h2>
+        <div class="form-check">
+          <input
+            type="checkbox"
+            formControlName="maintenance_mode"
+            class="form-check-input"
+            id="maintenance"
+          />
+          <label class="form-check-label" for="maintenance">
+            Enable maintenance mode
+            <small class="d-block text-muted"
+              >Non-admin users will see a maintenance page</small
+            >
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="settingsForm.invalid || saving()"
+        >
+          @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-floppy me-1"></i>Save Settings
+        </button>
+      </div>
+    </form>
+  }
+</div>

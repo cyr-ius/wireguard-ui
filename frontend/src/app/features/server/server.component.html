@@ -1,0 +1,196 @@
+<!-- Server configuration page - admin only -->
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="bi bi-hdd-stack-fill me-2"></i>Server Configuration
+      </h1>
+      <p class="page-subtitle">
+        WireGuard interface settings and service control
+      </p>
+    </div>
+    <!-- Service controls -->
+    <div class="service-controls">
+      <button
+        class="btn btn-sm btn-outline-success"
+        (click)="controlService('start')"
+      >
+        <i class="bi bi-play-fill me-1"></i>Start
+      </button>
+      <button
+        class="btn btn-sm btn-outline-warning"
+        (click)="controlService('stop')"
+      >
+        <i class="bi bi-stop-fill me-1"></i>Stop
+      </button>
+      <button
+        class="btn btn-sm btn-outline-info"
+        (click)="controlService('restart')"
+      >
+        <i class="bi bi-arrow-repeat me-1"></i>Restart
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+    </div>
+  }
+  @if (saveError()) {
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}
+    </div>
+  }
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p>Loading configuration...</p>
+    </div>
+  } @else {
+    <form
+      [formGroup]="serverForm"
+      (ngSubmit)="saveServer()"
+      class="config-form"
+    >
+      <div class="config-card">
+        <h2 class="section-title">
+          <i class="bi bi-ethernet me-2"></i>Interface
+        </h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Network Address (CIDR) *</label>
+            <input
+              type="text"
+              formControlName="address"
+              class="form-control"
+              [class.is-invalid]="isInvalid('address')"
+              placeholder="10.0.0.1/24"
+            />
+            @if (isInvalid("address")) {
+              <div class="form-error">
+                Address is required (e.g. 10.0.0.1/24)
+              </div>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Listen Port *</label>
+            <input
+              type="number"
+              formControlName="listen_port"
+              class="form-control"
+              [class.is-invalid]="isInvalid('listen_port')"
+            />
+            @if (isInvalid("listen_port")) {
+              <div class="form-error">Valid port (1-65535) is required</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <label class="form-label mb-0">Key Pair</label>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              (click)="generateKeypair()"
+            >
+              <i class="bi bi-key-fill me-1"></i>Generate Key Pair
+            </button>
+          </div>
+          <div class="form-row">
+            <div class="form-group mb-0">
+              <label class="form-label">Private Key *</label>
+              <div class="input-group">
+                <input
+                  [type]="showPrivateKey() ? 'text' : 'password'"
+                  formControlName="private_key"
+                  class="form-control font-mono"
+                  [class.is-invalid]="isInvalid('private_key')"
+                  placeholder="Server private key"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="showPrivateKey.update(v => !v)"
+                >
+                  <i
+                    class="bi"
+                    [class.bi-eye]="!showPrivateKey()"
+                    [class.bi-eye-slash]="showPrivateKey()"
+                  ></i>
+                </button>
+              </div>
+            </div>
+            <div class="form-group mb-0">
+              <label class="form-label">Public Key *</label>
+              <input
+                type="text"
+                formControlName="public_key"
+                class="form-control font-mono"
+                [class.is-invalid]="isInvalid('public_key')"
+                placeholder="Server public key"
+                readonly
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h2 class="section-title">
+          <i class="bi bi-terminal me-2"></i>Post-Up / Post-Down Scripts
+        </h2>
+        <div class="form-group">
+          <label class="form-label">PostUp</label>
+          <textarea
+            formControlName="postup"
+            class="form-control font-mono"
+            rows="3"
+            placeholder="iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">PostDown</label>
+          <textarea
+            formControlName="postdown"
+            class="form-control font-mono"
+            rows="3"
+            placeholder="iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="serverForm.invalid || saving()"
+        >
+          @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-floppy me-1"></i>Save Configuration
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning"
+          [disabled]="applying()"
+          (click)="applyConfig()"
+        >
+          @if (applying()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-lightning-fill me-1"></i>Apply & Restart
+        </button>
+      </div>
+    </form>
+  }
+</div>

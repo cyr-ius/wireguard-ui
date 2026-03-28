@@ -1,0 +1,192 @@
+/* Global styles for WireGuard UI */
+:root,
+[data-theme="dark"] {
+  --accent: #00b4d8;
+  --accent-dark: #0077b6;
+  --sidebar-width: 260px;
+  --app-bg: #080c14;
+  --page-bg: #080c14;
+  --panel-bg: #0d1b2a;
+  --panel-bg-alt: #0a1220;
+  --sidebar-bg-start: #0a0e1a;
+  --sidebar-bg-end: #080c14;
+  --border-color: #1a3040;
+  --border-muted: #101828;
+  --text-primary: #e8f4f0;
+  --text-secondary: #8ab8c8;
+  --text-muted: #4a6a7a;
+  --text-subtle: #3a5a6a;
+  --input-bg: #0d1b2a;
+  --input-text: #c8dde8;
+  --card-light-bg: #ffffff;
+  --card-light-border: #e2e8f0;
+  --card-light-text: #1e293b;
+  --card-light-muted: #64748b;
+  --card-light-soft: #94a3b8;
+}
+
+[data-theme="light"] {
+  --app-bg: #e9eff5;
+  --page-bg: #f3f7fb;
+  --panel-bg: #ffffff;
+  --panel-bg-alt: #f7fbff;
+  --sidebar-bg-start: #f7fbff;
+  --sidebar-bg-end: #edf3f9;
+  --border-color: #c8d7e6;
+  --border-muted: #d6e2ee;
+  --text-primary: #1e293b;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-subtle: #7b8da3;
+  --input-bg: #ffffff;
+  --input-text: #1e293b;
+  --card-light-bg: #ffffff;
+  --card-light-border: #dbe6f1;
+  --card-light-text: #1e293b;
+  --card-light-muted: #475569;
+  --card-light-soft: #64748b;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--app-bg);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+}
+
+/* Override Bootstrap primary color to match theme */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border: none;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background: linear-gradient(135deg, #009fbf, #006699);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
+}
+
+.btn-outline-primary {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-outline-primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Remove input autofill background in WebKit */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+  -webkit-text-fill-color: var(--input-text) !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Dark theme readability overrides for pages that still used light cards */
+[data-theme="dark"] .page-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .page-subtitle,
+[data-theme="dark"] .loading-state,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .confirm-msg,
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .empty-state p {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .config-card,
+[data-theme="dark"] .content-card,
+[data-theme="dark"] .client-card,
+[data-theme="dark"] .modal-panel,
+[data-theme="dark"] .modal-panel .modal-header,
+[data-theme="dark"] .action-btn,
+[data-theme="dark"] .client-card .client-actions .action-btn {
+  background: var(--panel-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .users-table th,
+[data-theme="dark"] .client-card .client-actions,
+[data-theme="dark"] .role-tags .role-tag,
+[data-theme="dark"] .badge-count,
+[data-theme="dark"] .users-table tr:hover td,
+[data-theme="dark"] .client-card .client-details .detail-row .detail-value,
+[data-theme="dark"] .client-card .client-details .detail-row code.detail-value,
+[data-theme="dark"] .config-pre {
+  background: var(--panel-bg-alt) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .users-table td,
+[data-theme="dark"] .client-card .client-card-header .client-info .client-name,
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .confirm-title,
+[data-theme="dark"] .modal-panel .modal-header .modal-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .users-table th,
+[data-theme="dark"] .users-table td,
+[data-theme="dark"] .client-card .client-card-header,
+[data-theme="dark"] .client-card .client-actions,
+[data-theme="dark"] .modal-panel .modal-header,
+[data-theme="dark"] .modal-panel .modal-footer,
+[data-theme="dark"] .section-title {
+  border-color: var(--border-muted) !important;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .modal-panel .form-control {
+  background: var(--input-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--input-text) !important;
+}
+
+[data-theme="dark"] .modal-panel .form-control[readonly] {
+  background: var(--panel-bg-alt) !important;
+}

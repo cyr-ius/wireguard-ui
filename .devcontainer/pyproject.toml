@@ -1,0 +1,63 @@
+# ─── Backend — pyproject.toml ──────────────────────────────────────────────
+# Gestion des dépendances : uv  (remplace pip + requirements.txt)
+# Commandes utiles :
+#   uv sync                  → installer toutes les dépendances
+#   uv sync --all-extras     → + groupes optionnels (dev, test)
+#   uv add <package>         → ajouter une dépendance
+#   uv add --dev <package>   → ajouter une dépendance de dev
+#   uv lock                  → régénérer uv.lock
+#   uv run pytest            → exécuter dans l'env géré par uv
+
+[project]
+name = "app"
+version = "0.1.0"
+description = "My Project"
+requires-python = ">=3.14"
+
+dependencies = [
+    # FastAPI + ASGI server
+    "fastapi[standard]==0.135.2",
+    "pydantic[email]",
+    "pydantic-settings",
+    # Async database
+    "sqlmodel==0.0.37",
+    "sqlalchemy[asyncio]",
+    "alembic",
+    # Auth / Security
+    "python-jose[cryptography]",
+    "python-multipart",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "mypy",
+    "pre-commit",
+]
+
+[tool.setuptools]
+packages = ["backend"]
+
+# ── Ruff (linter PEP8) ──────────────────────────────────────────────────────
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+# ── Ruff — format ────────────────────────────────────────────────────────────
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+# ── Mypy (type checking) ─────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.14"
+strict = true
+ignore_missing_imports = true

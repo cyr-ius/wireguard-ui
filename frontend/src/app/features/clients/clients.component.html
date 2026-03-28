@@ -1,0 +1,309 @@
+<!-- Clients management page - admin only (enforced by route guard and backend) -->
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="bi bi-people-fill me-2"></i>WireGuard Clients
+      </h1>
+      <p class="page-subtitle">Manage VPN peer configurations</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <span class="badge-count">
+        <i class="bi bi-check-circle-fill text-success me-1"></i>
+        {{ enabledCount() }} / {{ clients().length }} active
+      </span>
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="bi bi-plus-lg me-1"></i> New Client
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p>Loading clients...</p>
+    </div>
+  }
+
+  @if (!loading()) {
+    <!-- Clients grid -->
+    @if (clients().length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-people empty-icon"></i>
+        <p>No clients configured yet</p>
+        <button class="btn btn-primary mt-2" (click)="openCreateModal()">
+          Add your first client
+        </button>
+      </div>
+    } @else {
+      <div class="clients-grid">
+        @for (client of clients(); track client.id) {
+          <div class="client-card" [class.disabled-card]="!client.enabled">
+            <div class="client-card-header">
+              <div class="client-avatar">
+                {{ client.name[0].toUpperCase() }}
+              </div>
+              <div class="client-info">
+                <h3 class="client-name">{{ client.name }}</h3>
+                <span class="client-email">{{ client.email }}</span>
+              </div>
+              <span
+                class="status-pill"
+                [class.active]="client.enabled"
+                [class.inactive]="!client.enabled"
+              >
+                {{ client.enabled ? "Enabled" : "Disabled" }}
+              </span>
+            </div>
+
+            <div class="client-details">
+              <div class="detail-row">
+                <span class="detail-label">Allocated IP</span>
+                <code class="detail-value">{{ client.allocated_ips }}</code>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Allowed IPs</span>
+                <code class="detail-value">{{ client.allowed_ips }}</code>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">DNS</span>
+                <span class="detail-value">{{
+                  client.use_server_dns ? "Server DNS" : "Custom"
+                }}</span>
+              </div>
+            </div>
+
+            <div class="client-actions">
+              <button
+                class="action-btn"
+                title="View config"
+                (click)="viewConfig(client)"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+              <button
+                class="action-btn"
+                title="Download config"
+                (click)="downloadConfig(client)"
+              >
+                <i class="bi bi-download"></i>
+              </button>
+              <button
+                class="action-btn"
+                title="Edit"
+                (click)="openEditModal(client)"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button
+                class="action-btn"
+                [title]="client.enabled ? 'Disable' : 'Enable'"
+                (click)="toggleEnabled(client)"
+              >
+                <i
+                  class="bi"
+                  [class.bi-pause-circle]="client.enabled"
+                  [class.bi-play-circle]="!client.enabled"
+                ></i>
+              </button>
+              <button
+                class="action-btn danger"
+                title="Delete"
+                (click)="openDeleteConfirm(client)"
+              >
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Create / Edit Modal -->
+  @if (modalMode()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-panel" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            {{ modalMode() === "create" ? "New Client" : "Edit Client" }}
+          </h2>
+          <button class="modal-close" (click)="closeModal()" type="button">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <form
+          [formGroup]="clientForm"
+          (ngSubmit)="saveClient()"
+          class="modal-form"
+        >
+          @if (formError()) {
+            <div class="alert alert-danger mb-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i
+              >{{ formError() }}
+            </div>
+          }
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Name *</label>
+              <input
+                type="text"
+                formControlName="name"
+                class="form-control"
+                [class.is-invalid]="isInvalid('name')"
+                placeholder="Client name"
+              />
+              @if (isInvalid("name")) {
+                <div class="form-error">Name is required</div>
+              }
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input
+                type="email"
+                formControlName="email"
+                class="form-control"
+                [class.is-invalid]="isInvalid('email')"
+                placeholder="client@example.com"
+              />
+              @if (isInvalid("email")) {
+                <div class="form-error">Valid email is required</div>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Allocated IP *</label>
+              <input
+                type="text"
+                formControlName="allocated_ips"
+                class="form-control"
+                [class.is-invalid]="isInvalid('allocated_ips')"
+                placeholder="10.0.0.2/32"
+              />
+              @if (isInvalid("allocated_ips")) {
+                <div class="form-error">IP address is required</div>
+              }
+            </div>
+            <div class="form-group">
+              <label class="form-label">Allowed IPs *</label>
+              <input
+                type="text"
+                formControlName="allowed_ips"
+                class="form-control"
+                [class.is-invalid]="isInvalid('allowed_ips')"
+                placeholder="0.0.0.0/0"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Preshared Key (optional)</label>
+            <input
+              type="text"
+              formControlName="preshared_key"
+              class="form-control"
+              placeholder="Leave empty to skip"
+            />
+          </div>
+
+          <div class="form-checks">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                formControlName="use_server_dns"
+                class="form-check-input"
+                id="useDns"
+              />
+              <label class="form-check-label" for="useDns"
+                >Use server DNS</label
+              >
+            </div>
+            <div class="form-check">
+              <input
+                type="checkbox"
+                formControlName="enabled"
+                class="form-check-input"
+                id="enabled"
+              />
+              <label class="form-check-label" for="enabled"
+                >Enable client</label
+              >
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeModal()"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="clientForm.invalid || saving()"
+            >
+              @if (saving()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              {{ modalMode() === "create" ? "Create Client" : "Save Changes" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Config viewer modal -->
+  @if (showConfig()) {
+    <div class="modal-overlay" (click)="closeConfig()">
+      <div class="modal-panel config-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <i class="bi bi-file-code me-2"></i>Configuration File
+          </h2>
+          <button class="modal-close" (click)="closeConfig()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <pre class="config-pre">{{ configContent() }}</pre>
+      </div>
+    </div>
+  }
+
+  <!-- Delete confirmation modal -->
+  @if (deleteTarget()) {
+    <div class="modal-overlay" (click)="deleteTarget.set(null)">
+      <div class="modal-panel confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon">
+          <i class="bi bi-trash3-fill text-danger"></i>
+        </div>
+        <h2 class="confirm-title">Delete Client</h2>
+        <p class="confirm-msg">
+          Are you sure you want to delete
+          <strong>{{ deleteTarget()!.name }}</strong
+          >? This cannot be undone.
+        </p>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="deleteTarget.set(null)">
+            Cancel
+          </button>
+          <button class="btn btn-danger" (click)="confirmDelete()">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

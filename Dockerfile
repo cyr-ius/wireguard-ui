@@ -1,40 +1,68 @@
-# For more information, please refer to https://aka.ms/vscode-docker-python
-FROM python:3.11-alpine
+# ─── Stage 1: Build Angular Frontend ──────────────────────────────────────
+FROM node:22-alpine AS frontend-builder
 
-# set version label
-ARG BUILD_DATE
-ARG VERSION
-ARG WIREGUARDUI_RELEASE
-LABEL build_version="version:- ${VERSION} Build-date:- ${BUILD_DATE}"
-LABEL maintainer="cyr-ius"
-
-# Keeps Python from generating .pyc files in the container
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Turns off buffering for easier container logging
-ENV PYTHONUNBUFFERED=1
+WORKDIR /build/frontend
 
 # Install dependencies
-RUN apk add --no-cache --virtual build build-base python3-dev libffi-dev zlib-dev jpeg-dev tiff-dev freetype-dev
-RUN apk add --no-cache zlib jpeg tiff wireguard-tools iptables
+COPY frontend/package.json ./
+RUN npm install --legacy-peer-deps
 
-# Install pip requirements
-COPY requirements.txt .
-RUN python -m pip install --no-cache-dir -r requirements.txt
+# Copy source and build
+COPY frontend/ ./
+RUN npm run build
 
-# clean content
-RUN apk del build
+# ─── Stage 2: Final container ─────────────────────────────────────────────
+FROM python:3.14-alpine
 
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
+LABEL maintainer="cyr-ius <https://github.com/cyr-ius>"
+LABEL org.opencontainers.image.title="WireGuardUI"
+LABEL org.opencontainers.image.description="WireGuardUI - Secure tunnel management"
+LABEL org.opencontainers.image.source="https://github.com/cyr-ius/wireguard-ui"
+LABEL org.opencontainers.image.url="https://github.com/cyr-ius/wireguard-ui"
+LABEL org.opencontainers.image.licenses="MIT"
+
+RUN apk add --no-cache \
+    gcc \
+    g++ \
+    musl-dev \
+    linux-headers \
+    libffi-dev \
+    wireguard-tools \
+    iptables \
+    supervisor \
+    ca-certificates
+
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy Supervisor configuration template file
+COPY ./docker/supervisord.conf /etc/supervisor/supervisord.conf
+
+ENV UV_SYSTEM_PYTHON=true
+ENV UV_NO_CACHE=true
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
 WORKDIR /app
-COPY app /app/app
-COPY migrations /app/migrations
+
+RUN --mount=type=bind,source=backend/pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=backend/uv.lock,target=uv.lock \
+    uv sync --frozen --no-dev
+
+COPY --from=frontend-builder /build/frontend/dist/wireguard-ui/browser ./frontend
+
+COPY backend/src ./backend
 
 ARG VERSION
-ENV VERSION ${VERSION}
+ENV APP_VERSION=${VERSION:-"1.0.0"}
 
-EXPOSE 8000/tcp
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["gunicorn","app:create_app()"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health || exit 1
+
+VOLUME [ "/data" ]
+
+EXPOSE 8000
+
+CMD ["/usr/bin/supervisord", "-c","/etc/supervisor/supervisord.conf"]

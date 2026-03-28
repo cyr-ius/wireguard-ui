@@ -1,0 +1,140 @@
+.page-container {
+  padding: 2rem;
+  max-width: 1200px;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-family: "Courier New", monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.btn-action {
+  background: rgba(0, 212, 170, 0.1);
+  border: 1px solid rgba(0, 212, 170, 0.25);
+  border-radius: 8px;
+  color: #00d4aa;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-action:hover:not(:disabled) {
+  background: rgba(0, 212, 170, 0.18);
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.about-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.section-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  color: var(--text-secondary);
+}
+
+.section-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.section-header h2 {
+  font-family: "Courier New", monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.section-header h2 i {
+  color: #00d4aa;
+}
+
+.section-body {
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.section-body p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.version-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-muted);
+  padding: 0.55rem 0;
+  gap: 0.75rem;
+}
+
+.version-row span {
+  color: var(--text-secondary);
+}
+
+.version-row code {
+  color: #00d4aa;
+  background: rgba(0, 212, 170, 0.08);
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,359 @@
+.badge-count {
+  font-size: 0.8rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+}
+
+.clients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+}
+
+.client-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition:
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+.client-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+.client-card.disabled-card {
+  opacity: 0.65;
+}
+.client-card .client-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.client-card .client-card-header .client-avatar {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.client-card .client-card-header .client-info {
+  flex: 1;
+  overflow: hidden;
+}
+.client-card .client-card-header .client-info .client-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.client-card .client-card-header .client-info .client-email {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.client-card .client-card-header .status-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 20px;
+  padding: 0.2rem 0.6rem;
+  flex-shrink: 0;
+}
+.client-card .client-card-header .status-pill.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+.client-card .client-card-header .status-pill.inactive {
+  background: rgba(148, 163, 184, 0.1);
+  color: #64748b;
+}
+.client-card .client-details {
+  padding: 1rem 1.25rem;
+}
+.client-card .client-details .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0;
+}
+.client-card .client-details .detail-row:not(:last-child) {
+  border-bottom: 1px solid #f8fafc;
+}
+.client-card .client-details .detail-row .detail-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.client-card .client-details .detail-row .detail-value,
+.client-card .client-details .detail-row code.detail-value {
+  font-size: 0.8rem;
+  color: #334155;
+  font-family: "Fira Code", monospace;
+  background: #f8fafc;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+.client-card .client-actions {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.875rem 1.25rem;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+}
+.client-card .client-actions .action-btn {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.client-card .client-actions .action-btn:hover {
+  color: #00b4d8;
+  border-color: #00b4d8;
+  background: rgba(0, 180, 216, 0.05);
+}
+.client-card .client-actions .action-btn.danger:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fade-in 150ms ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.modal-panel {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slide-up 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modal-panel.config-modal {
+  max-width: 700px;
+}
+.modal-panel.confirm-modal {
+  max-width: 400px;
+  text-align: center;
+  padding: 2rem;
+}
+.modal-panel .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+.modal-panel .modal-header .modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+.modal-panel .modal-header .modal-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  transition: all 150ms;
+}
+.modal-panel .modal-header .modal-close:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+.modal-panel .modal-form {
+  padding: 1.5rem;
+}
+.modal-panel .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.modal-panel .form-group {
+  margin-bottom: 1rem;
+}
+.modal-panel .form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+.modal-panel .form-control {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  transition: border-color 150ms;
+}
+.modal-panel .form-control:focus {
+  border-color: #00b4d8;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
+}
+.modal-panel .form-control.is-invalid {
+  border-color: #ef4444;
+}
+.modal-panel .form-error {
+  font-size: 0.72rem;
+  color: #ef4444;
+  margin-top: 0.3rem;
+}
+.modal-panel .form-checks {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+.modal-panel .form-checks .form-check-label {
+  font-size: 0.875rem;
+}
+.modal-panel .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 0.5rem;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.config-pre {
+  padding: 1.5rem;
+  margin: 0;
+  background: #0d1b2a;
+  color: #a8d8ea;
+  font-size: 0.8rem;
+  font-family: "Fira Code", monospace;
+  border-radius: 0 0 16px 16px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.confirm-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.confirm-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.confirm-msg {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+.page-container {
+  padding: 2rem;
+  max-width: 1400px;
+}
+.page-container .page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.page-container .page-header .page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+.page-container .page-header .page-subtitle {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0.25rem 0 0;
+}
+.page-container .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: #64748b;
+}
+.page-container .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem;
+  color: #94a3b8;
+}
+.page-container .empty-state .empty-icon {
+  font-size: 3.5rem;
+}
+.page-container .empty-state p {
+  margin: 0;
+  font-size: 0.9rem;
+}
