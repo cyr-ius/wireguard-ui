@@ -1,0 +1,112 @@
+<!-- Status page: WireGuard interface overview -->
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="bi bi-activity me-2"></i>Interface Status
+      </h1>
+      <p class="page-subtitle">Live WireGuard tunnel overview</p>
+    </div>
+    <button class="btn-action" (click)="refresh()" [disabled]="isRefreshing()">
+      <i
+        class="bi"
+        [class.bi-arrow-clockwise]="!isRefreshing()"
+        [class.spin]="isRefreshing()"
+      ></i>
+      Refresh
+    </button>
+  </div>
+
+  @if (status(); as s) {
+    <!-- Interface status card -->
+    <div class="status-cards">
+      <div class="status-card" [class.running]="s.is_running">
+        <div class="status-card-header">
+          <i class="bi bi-hdd-network-fill"></i>
+          <span>Interface</span>
+        </div>
+        <div class="status-value">{{ s.interface }}</div>
+        <div
+          class="status-badge"
+          [class.badge-green]="s.is_running"
+          [class.badge-red]="!s.is_running"
+        >
+          <span class="badge-dot"></span>
+          {{ s.is_running ? "Running" : "Stopped" }}
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-card-header">
+          <i class="bi bi-key-fill"></i>
+          <span>Public Key</span>
+        </div>
+        <div class="status-value monospace truncate">
+          {{ s.public_key || "—" }}
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-card-header">
+          <i class="bi bi-ethernet"></i>
+          <span>Listen Port</span>
+        </div>
+        <div class="status-value">{{ s.listen_port || "—" }}</div>
+      </div>
+
+      <div class="status-card highlight">
+        <div class="status-card-header">
+          <i class="bi bi-people-fill"></i>
+          <span>Active Peers</span>
+        </div>
+        <div class="status-value accent">{{ peerCount() }}</div>
+      </div>
+    </div>
+
+    <!-- Peers table -->
+    @if (s.peers.length > 0) {
+      <div class="section-card">
+        <div class="section-header">
+          <h2><i class="bi bi-diagram-3 me-2"></i>Connected Peers</h2>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Public Key</th>
+                <th>Endpoint</th>
+                <th>Allowed IPs</th>
+                <th>Last Handshake</th>
+                <th>RX</th>
+                <th>TX</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (peer of s.peers; track peer.public_key) {
+                <tr>
+                  <td class="monospace truncate-cell">{{ peer.public_key }}</td>
+                  <td>{{ peer.endpoint || "—" }}</td>
+                  <td>{{ peer.allowed_ips || "—" }}</td>
+                  <td>{{ peer.latest_handshake || "—" }}</td>
+                  <td class="text-success">{{ peer.transfer_rx || "—" }}</td>
+                  <td class="text-info">{{ peer.transfer_tx || "—" }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <i class="bi bi-diagram-3"></i>
+        <p>No peers connected</p>
+        <span>WireGuard peers will appear here when connected</span>
+      </div>
+    }
+  } @else {
+    <div class="loading-state">
+      <div class="loader"></div>
+      <p>Loading interface status...</p>
+    </div>
+  }
+</div>

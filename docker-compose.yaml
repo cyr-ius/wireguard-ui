@@ -1,0 +1,29 @@
+services:
+  # ── Portalcrane Application ──────────────────────────────────────────────
+  wireguard-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wireguard-ui
+    restart: unless-stopped
+    environment:
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme}
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+    volumes:
+      - wireguard-ui_data:/var/lib/wireguard-ui
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 51820:51820/udp
+      - 8000:8000/tcp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+volumes:
+  wireguard-ui_data:

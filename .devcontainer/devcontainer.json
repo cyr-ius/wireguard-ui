@@ -1,0 +1,103 @@
+{
+  "name": "FastAPI + Angular Dev Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  // ─── VS Code extensions ────────────────────────────────────────────────
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Python / FastAPI
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+
+        // Angular / TypeScript
+        "angular.ng-template",
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+
+        // Docker & DevOps
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+
+        // Git & qualité
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-french",
+
+        // REST / API
+        "humao.rest-client",
+
+        // Général
+        "editorconfig.editorconfig",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        // ── Python ──────────────────────────────────────────────────────
+        "python.defaultInterpreterPath": "/workspace/backend/.venv/bin/python",
+        "python.pythonPath": "/workspace/backend/.venv/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.formatOnPaste": false,
+          "editor.formatOnType": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+          }
+        },
+        "ruff.enable": true,
+        "ruff.organizeImports": true,
+
+        // ── TypeScript / Angular ─────────────────────────────────────────
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[html]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[yaml]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "json.schemas": [
+          {
+            "fileMatch": ["homeassistant/components/*/manifest.json"],
+            "url": "${containerWorkspaceFolder}/script/json_schemas/manifest_schema.json"
+          }
+        ],
+
+        // ── Général ──────────────────────────────────────────────────────
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        // "editor.rulers": [88],
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  },
+
+  // ─── Ports forwardés automatiquement ──────────────────────────────────
+  "forwardPorts": [
+    4200, // Angular dev server
+    8000 // FastAPI
+  ],
+  "portsAttributes": {
+    "4200": { "label": "Angular Frontend", "onAutoForward": "openBrowser" },
+    "8000": { "label": "FastAPI Backend", "onAutoForward": "notify" }
+  },
+
+  // ─── Cycle de vie ──────────────────────────────────────────────────────
+  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+
+  // ─── Utilisateur non-root ──────────────────────────────────────────────
+  "remoteUser": "vscode"
+}

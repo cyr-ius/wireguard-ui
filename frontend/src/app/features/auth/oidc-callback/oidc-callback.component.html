@@ -1,0 +1,15 @@
+<div class="oidc-callback-page">
+  <div class="callback-card">
+    @if (error()) {
+      <div class="alert-error">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ error() }}
+      </div>
+      <a class="btn-back" routerLink="/login">Back to login</a>
+    } @else {
+      <div class="spinner"></div>
+      <h2>Signing you in...</h2>
+      <p>Completing OIDC authentication.</p>
+    }
+  </div>
+</div>

@@ -1,0 +1,137 @@
+<!-- Login page - cyberpunk/terminal aesthetic -->
+<div class="login-page">
+  <div class="login-theme-switcher">
+    <label for="login-theme-mode">Theme</label>
+    <select
+      id="login-theme-mode"
+      [value]="theme.mode()"
+      (change)="changeThemeMode($any($event.target).value)"
+    >
+      <option value="auto">Auto</option>
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
+  </div>
+  <div class="login-grid">
+    <!-- Decorative panel -->
+    <div class="login-brand">
+      <div class="brand-content">
+        <div class="brand-logo">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <h1 class="brand-title">WireGuard<span class="accent">UI</span></h1>
+        <p class="brand-tagline">Secure tunnel management</p>
+        <div class="brand-stats">
+          <div class="stat-line">
+            <span class="stat-dot running"></span>
+            <span>Fast & encrypted</span>
+          </div>
+          <div class="stat-line">
+            <span class="stat-dot"></span>
+            <span>Modern web interface</span>
+          </div>
+          <div class="stat-line">
+            <span class="stat-dot"></span>
+            <span>Role-based access</span>
+          </div>
+        </div>
+      </div>
+      <div class="brand-bg-grid"></div>
+    </div>
+
+    <!-- Login form panel -->
+    <div class="login-form-panel">
+      <div class="login-card">
+        <div class="login-header">
+          <h2>Sign in</h2>
+          <p>Access your WireGuard dashboard</p>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="alert-error">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="field-group">
+            <label for="username" class="field-label">Username</label>
+            <div class="field-wrapper">
+              <i class="bi bi-person field-icon"></i>
+              <input
+                id="username"
+                type="text"
+                formControlName="username"
+                class="field-input"
+                [class.invalid]="
+                  loginForm.get('username')?.invalid &&
+                  loginForm.get('username')?.touched
+                "
+                placeholder="Enter your username"
+                autocomplete="username"
+              />
+            </div>
+            @if (
+              loginForm.get("username")?.invalid &&
+              loginForm.get("username")?.touched
+            ) {
+              <span class="field-error">Username is required</span>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="password" class="field-label">Password</label>
+            <div class="field-wrapper">
+              <i class="bi bi-lock field-icon"></i>
+              <input
+                id="password"
+                type="password"
+                formControlName="password"
+                class="field-input"
+                [class.invalid]="
+                  loginForm.get('password')?.invalid &&
+                  loginForm.get('password')?.touched
+                "
+                placeholder="Enter your password"
+                autocomplete="current-password"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn-login"
+            [disabled]="loginForm.invalid || isLoading()"
+          >
+            @if (isLoading()) {
+              <span class="spinner"></span>
+              <span>Authenticating...</span>
+            } @else {
+              <i class="bi bi-arrow-right-circle me-2"></i>
+              <span>Sign in</span>
+            }
+          </button>
+
+          @if (oidcConfig()?.enabled) {
+            <div class="login-divider"><span>or</span></div>
+            <button
+              type="button"
+              class="btn-oidc"
+              (click)="startOidcLogin()"
+              [disabled]="isOidcLoading()"
+            >
+              @if (isOidcLoading()) {
+                <span class="spinner"></span>
+                <span>Redirecting...</span>
+              } @else {
+                <i class="bi bi-box-arrow-up-right me-2"></i>
+                <span>Sign in with OIDC</span>
+              }
+            </button>
+          }
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

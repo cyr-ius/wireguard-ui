@@ -1,73 +1,131 @@
-name: Docker
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: Build and Publish Docker Image
 
 on:
-  schedule:
-    - cron: "39 6 * * *"
-  workflow_dispatch:
-  workflow_call:
+  push:
+    tags:
+      - "*.*.*"
 
 env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
+  # Docker Hub image name
+  DOCKERHUB_IMAGE: cyrius44/portalcrane
+  # GitHub Container Registry image name
+  GHCR_IMAGE: ghcr.io/cyr-ius/portalcrane
 
 jobs:
-  build:
+  build-and-push:
+    name: Build and Push
     runs-on: ubuntu-latest
+
     permissions:
-      contents: write
-      packages: write
-      id-token: write
+      contents: read
+      packages: write # Required to push to GHCR
 
     steps:
+      # ── Checkout ─────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
+      # ── Docker Buildx (multi-arch support) ───────────────────────────────
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
+      # ── QEMU (for multi-arch builds: amd64 + arm64) ──────────────────────
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      # ── Login to Docker Hub ───────────────────────────────────────────────
+      - name: Log in to Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ── Login to GitHub Container Registry ───────────────────────────────
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
+      # ── Compute image tags and labels ─────────────────────────────────────
+      # Generates tags automatically:
+      #   - push to main       → :latest + :edge
+      #   - push tag v1.2.3    → :1.2.3 + :1.2 + :1 + :latest
+      #   - pull_request       → :pr-<number> (no push)
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
+          tags: |
+            # Tag with full semver on version tags (e.g. v1.2.3 → 1.2.3)
+            type=semver,pattern={{version}}
+            # Tag with major.minor (e.g. v1.2.3 → 1.2)
+            type=semver,pattern={{major}}.{{minor}}
+            # Tag with major only (e.g. v1.2.3 → 1)
+            type=semver,pattern={{major}}
+            # Tag latest on main branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # Tag edge on main branch (bleeding edge)
+            type=raw,value=edge,enable={{is_default_branch}}
+            # Tag with short commit SHA
+            type=sha,prefix=sha-,format=short
+          labels: |
+            org.opencontainers.image.title=Portalcrane
+            org.opencontainers.image.description=Docker Registry Manager
+            org.opencontainers.image.vendor=cyr-ius
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.source=https://github.com/cyr-ius/portalcrane
+            org.opencontainers.image.documentation=https://github.com/cyr-ius/portalcrane#readme
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
+      # ── Build and push ────────────────────────────────────────────────────
       - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
+          file: ./Dockerfile
+          # Build for both amd64 and arm64 (Raspberry Pi, Apple Silicon, etc.)
           platforms: linux/amd64
+          # Only push on non-PR events
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Cache layers between builds to speed up CI
           cache-from: type=gha
-          cache-to: type=gha,mode=max          
+          cache-to: type=gha,mode=max
+          # Build arguments
           build-args: |
-            BUILDTIME=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Wireguard Web Interface
+
+      # ── Update Docker Hub description ─────────────────────────────────────
+      - name: Update Docker Hub description
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.DOCKERHUB_IMAGE }}
+          readme-filepath: ./README.md
+          short-description: "Docker Registry Manager — Browse, manage, scan and push images"
+
+      # ── Summary ───────────────────────────────────────────────────────────
+      - name: Write job summary
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "## 🐳 Docker Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Tags pushed:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Registries:" >> $GITHUB_STEP_SUMMARY
+          echo "- 🐳 Docker Hub: \`${{ env.DOCKERHUB_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 GHCR: \`${{ env.GHCR_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY

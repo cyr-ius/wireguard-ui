@@ -1,52 +1,46 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+# ─── Pre-commit Configuration ──────────────────────────────────────────────
+# Standards: PEP8 (Ruff + Black), TypeScript (Prettier + ESLint)
+# Install: pre-commit install --install-hooks
+# Run manually: pre-commit run --all-files
+
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.7
-    hooks:
-      - id: ruff
-        args:
-          - --fix
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.3.1
-    hooks:
-      - id: black
-        args:
-          - --quiet 
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
-    hooks:
-      - id: codespell
-        args:
-          - --ignore-words-list=matchs,medias,bu
-          - --skip="./.*,*.csv,*.json,*.ambr,*.po,*.mo"
-          - --quiet-level=2
-        exclude_types: [csv, json]                   
+  # ── General ──────────────────────────────────────────────────────────────
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
       - id: check-yaml
-        exclude: (.vscode|.devcontainer|.github)
-      - id: check-toml
       - id: check-json
-        exclude: (.vscode|.devcontainer)
-      - id: pretty-format-json
-        exclude: (.vscode|.devcontainer)
+        exclude: .devcontainer|.claude|.agent
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # ── Python: Ruff (formatter + linter + import sort) ──────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=the
+          - --skip="./.*,*.csv,*.json,*.ambr"
+          - --quiet-level=2
+        exclude_types: [csv, json, html]
+        exclude: .devcontainer|.claude|.agent
+
+  # ── TypeScript / Angular: Prettier ───────────────────────────────────────
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
+    rev: v3.1.0
     hooks:
       - id: prettier
-        types_or: [css, javascript]
-  - repo: https://github.com/cdce8p/python-typing-update
-    rev: v0.8.1
-    hooks:
-      # Run `python-typing-update` hook manually from time to time
-      # to update python typing syntax.
-      # Will require manual work, before submitting changes!
-      # pre-commit run --hook-stage manual python-typing-update --all-files
-      - id: python-typing-update
-        stages: [manual]
-        args:
-          - --py311-plus
-          - --force
-          - --keep-updates
+        types_or: [javascript, html, css, scss, json, yaml, markdown]
+        exclude: "^(backend/|node_modules/)"

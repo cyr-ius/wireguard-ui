@@ -1,0 +1,154 @@
+"""SQLModel ORM models."""
+
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, Text
+from sqlmodel import Field, Relationship, SQLModel
+
+
+def utc_now() -> datetime:
+    """Return a timezone-aware UTC datetime."""
+    return datetime.now(UTC)
+
+
+class UserRoleLink(SQLModel, table=True):
+    __tablename__ = "user_roles"
+
+    user_id: int = Field(foreign_key="users.id", primary_key=True)
+    role_id: int = Field(foreign_key="roles.id", primary_key=True)
+
+
+class Role(SQLModel, table=True):
+    """Role model — carries a comma-separated list of permission strings."""
+
+    __tablename__ = "roles"
+
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(max_length=80, unique=True, index=True)
+    description: str | None = Field(default=None, max_length=255)
+    permissions: str | None = Field(
+        default=None,
+        sa_column=Column(Text, nullable=True),  # e.g. "admin-read,admin-write"
+    )
+
+    users: list["User"] = Relationship(back_populates="roles", link_model=UserRoleLink)  # noqa: UP037
+
+    def has_permission(self, permission: str) -> bool:
+        if not self.permissions:
+            return False
+        return permission in self.permissions.split(",")
+
+    def __repr__(self) -> str:
+        return f"<Role {self.name}>"
+
+
+class User(SQLModel, table=True):
+    """Application user with hashed password and role associations."""
+
+    __tablename__ = "users"
+
+    id: int | None = Field(default=None, primary_key=True)
+    username: str = Field(max_length=255, unique=True, index=True)
+    email: str = Field(max_length=255, unique=True, index=True)
+    first_name: str | None = Field(default=None, max_length=255)
+    last_name: str | None = Field(default=None, max_length=255)
+    hashed_password: str = Field(max_length=255)
+    active: bool = Field(default=True)
+    fs_uniquifier: str = Field(
+        default_factory=lambda: uuid.uuid4().hex,
+        max_length=64,
+        unique=True,
+        index=True,
+    )
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(
+        default_factory=utc_now,
+        sa_column_kwargs={"onupdate": utc_now},
+    )
+
+    roles: list[Role] = Relationship(back_populates="users", link_model=UserRoleLink)
+
+    def has_role(self, role_name: str) -> bool:
+        return any(r.name == role_name for r in self.roles)
+
+    def has_permission(self, permission: str) -> bool:
+        return any(r.has_permission(permission) for r in self.roles)
+
+    def __repr__(self) -> str:
+        return f"<User {self.username}>"
+
+
+class WireGuardServer(SQLModel, table=True):
+    """WireGuard server interface configuration."""
+
+    __tablename__ = "wg_server"
+
+    id: int | None = Field(default=None, primary_key=True)
+    address: str = Field(max_length=50)
+    listen_port: int = Field(default=51820)
+    private_key: str = Field(max_length=255)
+    public_key: str = Field(max_length=255)
+    postup: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    postdown: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    updated_at: datetime = Field(
+        default_factory=utc_now,
+        sa_column_kwargs={"onupdate": utc_now},
+    )
+
+    def __repr__(self) -> str:
+        return f"<WireGuardServer {self.address}:{self.listen_port}>"
+
+
+class WireGuardClient(SQLModel, table=True):
+    """WireGuard client (peer) configuration."""
+
+    __tablename__ = "wg_clients"
+
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(max_length=255, unique=True, index=True)
+    email: str = Field(max_length=255, unique=True, index=True)
+    public_key: str = Field(max_length=255)
+    private_key: str = Field(max_length=255)
+    preshared_key: str | None = Field(default="")
+    allocated_ips: str = Field(max_length=255)
+    allowed_ips: str = Field(default="0.0.0.0/0", max_length=255)
+    use_server_dns: bool = Field(default=True)
+    enabled: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(
+        default_factory=utc_now,
+        sa_column_kwargs={"onupdate": utc_now},
+    )
+
+    def __repr__(self) -> str:
+        return f"<WireGuardClient {self.name}>"
+
+
+class GlobalSettings(SQLModel, table=True):
+    """Global application and VPN settings (single row)."""
+
+    __tablename__ = "global_settings"
+
+    id: int | None = Field(default=None, primary_key=True)
+    endpoint_address: str | None = Field(default=None, max_length=255)
+    dns_servers: str | None = Field(default="1.1.1.1", max_length=255)
+    mtu: int | None = Field(default=None)
+    persistent_keepalive: int | None = Field(default=None)
+    config_file_path: str = Field(default="/etc/wireguard/wg0.conf", max_length=512)
+    maintenance_mode: bool = Field(default=False)
+    oidc_enabled: bool = Field(default=False)
+    oidc_issuer: str | None = Field(default="", max_length=512)
+    oidc_client_id: str | None = Field(default="", max_length=255)
+    oidc_client_secret: str | None = Field(default="", max_length=512)
+    oidc_redirect_uri: str | None = Field(default="", max_length=512)
+    oidc_post_logout_redirect_uri: str | None = Field(default="", max_length=512)
+    oidc_response_type: str | None = Field(default="code", max_length=50)
+    oidc_scope: str | None = Field(default="openid profile email", max_length=255)
+    updated_at: datetime = Field(
+        default_factory=utc_now,
+        sa_column_kwargs={"onupdate": utc_now},
+    )
+
+    def __repr__(self) -> str:
+        return f"<GlobalSettings endpoint={self.endpoint_address}>"
