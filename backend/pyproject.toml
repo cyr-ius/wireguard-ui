@@ -18,6 +18,8 @@ dependencies = [
     "python-multipart",
     "aiosqlite>=0.22.1",
     "bcrypt>=5.0.0",
+    "fastapi-mail>=1.6.2",
+    "qrcode>=8.2",
 ]
 
 [project.optional-dependencies]
