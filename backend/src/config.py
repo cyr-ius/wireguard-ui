@@ -5,7 +5,7 @@ from functools import lru_cache
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DEFAULT_DATABASE_URL = "sqlite+aiosqlite:///../data/wireguard_ui.db"
+DEFAULT_DATABASE_URL = "sqlite+aiosqlite:////data/wireguard_ui.db"
 
 
 class AppSettings(BaseSettings):
@@ -41,8 +41,11 @@ class AppSettings(BaseSettings):
         default="http://localhost:4200,http://localhost:8000",
         validation_alias="ALLOWED_ORIGINS",
     )
+    log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     frontend_dist: str | None = Field(default=None, validation_alias="FRONTEND_DIST")
     app_version: str = Field(default="1.0.0", validation_alias="APP_VERSION")
+
+    wg_autostart: bool = Field(default=True, validation_alias="WIREGUARD_AUTOSTART")
 
     def cors_origins(self) -> list[str]:
         return [
