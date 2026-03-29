@@ -72,11 +72,11 @@
               formControlName="address"
               class="form-control"
               [class.is-invalid]="isInvalid('address')"
-              placeholder="10.0.0.1/24"
+              placeholder="192.168.1.0/24"
             />
             @if (isInvalid("address")) {
               <div class="form-error">
-                Address is required (e.g. 10.0.0.1/24)
+                Address is required (e.g. 192.168.1.0/24)
               </div>
             }
           </div>
