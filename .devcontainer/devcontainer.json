@@ -4,35 +4,29 @@
   "service": "app",
   "workspaceFolder": "/workspace",
 
+  "mounts": [
+    "source=${env:HOME}/.codex/auth.json,target=/home/vscode/.codex/auth.json,type=bind,consistency=cached"
+  ],
+
   // ─── VS Code extensions ────────────────────────────────────────────────
   "customizations": {
     "vscode": {
       "extensions": [
-        // Python / FastAPI
         "ms-python.python",
         "ms-python.vscode-pylance",
         "charliermarsh.ruff",
-
-        // Angular / TypeScript
         "angular.ng-template",
         "ms-vscode.vscode-typescript-next",
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-
-        // Docker & DevOps
         "ms-azuretools.vscode-docker",
         "ms-vscode-remote.remote-containers",
-
-        // Git & qualité
         "streetsidesoftware.code-spell-checker",
         "streetsidesoftware.code-spell-checker-french",
-
-        // REST / API
         "humao.rest-client",
-
-        // Général
         "editorconfig.editorconfig",
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "alexcvzz.vscode-sqlite"
       ],
       "settings": {
         // ── Python ──────────────────────────────────────────────────────
@@ -77,7 +71,6 @@
         // ── Général ──────────────────────────────────────────────────────
         "editor.tabSize": 2,
         "editor.insertSpaces": true,
-        // "editor.rulers": [88],
         "files.eol": "\n",
         "files.insertFinalNewline": true,
         "files.trimTrailingWhitespace": true
@@ -91,7 +84,7 @@
     8000 // FastAPI
   ],
   "portsAttributes": {
-    "4200": { "label": "Angular Frontend", "onAutoForward": "openBrowser" },
+    "4200": { "label": "Angular Frontend", "onAutoForward": "notify" },
     "8000": { "label": "FastAPI Backend", "onAutoForward": "notify" }
   },
 

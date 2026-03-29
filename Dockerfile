@@ -38,11 +38,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Copy Supervisor configuration template file
 COPY ./docker/supervisord.conf /etc/supervisor/supervisord.conf
 
-ENV UV_SYSTEM_PYTHON=true
 ENV UV_NO_CACHE=true
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+ENV PYTHONUNBUFFERED=1
 ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
 WORKDIR /app
@@ -63,6 +63,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 
 VOLUME [ "/data" ]
 
-EXPOSE 8000
+EXPOSE 8000/tcp 51820/udp
 
 CMD ["/usr/bin/supervisord", "-c","/etc/supervisor/supervisord.conf"]

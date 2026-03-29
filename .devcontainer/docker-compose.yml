@@ -1,7 +1,4 @@
 # ─── Development environment for FastAPI + Angular ─────────────────────────
-# Usage: automatically started by VS Code Dev Containers
-# Ports: 8000 (API), 4200 (Frontend)
-
 services:
   # ── FastAPI backend ─────────────────────────────────────────────────────
   app:
@@ -10,19 +7,11 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspace:cached
+      - /data # named volume for persistent data
     working_dir: /workspace
     command: sleep infinity # VS Code takes over
-    environment:
-      - SECRET_KEY=dev-secret-key-change-in-production
-      - ENVIRONMENT=development
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-    ports:
-      - "8000:8000"
-    networks:
-      - devnet
+    cap_add:
+      - NET_ADMIN # required for wireguard-tools
 
-# ─── Networks ───────────────────────────────────────────────────────────────
-networks:
-  devnet:
-    driver: bridge
+volumes:
+  data:
