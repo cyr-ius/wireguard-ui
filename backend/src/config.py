@@ -45,6 +45,9 @@ class AppSettings(BaseSettings):
     frontend_dist: str | None = Field(default=None, validation_alias="FRONTEND_DIST")
     app_version: str = Field(default="1.0.0", validation_alias="APP_VERSION")
 
+    mail_from: str = Field(default="no-reply@wg.ui", validation_alias="MAIL_FROM")
+    mail_name: str = Field(default="WireGuardUI", validation_alias="MAIL_NAME")
+
     wg_autostart: bool = Field(default=True, validation_alias="WIREGUARD_AUTOSTART")
 
     def cors_origins(self) -> list[str]:
