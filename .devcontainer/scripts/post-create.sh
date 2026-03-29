@@ -1,25 +1,22 @@
 #!/usr/bin/env bash
 # ─── Post-Create Setup Script ───────────────────────────────────────────────
-# Exécuté une seule fois par VS Code après la création du container.
-# À ce stade le bind mount /workspace est actif — le code source est présent.
-
 set -euo pipefail
 
 WORKSPACE="/workspace"
 BACKEND_DIR="$WORKSPACE/backend"
 FRONTEND_DIR="$WORKSPACE/frontend"
 
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  🚀  Post-Create Setup — FastAPI + Angular DevContainer  "
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# ── 1. Python / FastAPI ──────────────────────────────────────────────────────
+# ── 1. Python dependencies ─────────────────────────────────────────────────────
 if [ ! -f "$BACKEND_DIR/pyproject.toml" ]; then
   cp "$WORKSPACE/.devcontainer/pyproject.toml" "$BACKEND_DIR"
 fi
 if [ -f "$BACKEND_DIR/pyproject.toml" ]; then
   echo ""
-  echo "📦  Synchronisation des dépendances Python (backend/pyproject.toml)..."
+  echo "📦  Installing Python dependencies..."
   cd "$BACKEND_DIR"
   if [ -f "uv.lock" ]; then
     uv sync --frozen --all-extras
@@ -28,15 +25,15 @@ if [ -f "$BACKEND_DIR/pyproject.toml" ]; then
     uv sync --all-extras
   fi
 else
-  echo "  ℹ️  backend/pyproject.toml absent — packages du bootstrap actifs"
-  echo "       Crée backend/ puis relance : uv sync --all-extras"
+  echo "ℹ️  backend/pyproject.toml not found — skipping Python install"
 fi
 
-# ── 2. Angular / Node ────────────────────────────────────────────────────────
+# ── 2. Node dependencies ───────────────────────────────────────────────────────
 if [ -f "$FRONTEND_DIR/package.json" ]; then
   echo ""
-  echo "📦  Installation des dépendances Node (frontend/package.json)..."
-  cd "$FRONTEND_DIR" && npm install --silent
+  echo "📦  Installing Node dependencies..."
+  cd "$FRONTEND_DIR"
+  npm ci
 else
   echo "  ℹ️  frontend/package.json absent — création du projet Angular..."
   cd /workspace && ng new frontend --style 'css' --zoneless --standalone --defaults
@@ -45,7 +42,7 @@ fi
 # ── 3. Git repository ────────────────────────────────────────────────────────
 if [ ! -d "$WORKSPACE/.git" ]; then
   echo ""
-  echo "🏁  Create git local repository..."
+  echo "🏁  Initializing git repository..."
   cd "$WORKSPACE"
   git init
   git config --global --add safe.directory "$WORKSPACE"
@@ -56,9 +53,9 @@ fi
 # ── 4. Pre-commit hooks ──────────────────────────────────────────────────────
 if [ -f "$WORKSPACE/.pre-commit-config.yaml" ]; then
   echo ""
-  echo "🪝  Installation des hooks pre-commit..."
+  echo "🪝  Installing pre-commit hooks..."
   cd "$WORKSPACE"
-  pre-commit install --install-hooks
+  uv run pre-commit install --install-hooks
 else
   echo "  ℹ️  .pre-commit-config.yaml absent — hooks non installés"
 fi
@@ -84,6 +81,12 @@ for dir in "$BACKEND_DIR" "$FRONTEND_DIR"; do
     cp "$dir/.env.example" "$dir/.env"
   fi
 done
+
+if [ -d "/home/vscode/.codex" ]; then
+  echo ""
+  echo "📄 Codex settings..."
+  mkdir -p /home/vscode/.codex && sudo chown vscode:vscode /home/vscode/.codex
+fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
