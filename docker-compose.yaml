@@ -12,7 +12,7 @@ services:
       - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
       - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
     volumes:
-      - wireguard-ui_data:/var/lib/wireguard-ui
+      - wireguard-ui_data:/data
     cap_add:
       - NET_ADMIN
     ports:
