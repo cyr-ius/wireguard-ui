@@ -25,7 +25,7 @@ ALGORITHM = app_settings.jwt_algorithm
 EXPIRE_MIN = app_settings.access_token_expire_minutes
 PASSWORD_HASH_ROUNDS = app_settings.bcrypt_rounds
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 
 def _bcrypt_input(password: str) -> bytes:
@@ -76,7 +76,7 @@ async def get_current_user(
     Decode the JWT Bearer token and return the authenticated User.
     Raises HTTP 401 when the token is invalid or the user is not found.
     """
-    exc = HTTPException(
+    credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
@@ -85,16 +85,16 @@ async def get_current_user(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str | None = payload.get("sub")
         if not username:
-            raise exc
+            raise credentials_exception
     except JWTError:
-        raise exc
+        raise credentials_exception
 
     result = await db.exec(
-        select(User).where(User.username == username).options(selectinload(User.roles))
+        select(User).where(User.username == username).options(selectinload(User.roles))  # type: ignore
     )
     user = result.one_or_none()
     if user is None or user.active is False:
-        raise exc
+        raise credentials_exception
     return user
 
 
