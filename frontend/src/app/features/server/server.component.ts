@@ -1,9 +1,9 @@
 import {
+  ChangeDetectionStrategy,
   Component,
-  signal,
   inject,
   OnInit,
-  ChangeDetectionStrategy,
+  signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ServerService } from '../../core/services/api.service';
@@ -31,7 +31,7 @@ export class ServerComponent implements OnInit {
 
   // Signal form for server configuration
   readonly serverForm = this.fb.group({
-    address: ['', [Validators.required]],
+    address: ['10.0.0.1/32', [Validators.required]],
     listen_port: [51820, [Validators.required, Validators.min(1), Validators.max(65535)]],
     private_key: ['', [Validators.required]],
     public_key: ['', [Validators.required]],

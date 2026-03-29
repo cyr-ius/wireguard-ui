@@ -13,7 +13,7 @@ def utc_now() -> datetime:
 
 
 class UserRoleLink(SQLModel, table=True):
-    __tablename__ = "user_roles"
+    __tablename__ = "user_roles"  # type: ignore
 
     user_id: int = Field(foreign_key="users.id", primary_key=True)
     role_id: int = Field(foreign_key="roles.id", primary_key=True)
@@ -22,7 +22,7 @@ class UserRoleLink(SQLModel, table=True):
 class Role(SQLModel, table=True):
     """Role model — carries a comma-separated list of permission strings."""
 
-    __tablename__ = "roles"
+    __tablename__ = "roles"  # type: ignore
 
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(max_length=80, unique=True, index=True)
@@ -46,7 +46,7 @@ class Role(SQLModel, table=True):
 class User(SQLModel, table=True):
     """Application user with hashed password and role associations."""
 
-    __tablename__ = "users"
+    __tablename__ = "users"  # type: ignore
 
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(max_length=255, unique=True, index=True)
@@ -82,7 +82,7 @@ class User(SQLModel, table=True):
 class WireGuardServer(SQLModel, table=True):
     """WireGuard server interface configuration."""
 
-    __tablename__ = "wg_server"
+    __tablename__ = "wg_server"  # type: ignore
 
     id: int | None = Field(default=None, primary_key=True)
     address: str = Field(max_length=50)
@@ -103,7 +103,7 @@ class WireGuardServer(SQLModel, table=True):
 class WireGuardClient(SQLModel, table=True):
     """WireGuard client (peer) configuration."""
 
-    __tablename__ = "wg_clients"
+    __tablename__ = "wg_clients"  # type: ignore
 
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(max_length=255, unique=True, index=True)
@@ -128,7 +128,7 @@ class WireGuardClient(SQLModel, table=True):
 class GlobalSettings(SQLModel, table=True):
     """Global application and VPN settings (single row)."""
 
-    __tablename__ = "global_settings"
+    __tablename__ = "global_settings"  # type: ignore
 
     id: int | None = Field(default=None, primary_key=True)
     endpoint_address: str | None = Field(default=None, max_length=255)
@@ -145,6 +145,13 @@ class GlobalSettings(SQLModel, table=True):
     oidc_post_logout_redirect_uri: str | None = Field(default="", max_length=512)
     oidc_response_type: str | None = Field(default="code", max_length=50)
     oidc_scope: str | None = Field(default="openid profile email", max_length=255)
+    smtp_server: str | None = Field(default=None, max_length=255)
+    smtp_port: int | None = Field(default=None)
+    smtp_username: str | None = Field(default=None, max_length=255)
+    smtp_password: str | None = Field(default=None, max_length=255)
+    smtp_tls: bool = Field(default=False)
+    smtp_ssl: bool = Field(default=False)
+    smtp_verify: bool = Field(default=False)
     updated_at: datetime = Field(
         default_factory=utc_now,
         sa_column_kwargs={"onupdate": utc_now},

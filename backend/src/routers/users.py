@@ -27,7 +27,7 @@ async def list_users(
     _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
 ):
     result = await db.exec(
-        select(User).options(selectinload(User.roles)).order_by(User.username)
+        select(User).options(selectinload(User.roles)).order_by(User.username)  # type: ignore
     )
     return result.all()
 
@@ -60,7 +60,7 @@ async def create_user(
     await db.commit()
     await db.refresh(user)
     result = await db.exec(
-        select(User).where(User.id == user.id).options(selectinload(User.roles))
+        select(User).where(User.id == user.id).options(selectinload(User.roles))  # type: ignore
     )
     return result.one()
 
@@ -73,7 +73,7 @@ async def get_user(
 ):
     u = (
         await db.exec(
-            select(User).where(User.id == user_id).options(selectinload(User.roles))
+            select(User).where(User.id == user_id).options(selectinload(User.roles))  # type: ignore
         )
     ).one_or_none()
     if not u:
@@ -90,7 +90,7 @@ async def update_user(
 ):
     u = (
         await db.exec(
-            select(User).where(User.id == user_id).options(selectinload(User.roles))
+            select(User).where(User.id == user_id).options(selectinload(User.roles))  # type: ignore
         )
     ).one_or_none()
     if not u:
@@ -104,7 +104,7 @@ async def update_user(
     db.add(u)
     await db.commit()
     result = await db.exec(
-        select(User).where(User.id == user_id).options(selectinload(User.roles))
+        select(User).where(User.id == user_id).options(selectinload(User.roles))  # type: ignore
     )
     return result.one()
 
