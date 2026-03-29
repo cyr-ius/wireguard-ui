@@ -13,17 +13,17 @@
 }
 
 .page-title {
+  font-family: "Courier New", monospace;
   font-size: 1.5rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
 }
 
 .page-subtitle {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 .loading-state {
