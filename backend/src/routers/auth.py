@@ -1,6 +1,7 @@
 """Authentication router: login, current user, password change."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -13,13 +14,41 @@ from ..schemas import LoginRequest, PasswordChangeRequest, TokenResponse, UserRe
 router = APIRouter()
 
 
+@router.post("/token", response_model=TokenResponse)
+async def login_for_access_token(
+    credentials: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db),
+):
+    """OAuth2 password-flow token endpoint used by the Swagger UI."""
+    result = await db.exec(
+        select(User)
+        .where(User.username == credentials.username)
+        .options(selectinload(User.roles))  # type: ignore
+    )
+    user = result.one_or_none()
+
+    if not user or not verify_password(credentials.password, str(user.hashed_password)):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if user.active is False:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled"
+        )
+
+    token = create_access_token({"sub": user.username})
+    return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
 @router.post("/login", response_model=TokenResponse)
 async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate and return a JWT access token."""
     result = await db.exec(
         select(User)
         .where(User.username == credentials.username)
-        .options(selectinload(User.roles))
+        .options(selectinload(User.roles))  # type: ignore
     )
     user = result.one_or_none()
 
