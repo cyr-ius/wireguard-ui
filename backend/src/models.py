@@ -143,6 +143,7 @@ class GlobalSettings(SQLModel, table=True):
     persistent_keepalive: int | None = Field(default=None)
     config_file_path: str = Field(default="/etc/wireguard/wg0.conf", max_length=512)
     maintenance_mode: bool = Field(default=False)
+    default_email_language: str = Field(default="en", max_length=5)
 
     # OIDC settings
     oidc_enabled: bool = Field(default=False)
@@ -159,7 +160,7 @@ class GlobalSettings(SQLModel, table=True):
     smtp_port: int | None = Field(default=None)
     smtp_username: str | None = Field(default=None, max_length=255)
     smtp_password: str | None = Field(default=None, max_length=255)
-    smtp_from: str = Field(default="no-reply@wireguard.local", max_length=255)
+    smtp_from: str | None = Field(default=None, max_length=255)
     smtp_from_name: str = Field(default="WireGuard UI", max_length=255)
     smtp_tls: bool = Field(default=True)
     smtp_ssl: bool = Field(default=False)

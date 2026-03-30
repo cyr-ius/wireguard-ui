@@ -7,7 +7,7 @@ import {
   signal,
 } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { ClientsService } from "../../core/services/api.service";
+import { ClientsService, SmtpService } from "../../core/services/api.service";
 import {
   ClientCreate,
   ClientUpdate,
@@ -34,6 +34,7 @@ const EMAIL_LANGUAGES = [
 })
 export class ClientsComponent implements OnInit {
   private readonly clientsService = inject(ClientsService);
+  private readonly smtpService = inject(SmtpService);
   private readonly fb = inject(FormBuilder);
 
   // ── Available language options for email ──────────────────────────────────
@@ -66,6 +67,7 @@ export class ClientsComponent implements OnInit {
   readonly emailSuccess = signal<string | null>(null);
   readonly emailError = signal<string | null>(null);
   readonly selectedEmailLang = signal<string>("en");
+  readonly defaultEmailLanguage = signal<string>("en");
 
   // ── IP suggestion signal ──────────────────────────────────────────────────
   readonly suggestedIp = signal<string | null>(null);
@@ -91,6 +93,21 @@ export class ClientsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadClients();
+    this.loadDefaultEmailLanguage();
+  }
+
+
+  loadDefaultEmailLanguage(): void {
+    this.smtpService.get().subscribe({
+      next: (settings) => {
+        const language = settings.default_email_language ?? "en";
+        this.defaultEmailLanguage.set(language);
+        this.selectedEmailLang.set(language);
+      },
+      error: () => {
+        this.defaultEmailLanguage.set("en");
+      },
+    });
   }
 
   loadClients(): void {
@@ -116,7 +133,7 @@ export class ClientsComponent implements OnInit {
       use_server_dns: true,
       enabled: true,
       send_email: false,
-      email_language: "en",
+      email_language: this.defaultEmailLanguage(),
     });
     this.formError.set(null);
     this.modalMode.set("create");
@@ -147,7 +164,7 @@ export class ClientsComponent implements OnInit {
       enabled: client.enabled,
       preshared_key: client.preshared_key ?? "",
       send_email: false,
-      email_language: "en",
+      email_language: this.defaultEmailLanguage(),
     });
     this.formError.set(null);
     this.modalMode.set("edit");
@@ -179,7 +196,7 @@ export class ClientsComponent implements OnInit {
         enabled: value.enabled ?? true,
         preshared_key: value.preshared_key || "",
         send_email: value.send_email ?? false,
-        email_language: value.email_language ?? "en",
+        email_language: value.email_language ?? this.defaultEmailLanguage(),
       };
 
       this.clientsService.create(createData).subscribe({
@@ -318,7 +335,7 @@ export class ClientsComponent implements OnInit {
     this.emailTarget.set(client);
     this.emailSuccess.set(null);
     this.emailError.set(null);
-    this.selectedEmailLang.set("en");
+    this.selectedEmailLang.set(this.defaultEmailLanguage());
   }
 
   closeEmailModal(): void {

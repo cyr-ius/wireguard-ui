@@ -9,6 +9,17 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ServerService } from '../../core/services/api.service';
 import { ServerCreate } from '../../shared/models/api.models';
 
+const SERVER_DEFAULTS: ServerCreate = {
+  address: '192.168.1.0/24',
+  listen_port: 51820,
+  private_key: '',
+  public_key: '',
+  postup:
+    'iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE',
+  postdown:
+    'iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE',
+};
+
 @Component({
   selector: 'app-server',
   standalone: true,
@@ -24,19 +35,22 @@ export class ServerComponent implements OnInit {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly applying = signal(false);
+  readonly resetting = signal(false);
   readonly error = signal<string | null>(null);
   readonly saveError = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly showPrivateKey = signal(false);
 
-  // Signal form for server configuration
   readonly serverForm = this.fb.group({
-    address: ['10.0.0.1/32', [Validators.required]],
-    listen_port: [51820, [Validators.required, Validators.min(1), Validators.max(65535)]],
-    private_key: ['', [Validators.required]],
-    public_key: ['', [Validators.required]],
-    postup: [''],
-    postdown: [''],
+    address: [SERVER_DEFAULTS.address, [Validators.required]],
+    listen_port: [
+      SERVER_DEFAULTS.listen_port,
+      [Validators.required, Validators.min(1), Validators.max(65535)],
+    ],
+    private_key: [SERVER_DEFAULTS.private_key, [Validators.required]],
+    public_key: [SERVER_DEFAULTS.public_key, [Validators.required]],
+    postup: [SERVER_DEFAULTS.postup ?? ''],
+    postdown: [SERVER_DEFAULTS.postdown ?? ''],
   });
 
   ngOnInit(): void {
@@ -47,20 +61,21 @@ export class ServerComponent implements OnInit {
     this.loading.set(true);
     this.serverService.get().subscribe({
       next: (server) => {
-        // Do not prefill private_key for security - user must re-enter to change
-        this.serverForm.patchValue({
+        this.serverForm.reset({
           address: server.address,
           listen_port: server.listen_port,
+          private_key: '',
           public_key: server.public_key,
-          postup: server.postup ?? '',
-          postdown: server.postdown ?? '',
+          postup: server.postup ?? SERVER_DEFAULTS.postup ?? '',
+          postdown: server.postdown ?? SERVER_DEFAULTS.postdown ?? '',
         });
         this.loading.set(false);
       },
       error: (err) => {
-        // Server not configured yet - not a real error
         if (err.status !== 404) {
           this.error.set(err?.error?.detail ?? 'Failed to load server configuration');
+        } else {
+          this.resetServerForm();
         }
         this.loading.set(false);
       },
@@ -86,7 +101,7 @@ export class ServerComponent implements OnInit {
     this.saveError.set(null);
     this.successMessage.set(null);
 
-    this.serverService.upsert(this.serverForm.value as ServerCreate).subscribe({
+    this.serverService.upsert(this.serverForm.getRawValue() as ServerCreate).subscribe({
       next: () => {
         this.saving.set(false);
         this.successMessage.set('Server configuration saved successfully');
@@ -95,6 +110,27 @@ export class ServerComponent implements OnInit {
       error: (err) => {
         this.saving.set(false);
         this.saveError.set(err?.error?.detail ?? 'Failed to save configuration');
+      },
+    });
+  }
+
+  resetServerConfig(): void {
+    if (this.resetting()) return;
+
+    this.resetting.set(true);
+    this.saveError.set(null);
+    this.successMessage.set(null);
+
+    this.serverService.reset().subscribe({
+      next: () => {
+        this.resetting.set(false);
+        this.resetServerForm();
+        this.successMessage.set('Server configuration reset successfully');
+        setTimeout(() => this.successMessage.set(null), 4000);
+      },
+      error: (err) => {
+        this.resetting.set(false);
+        this.saveError.set(err?.error?.detail ?? 'Failed to reset configuration');
       },
     });
   }
@@ -126,5 +162,11 @@ export class ServerComponent implements OnInit {
   isInvalid(field: string): boolean {
     const control = this.serverForm.get(field);
     return !!(control?.invalid && control?.touched);
+  }
+
+  private resetServerForm(): void {
+    this.serverForm.reset({ ...SERVER_DEFAULTS });
+    this.serverForm.markAsPristine();
+    this.serverForm.markAsUntouched();
   }
 }

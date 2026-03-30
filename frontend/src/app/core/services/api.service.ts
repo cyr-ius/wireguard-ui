@@ -107,6 +107,10 @@ export class ApiService {
     return this.http.put<WireGuardServer>("/api/server", data);
   }
 
+  resetServer(): Observable<void> {
+    return this.http.delete<void>("/api/server");
+  }
+
   generateServerKeypair(): Observable<KeyPair> {
     return this.http.post<KeyPair>("/api/server/keypair", {});
   }
@@ -129,6 +133,10 @@ export class ApiService {
     return this.http.patch<GlobalSettings>("/api/settings", data);
   }
 
+  resetSettings(): Observable<GlobalSettings> {
+    return this.http.post<GlobalSettings>("/api/settings/reset", {});
+  }
+
   // ── SMTP ──────────────────────────────────────────────────────────────────
 
   getSmtpSettings(): Observable<SmtpSettings> {
@@ -139,8 +147,8 @@ export class ApiService {
     return this.http.put<SmtpSettings>("/api/smtp", data);
   }
 
-  deleteSmtpSettings(data: SmtpSettingsUpdate): Observable<void> {
-    return this.http.post<void>("/api/smtp", data);
+  resetSmtpSettings(): Observable<SmtpSettings> {
+    return this.http.post<SmtpSettings>("/api/smtp/reset", {});
   }
 
   testSmtpSettings(data: SmtpTestRequest): Observable<void> {
@@ -253,6 +261,10 @@ export class ServerService {
     return this.api.upsertServer(data);
   }
 
+  reset(): Observable<void> {
+    return this.api.resetServer();
+  }
+
   generateKeypair(): Observable<KeyPair> {
     return this.api.generateServerKeypair();
   }
@@ -277,6 +289,10 @@ export class SettingsService {
   update(data: SettingsUpdate): Observable<GlobalSettings> {
     return this.api.updateSettings(data);
   }
+
+  reset(): Observable<GlobalSettings> {
+    return this.api.resetSettings();
+  }
 }
 
 @Injectable({ providedIn: "root" })
@@ -291,8 +307,8 @@ export class SmtpService {
     return this.api.updateSmtpSettings(data);
   }
 
-  delete(data: SmtpSettingsUpdate): Observable<void> {
-    return this.api.deleteSmtpSettings(data);
+  reset(): Observable<SmtpSettings> {
+    return this.api.resetSmtpSettings();
   }
 
   test(recipient: string): Observable<void> {

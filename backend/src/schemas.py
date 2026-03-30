@@ -5,6 +5,7 @@ Pydantic v2 schemas for all request bodies and response models.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from fastapi_mail import NameEmail
 from pydantic import EmailStr
@@ -165,6 +166,7 @@ class SettingsUpdate(SQLModel):
     persistent_keepalive: int | None = Field(default=None, ge=0, le=65535)
     config_file_path: str | None = None
     maintenance_mode: bool | None = None
+    default_email_language: Literal["en", "fr", "es"] | None = None
 
 
 class SettingsResponse(SQLModel):
@@ -175,6 +177,7 @@ class SettingsResponse(SQLModel):
     persistent_keepalive: int | None = None
     config_file_path: str
     maintenance_mode: bool
+    default_email_language: str = "en"
     updated_at: datetime | None = None
     model_config = {"from_attributes": True}
 
@@ -194,6 +197,7 @@ class SmtpSettingsUpdate(SQLModel):
     smtp_tls: bool = False
     smtp_ssl: bool = False
     smtp_verify: bool = False
+    default_email_language: Literal["en", "fr", "es"] = "en"
 
 
 class SmtpSettingsResponse(SQLModel):
@@ -207,6 +211,7 @@ class SmtpSettingsResponse(SQLModel):
     smtp_tls: bool = True
     smtp_ssl: bool = False
     smtp_verify: bool = True
+    default_email_language: Literal["en", "fr", "es"] = "en"
     smtp_configured: bool = False
     model_config = {"from_attributes": True}
 

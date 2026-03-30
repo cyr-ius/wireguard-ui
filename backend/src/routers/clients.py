@@ -123,10 +123,15 @@ async def create_client(
 
         if server and settings and settings.smtp_server:
             config_content = build_client_config(client, server, settings)
+            default_language = (
+                settings.default_email_language
+                if settings.default_email_language in ("en", "fr", "es")
+                else "en"
+            )
             lang: SupportedLanguage = (
                 data.email_language
                 if data.email_language in ("en", "fr", "es")
-                else "en"
+                else default_language
             )  # type: ignore[assignment]
 
             background_tasks.add_task(
@@ -301,8 +306,13 @@ async def send_client_email(
         )
 
     config_content = build_client_config(client, server, settings)
+    default_language = (
+        settings.default_email_language
+        if settings.default_email_language in ("en", "fr", "es")
+        else "en"
+    )
     lang: SupportedLanguage = (
-        body.language if body.language in ("en", "fr", "es") else "en"
+        body.language if body.language in ("en", "fr", "es") else default_language
     )  # type: ignore[assignment]
 
     background_tasks.add_task(

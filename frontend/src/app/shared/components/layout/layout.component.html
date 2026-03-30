@@ -2,18 +2,27 @@
 <div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
   <!-- Sidebar -->
   <aside class="sidebar">
+    <button
+      class="sidebar-toggle"
+      type="button"
+      (click)="toggleSidebar()"
+      [title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      [attr.aria-label]="
+        sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'
+      "
+    >
+      <i
+        class="bi"
+        [class.bi-chevron-right]="sidebarCollapsed()"
+        [class.bi-chevron-left]="!sidebarCollapsed()"
+      ></i>
+    </button>
+
     <div class="sidebar-header">
       <a routerLink="/" class="brand">
         <i class="bi bi-shield-lock-fill brand-icon"></i>
         <span class="brand-text">WireGuard<span class="accent">UI</span></span>
       </a>
-      <button
-        class="sidebar-toggle"
-        (click)="toggleSidebar()"
-        title="Toggle sidebar"
-      >
-        <i class="bi bi-layout-sidebar"></i>
-      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -53,13 +62,13 @@
             <span class="nav-label">OIDC</span>
           </a>
           <a routerLink="/smtp" routerLinkActive="active" class="nav-item">
-            <i class="bi bi-shield-lock-fill"></i>
+            <i class="bi bi-send-fill"></i>
             <span class="nav-label">SMTP</span>
           </a>
         </div>
       }
       <div class="nav-section">
-        <span class="nav-section-label">Informations</span>
+        <span class="nav-section-label">Information</span>
         <a routerLink="/about" routerLinkActive="active" class="nav-item">
           <i class="bi bi-info-circle-fill"></i>
           <span class="nav-label">About</span>
@@ -70,20 +79,31 @@
     <!-- User footer -->
     <div class="sidebar-footer">
       <div class="theme-switcher">
-        <label class="theme-label" for="theme-mode">
-          <i class="bi bi-circle-half"></i>
-          <span class="theme-label-text">Theme</span>
-        </label>
-        <select
-          id="theme-mode"
-          class="theme-select"
-          [value]="theme.mode()"
-          (change)="changeThemeMode($any($event.target).value)"
-        >
-          <option value="auto">Auto</option>
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-        </select>
+        @if (sidebarCollapsed()) {
+          <button
+            class="theme-compact-button"
+            type="button"
+            [title]="'Theme: ' + themeButtonLabel()"
+            (click)="cycleThemeMode()"
+          >
+            <i class="bi" [class]="themeButtonIcon()"></i>
+          </button>
+        } @else {
+          <label class="theme-label" for="theme-mode">
+            <i class="bi bi-circle-half"></i>
+            <span class="theme-label-text">Theme</span>
+          </label>
+          <select
+            id="theme-mode"
+            class="theme-select"
+            [value]="theme.mode()"
+            (change)="changeThemeMode($any($event.target).value)"
+          >
+            <option value="auto">Auto</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        }
       </div>
       <div class="user-info">
         <div class="user-avatar">

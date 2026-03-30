@@ -1,7 +1,7 @@
 """WireGuard server configuration and service control router."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import select
+from sqlmodel import delete, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import get_current_admin
@@ -46,6 +46,16 @@ async def upsert_server(
     await db.commit()
     await db.refresh(s)
     return s
+
+
+@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+async def reset_server(
+    _: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Remove the saved WireGuard server configuration."""
+    await db.exec(delete(WireGuardServer))
+    await db.commit()
 
 
 @router.post("/keypair", response_model=KeyPairResponse)

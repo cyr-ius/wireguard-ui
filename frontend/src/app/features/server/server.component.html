@@ -181,6 +181,17 @@
         </button>
         <button
           type="button"
+          class="btn btn-outline-danger"
+          [disabled]="resetting()"
+          (click)="resetServerConfig()"
+        >
+          @if (resetting()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Configuration
+        </button>
+        <button
+          type="button"
           class="btn btn-warning"
           [disabled]="applying()"
           (click)="applyConfig()"

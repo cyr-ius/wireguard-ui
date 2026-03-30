@@ -168,6 +168,7 @@ export interface SmtpSettings {
   smtp_tls: boolean;
   smtp_ssl: boolean;
   smtp_verify: boolean;
+  default_email_language: string;
   smtp_configured: boolean;
 }
 
@@ -181,6 +182,7 @@ export interface SmtpSettingsUpdate {
   smtp_tls: boolean;
   smtp_ssl: boolean;
   smtp_verify: boolean;
+  default_email_language: string;
 }
 
 export interface SmtpTestRequest {

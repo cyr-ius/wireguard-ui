@@ -9,7 +9,8 @@ from __future__ import annotations
 import logging
 from typing import cast
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from email_validator import EmailNotValidError, validate_email
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi_mail import (
     ConnectionConfig,
     FastMail,
@@ -18,7 +19,7 @@ from fastapi_mail import (
     NameEmail,
 )
 from pydantic import SecretStr
-from sqlmodel import delete, select
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import get_current_admin
@@ -29,6 +30,19 @@ from ..schemas import SmtpSettingsResponse, SmtpSettingsUpdate, SmtpTestRequest
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+SMTP_DEFAULTS = {
+    "smtp_server": None,
+    "smtp_port": None,
+    "smtp_username": None,
+    "smtp_password": None,
+    "smtp_from": None,
+    "smtp_from_name": "WireGuard UI",
+    "smtp_tls": True,
+    "smtp_ssl": False,
+    "smtp_verify": True,
+    "default_email_language": "en",
+}
 
 
 def _build_smtp_response(settings: GlobalSettings) -> SmtpSettingsResponse:
@@ -51,7 +65,27 @@ def _build_smtp_response(settings: GlobalSettings) -> SmtpSettingsResponse:
         smtp_tls=settings.smtp_tls,
         smtp_ssl=settings.smtp_ssl,
         smtp_verify=settings.smtp_verify,
+        default_email_language=settings.default_email_language or "en",
         smtp_configured=bool(settings.smtp_server and settings.smtp_port),
+    )
+
+
+def _resolve_mail_from(settings: GlobalSettings) -> str:
+    """Return a valid sender email or raise a clear configuration error."""
+    for candidate in (settings.smtp_from, settings.smtp_username):
+        if not candidate:
+            continue
+        try:
+            validate_email(candidate, check_deliverability=False)
+            return candidate
+        except EmailNotValidError:
+            continue
+
+    raise HTTPException(
+        400,
+        detail=(
+            "Mail From must be a valid email address, or SMTP Username must be a valid email address."
+        ),
     )
 
 
@@ -98,8 +132,13 @@ async def update_smtp_settings(
 
     update_data = payload.model_dump(exclude_unset=True)
 
-    # Preserve existing password if not explicitly provided
-    if "smtp_password" not in update_data or update_data.get("smtp_password") is None:
+    # Preserve existing password if not explicitly provided or blank
+    password = update_data.get("smtp_password")
+    if (
+        "smtp_password" not in update_data
+        or password is None
+        or (isinstance(password, str) and not password.strip())
+    ):
         update_data.pop("smtp_password", None)
 
     settings.sqlmodel_update(update_data)
@@ -116,26 +155,18 @@ async def update_smtp_settings(
     return _build_smtp_response(settings)
 
 
-@router.post("", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_settings(
-    payload: SmtpSettingsUpdate,
+@router.post("/reset", response_model=SmtpSettingsResponse)
+async def reset_smtp_settings(
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-):
-    """Delete settings."""
-    stmt = delete(GlobalSettings)
-
-    conditions = []
-    for col_name in payload.model_dump():
-        if hasattr(GlobalSettings, col_name):
-            column = getattr(GlobalSettings, col_name)
-            conditions.append(column is not None)
-
-    for i, condition in enumerate(conditions):
-        stmt = stmt.where(condition) if i == 0 else stmt.where(condition)
-
-    await db.exec(stmt)
+) -> SmtpSettingsResponse:
+    """Reset all mail-related settings to their defaults."""
+    settings = await _get_settings(db)
+    settings.sqlmodel_update(SMTP_DEFAULTS)
+    db.add(settings)
     await db.commit()
+    await db.refresh(settings)
+    return _build_smtp_response(settings)
 
 
 @router.post("/test", status_code=204)
@@ -167,7 +198,7 @@ async def test_smtp_settings(
             MAIL_SSL_TLS=settings.smtp_ssl,
             USE_CREDENTIALS=bool(settings.smtp_username),
             VALIDATE_CERTS=settings.smtp_verify,
-            MAIL_FROM=settings.smtp_from or "no-reply@wireguard.local",
+            MAIL_FROM=_resolve_mail_from(settings),
             MAIL_FROM_NAME=settings.smtp_from_name or "WireGuard UI",
         )
 

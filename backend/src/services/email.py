@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Literal, cast
 
 import qrcode
+from email_validator import EmailNotValidError, validate_email
 from fastapi_mail import (
     ConnectionConfig,
     FastMail,
@@ -21,6 +22,7 @@ from fastapi_mail import (
 )
 from jinja2 import Environment, FileSystemLoader
 from pydantic import SecretStr
+from starlette.datastructures import Headers, UploadFile
 
 from ..models import GlobalSettings, WireGuardClient, WireGuardServer
 
@@ -57,6 +59,22 @@ def _generate_qr_code_base64(config_content: str) -> str:
     buffer.seek(0)
 
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+def _resolve_mail_from(settings: GlobalSettings) -> str:
+    """Return a valid sender email or raise a clear configuration error."""
+    for candidate in (settings.smtp_from, settings.smtp_username):
+        if not candidate:
+            continue
+        try:
+            validate_email(candidate, check_deliverability=False)
+            return candidate
+        except EmailNotValidError:
+            continue
+
+    raise ValueError(
+        "Mail From must be a valid email address, or SMTP Username must be a valid email address."
+    )
 
 
 def _render_email_template(
@@ -144,7 +162,7 @@ async def send_client_config_email(
         MAIL_SSL_TLS=settings.smtp_ssl,
         USE_CREDENTIALS=bool(settings.smtp_username),
         VALIDATE_CERTS=settings.smtp_verify,
-        MAIL_FROM=settings.smtp_from or "no-reply@wireguard.local",
+        MAIL_FROM=_resolve_mail_from(settings),
         MAIL_FROM_NAME=settings.smtp_from_name or "WireGuard UI",
     )
 
@@ -152,20 +170,19 @@ async def send_client_config_email(
     conf_filename = f"{client.name}.conf"
     conf_bytes = config_content.encode("utf-8")
 
+    attachment = UploadFile(
+        filename=conf_filename,
+        file=io.BytesIO(conf_bytes),
+        headers=Headers({"content-type": "text/plain; charset=utf-8"}),
+    )
+
     # Build message with attachment
     message = MessageSchema(
         subject=subject,
         recipients=cast(list[NameEmail], [client.email]),
         body=html_content,
         subtype=MessageType.html,
-        attachments=[
-            {
-                "file": conf_bytes,
-                "filename": conf_filename,
-                "mime_type": "text",
-                "mime_subtype": "plain",
-            }
-        ],
+        attachments=[attachment],
     )
 
     fm = FastMail(email_config)
