@@ -137,6 +137,8 @@ class GlobalSettings(SQLModel, table=True):
     persistent_keepalive: int | None = Field(default=None)
     config_file_path: str = Field(default="/etc/wireguard/wg0.conf", max_length=512)
     maintenance_mode: bool = Field(default=False)
+
+    # OIDC settings
     oidc_enabled: bool = Field(default=False)
     oidc_issuer: str | None = Field(default="", max_length=512)
     oidc_client_id: str | None = Field(default="", max_length=255)
@@ -145,13 +147,18 @@ class GlobalSettings(SQLModel, table=True):
     oidc_post_logout_redirect_uri: str | None = Field(default="", max_length=512)
     oidc_response_type: str | None = Field(default="code", max_length=50)
     oidc_scope: str | None = Field(default="openid profile email", max_length=255)
+
+    # SMTP / Email settings
     smtp_server: str | None = Field(default=None, max_length=255)
     smtp_port: int | None = Field(default=None)
     smtp_username: str | None = Field(default=None, max_length=255)
     smtp_password: str | None = Field(default=None, max_length=255)
-    smtp_tls: bool = Field(default=False)
+    smtp_from: str = Field(default="no-reply@wireguard.local", max_length=255)
+    smtp_from_name: str = Field(default="WireGuard UI", max_length=255)
+    smtp_tls: bool = Field(default=True)
     smtp_ssl: bool = Field(default=False)
-    smtp_verify: bool = Field(default=False)
+    smtp_verify: bool = Field(default=True)
+
     updated_at: datetime = Field(
         default_factory=utc_now,
         sa_column_kwargs={"onupdate": utc_now},

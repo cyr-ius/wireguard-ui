@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your WireGuard VPN Configuration</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f6f8;
+        margin: 0;
+        padding: 0;
+        color: #333;
+      }
+      .container {
+        max-width: 640px;
+        margin: 40px auto;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      .header {
+        background: linear-gradient(135deg, #0a1628, #0d2240);
+        color: white;
+        padding: 40px 32px;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      .header p {
+        margin: 8px 0 0;
+        opacity: 0.75;
+        font-size: 14px;
+      }
+      .badge {
+        display: inline-block;
+        background: rgba(0, 212, 170, 0.2);
+        border: 1px solid rgba(0, 212, 170, 0.4);
+        color: #00d4aa;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        margin-top: 12px;
+        font-weight: 600;
+      }
+      .body {
+        padding: 36px 32px;
+      }
+      .greeting {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 16px;
+      }
+      .description {
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 28px;
+        font-size: 15px;
+      }
+      .info-card {
+        background: #f8faff;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #00d4aa;
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin-bottom: 28px;
+      }
+      .info-card h3 {
+        margin: 0 0 12px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #94a3b8;
+        font-weight: 600;
+      }
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+      }
+      .info-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .info-label {
+        color: #64748b;
+      }
+      .info-value {
+        font-family: monospace;
+        color: #1e293b;
+        font-weight: 500;
+      }
+      .qr-section {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      .qr-section h3 {
+        color: #1e293b;
+        font-size: 16px;
+        margin-bottom: 16px;
+      }
+      .qr-section img {
+        border: 8px solid #f1f5f9;
+        border-radius: 12px;
+        max-width: 200px;
+      }
+      .qr-caption {
+        color: #94a3b8;
+        font-size: 13px;
+        margin-top: 10px;
+      }
+      .steps {
+        margin-bottom: 28px;
+      }
+      .steps h3 {
+        color: #1e293b;
+        font-size: 16px;
+        margin-bottom: 16px;
+      }
+      .step {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 12px;
+        align-items: flex-start;
+      }
+      .step-num {
+        background: #00d4aa;
+        color: #0a1628;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .step-text {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .attachment-notice {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-size: 14px;
+        color: #92400e;
+        margin-bottom: 28px;
+      }
+      .attachment-notice strong {
+        color: #78350f;
+      }
+      .footer {
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        padding: 24px 32px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 13px;
+      }
+      .footer strong {
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>🔒 WireGuard VPN</h1>
+        <p>Your secure tunnel configuration</p>
+        <span class="badge">Configuration Ready</span>
+      </div>
+
+      <!-- Body -->
+      <div class="body">
+        <p class="greeting">Hello {{ client_name }},</p>
+        <p class="description">
+          Your WireGuard VPN configuration has been created and is ready to use.
+          You will find your configuration file attached to this email. You can
+          import it directly into the WireGuard application or scan the QR code
+          below.
+        </p>
+
+        <!-- Client Info -->
+        <div class="info-card">
+          <h3>📋 Configuration Details</h3>
+          <div class="info-row">
+            <span class="info-label">Client Name</span>
+            <span class="info-value">{{ client_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Assigned IP</span>
+            <span class="info-value">{{ allocated_ips }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Allowed IPs</span>
+            <span class="info-value">{{ allowed_ips }}</span>
+          </div>
+          {% if dns_servers %}
+          <div class="info-row">
+            <span class="info-label">DNS Servers</span>
+            <span class="info-value">{{ dns_servers }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- QR Code -->
+        {% if qr_code_base64 %}
+        <div class="qr-section">
+          <h3>📱 Scan with WireGuard Mobile App</h3>
+          <img
+            src="data:image/png;base64,{{ qr_code_base64 }}"
+            alt="WireGuard QR Code"
+          />
+          <p class="qr-caption">Open WireGuard → Add Tunnel → Scan QR Code</p>
+        </div>
+        {% endif %}
+
+        <!-- Setup Steps -->
+        <div class="steps">
+          <h3>🚀 How to connect</h3>
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              Download the WireGuard app for your platform (Windows, macOS,
+              Linux, iOS, Android)
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <strong>Mobile:</strong> Open the app, tap "+" and scan the QR
+              code above
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <strong>Desktop:</strong> Import the attached
+              <code>.conf</code> file via "Import tunnel(s) from file"
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-text">
+              Activate the tunnel and you're connected!
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachment Notice -->
+        <div class="attachment-notice">
+          <strong>📎 Attachment included:</strong> The file
+          <code>{{ client_name }}.conf</code> is attached to this email. Keep it
+          safe and do not share it with anyone.
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>
+          This email was sent automatically by
+          <strong>WireGuard UI</strong>.<br />
+          Please do not reply to this email.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

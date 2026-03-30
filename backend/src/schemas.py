@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from fastapi_mail import NameEmail
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
@@ -107,6 +108,8 @@ class ClientCreate(SQLModel):
     use_server_dns: bool = True
     enabled: bool = True
     preshared_key: str | None = ""
+    send_email: bool = False
+    email_language: str = "en"
 
 
 class ClientUpdate(SQLModel):
@@ -137,6 +140,19 @@ class ClientResponse(SQLModel):
 class ClientConfigResponse(SQLModel):
     client_id: int
     config: str
+    qr_code_base64: str | None = None
+
+
+class SendClientEmailRequest(SQLModel):
+    """Request body for sending a client configuration email."""
+
+    language: str = Field(default="en", description="Language code: en, fr, es")
+
+
+class SuggestIpResponse(SQLModel):
+    """Response containing the suggested next available IP address."""
+
+    suggested_ip: str | None = None
 
 
 # ── Settings ──────────────────────────────────────────────────────────────────
@@ -161,6 +177,47 @@ class SettingsResponse(SQLModel):
     maintenance_mode: bool
     updated_at: datetime | None = None
     model_config = {"from_attributes": True}
+
+
+# ── SMTP Settings ─────────────────────────────────────────────────────────────
+
+
+class SmtpSettingsUpdate(SQLModel):
+    """Request body for updating SMTP/email server settings."""
+
+    smtp_server: str | None = None
+    smtp_port: int | None = Field(default=None, ge=1, le=65535)
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None
+    smtp_from_name: str | None = None
+    smtp_tls: bool = False
+    smtp_ssl: bool = False
+    smtp_verify: bool = False
+
+
+class SmtpSettingsResponse(SQLModel):
+    """Response containing SMTP settings (password is excluded for security)."""
+
+    smtp_server: str | None = None
+    smtp_port: int | None = None
+    smtp_username: str | None = None
+    smtp_from: str | None = None
+    smtp_from_name: str | None = None
+    smtp_tls: bool = True
+    smtp_ssl: bool = False
+    smtp_verify: bool = True
+    smtp_configured: bool = False
+    model_config = {"from_attributes": True}
+
+
+class SmtpTestRequest(SQLModel):
+    """Request body for sending a test email."""
+
+    recipient: NameEmail
+
+
+# ── OIDC ─────────────────────────────────────────────────────────────────────
 
 
 class OidcSettingsUpdate(SQLModel):
