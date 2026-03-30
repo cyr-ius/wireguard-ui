@@ -1,6 +1,13 @@
 """WireGuard clients router — full CRUD, admin only."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from __future__ import annotations
+
+import base64
+import io
+import logging
+
+import qrcode
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -13,7 +20,11 @@ from ..schemas import (
     ClientResponse,
     ClientUpdate,
     KeyPairResponse,
+    SendClientEmailRequest,
+    SuggestIpResponse,
 )
+from ..services.email import SupportedLanguage, send_client_config_email
+from ..services.ip_suggestion import suggest_next_ip
 from ..services.wireguard import (
     WireGuardError,
     build_client_config,
@@ -21,23 +32,62 @@ from ..services.wireguard import (
     get_machine_ips,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
+
+
+def _generate_qr_code_base64(config_content: str) -> str:
+    """Generate a QR code image from WireGuard config and return as base64 string.
+
+    Args:
+        config_content: WireGuard configuration file content.
+
+    Returns:
+        str: Base64-encoded PNG image.
+    """
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.ERROR_CORRECT_L,
+        box_size=6,
+        border=4,
+    )
+    qr.add_data(config_content)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = io.BytesIO()
+    img.save(buffer, "PNG")
+    buffer.seek(0)
+
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
 @router.get("", response_model=list[ClientResponse])
 async def list_clients(
     _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
-):
+) -> list[ClientResponse]:
+    """List all WireGuard clients ordered by name."""
     result = await db.exec(select(WireGuardClient).order_by(WireGuardClient.name))
-    return result.all()
+    return result.all()  # type: ignore[return-value]
 
 
 @router.post("", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)
 async def create_client(
     data: ClientCreate,
+    background_tasks: BackgroundTasks,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> ClientResponse:
+    """Create a new WireGuard client peer.
+
+    Optionally sends a configuration email to the client if send_email is True.
+
+    Args:
+        data: Client creation data including optional email sending preferences.
+        background_tasks: FastAPI background tasks for async email sending.
+    """
+
     # Uniqueness checks
     for field, value, msg in [
         (WireGuardClient.name, data.name, "Client name already in use"),
@@ -56,19 +106,78 @@ async def create_client(
     except WireGuardError as exc:
         raise HTTPException(500, detail=str(exc))
 
-    payload = data.model_dump()
+    payload = data.model_dump(exclude={"send_email", "email_language"})
     payload["public_key"] = keys["public_key"]
     payload["private_key"] = keys["private_key"]
     payload["preshared_key"] = payload.get("preshared_key") or ""
+
     client = WireGuardClient.model_validate(payload)
     db.add(client)
     await db.commit()
     await db.refresh(client)
-    return client
+
+    # Optionally send configuration email in background
+    if data.send_email:
+        server = (await db.exec(select(WireGuardServer))).one_or_none()
+        settings = (await db.exec(select(GlobalSettings))).one_or_none()
+
+        if server and settings and settings.smtp_server:
+            config_content = build_client_config(client, server, settings)
+            lang: SupportedLanguage = (
+                data.email_language
+                if data.email_language in ("en", "fr", "es")
+                else "en"
+            )  # type: ignore[assignment]
+
+            background_tasks.add_task(
+                send_client_config_email,
+                client,
+                server,
+                settings,
+                config_content,
+                lang,
+            )
+            logger.info(
+                "Scheduled config email for client '%s' to %s",
+                client.name,
+                client.email,
+            )
+        else:
+            logger.warning(
+                "Email sending requested for client '%s' but SMTP is not configured.",
+                client.name,
+            )
+
+    return client  # type: ignore[return-value]
+
+
+@router.get("/suggest-ip", response_model=SuggestIpResponse)
+async def suggest_ip(
+    _: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> SuggestIpResponse:
+    """Suggest the next available IP address based on server CIDR and existing clients.
+
+    Returns the first free IP host in the server's network range
+    that is not yet allocated to any client.
+    """
+    server = (await db.exec(select(WireGuardServer))).one_or_none()
+    if not server:
+        return SuggestIpResponse(suggested_ip=None)
+
+    # Collect all currently allocated IPs
+    clients = (await db.exec(select(WireGuardClient))).all()
+    allocated = [c.allocated_ips for c in clients]
+
+    suggested = suggest_next_ip(server.address, allocated)
+    return SuggestIpResponse(suggested_ip=suggested)
 
 
 @router.get("/utils/keypair", response_model=KeyPairResponse)
-async def generate_client_keypair(_: User = Depends(get_current_admin)):
+async def generate_client_keypair(
+    _: User = Depends(get_current_admin),
+) -> KeyPairResponse:
+    """Generate a new WireGuard key pair for a client."""
     try:
         return KeyPairResponse(**(await generate_keypair()))
     except WireGuardError as exc:
@@ -76,7 +185,8 @@ async def generate_client_keypair(_: User = Depends(get_current_admin)):
 
 
 @router.get("/utils/machine-ips")
-async def machine_ips(_: User = Depends(get_current_admin)):
+async def machine_ips(_: User = Depends(get_current_admin)) -> list[dict]:
+    """Return all non-loopback IP addresses on the host machine."""
     return get_machine_ips()
 
 
@@ -85,11 +195,12 @@ async def get_client(
     client_id: int,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> ClientResponse:
+    """Retrieve a single client by ID."""
     c = await db.get(WireGuardClient, client_id)
     if not c:
         raise HTTPException(404, detail="Client not found")
-    return c
+    return c  # type: ignore[return-value]
 
 
 @router.patch("/{client_id}", response_model=ClientResponse)
@@ -98,7 +209,8 @@ async def update_client(
     data: ClientUpdate,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> ClientResponse:
+    """Partially update a client's configuration."""
     c = await db.get(WireGuardClient, client_id)
     if not c:
         raise HTTPException(404, detail="Client not found")
@@ -106,7 +218,7 @@ async def update_client(
     db.add(c)
     await db.commit()
     await db.refresh(c)
-    return c
+    return c  # type: ignore[return-value]
 
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -114,7 +226,8 @@ async def delete_client(
     client_id: int,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> None:
+    """Delete a client and remove its peer configuration."""
     c = await db.get(WireGuardClient, client_id)
     if not c:
         raise HTTPException(404, detail="Client not found")
@@ -127,7 +240,12 @@ async def get_client_config(
     client_id: int,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> ClientConfigResponse:
+    """Return the WireGuard configuration for a client, optionally with QR code.
+
+    Args:
+        client_id: The client's ID.
+    """
     client = await db.get(WireGuardClient, client_id)
     server = (await db.exec(select(WireGuardServer))).one_or_none()
     settings = (await db.exec(select(GlobalSettings))).one_or_none()
@@ -139,6 +257,65 @@ async def get_client_config(
     if not settings:
         raise HTTPException(400, detail="Settings not configured")
 
+    config_content = build_client_config(client, server, settings)
+    qr_code_base64 = _generate_qr_code_base64(config_content)
+
     return ClientConfigResponse(
-        client_id=client_id, config=build_client_config(client, server, settings)
+        client_id=client_id,
+        config=config_content,
+        qr_code_base64=qr_code_base64,
+    )
+
+
+@router.post("/{client_id}/send-email", status_code=status.HTTP_204_NO_CONTENT)
+async def send_client_email(
+    client_id: int,
+    body: SendClientEmailRequest,
+    background_tasks: BackgroundTasks,
+    _: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Send the WireGuard configuration email to a client.
+
+    Sends an HTML email with QR code and .conf file attachment in the specified language.
+
+    Args:
+        client_id: The client's ID.
+        body: Request body containing the language preference.
+    """
+    client = await db.get(WireGuardClient, client_id)
+    if not client:
+        raise HTTPException(404, detail="Client not found")
+
+    server = (await db.exec(select(WireGuardServer))).one_or_none()
+    settings = (await db.exec(select(GlobalSettings))).one_or_none()
+
+    if not server:
+        raise HTTPException(400, detail="Server not configured")
+    if not settings:
+        raise HTTPException(400, detail="Settings not configured")
+    if not settings.smtp_server or not settings.smtp_port:
+        raise HTTPException(
+            400,
+            detail="SMTP is not configured. Please configure it in Administration > Mail Server.",
+        )
+
+    config_content = build_client_config(client, server, settings)
+    lang: SupportedLanguage = (
+        body.language if body.language in ("en", "fr", "es") else "en"
+    )  # type: ignore[assignment]
+
+    background_tasks.add_task(
+        send_client_config_email,
+        client,
+        server,
+        settings,
+        config_content,
+        lang,
+    )
+
+    logger.info(
+        "Scheduled config email for client '%s' (language: %s)",
+        client.name,
+        lang,
     )

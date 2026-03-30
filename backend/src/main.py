@@ -14,7 +14,7 @@ from sqlmodel import SQLModel
 
 from .config import app_settings
 from .database import engine
-from .routers import auth, clients, mail, oidc, server, settings, status, users
+from .routers import auth, clients, oidc, server, settings, smtp, status, users
 from .services.seed import seed_initial_data
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(oidc.router, prefix="/api/oidc", tags=["OIDC"])
 app.include_router(status.router, prefix="/api/status", tags=["Status"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
-app.include_router(mail.router, prefix="/api/mail", tags=["Mail"])
+app.include_router(smtp.router, prefix="/api/smtp", tags=["SMTP"])
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
