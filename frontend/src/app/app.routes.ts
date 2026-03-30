@@ -78,6 +78,12 @@ export const routes: Routes = [
           import("./features/oidc/oidc.component").then((m) => m.OidcComponent),
       },
       {
+        path: "smtp",
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import("./features/smtp/smtp.component").then((m) => m.SmtpComponent),
+      },
+      {
         path: "about",
         loadComponent: () =>
           import("./features/about/about.component").then(

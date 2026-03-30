@@ -103,6 +103,10 @@ export interface ClientCreate {
   use_server_dns: boolean;
   enabled: boolean;
   preshared_key?: string;
+  /** Whether to send config email on creation */
+  send_email: boolean;
+  /** Language for the email template: en, fr, es */
+  email_language: string;
 }
 
 export interface ClientUpdate {
@@ -118,6 +122,17 @@ export interface ClientUpdate {
 export interface ClientConfig {
   config: string;
   client_id: number;
+  /** Base64-encoded PNG QR code image */
+  qr_code_base64?: string;
+}
+
+export interface SendClientEmailRequest {
+  /** Language code: en, fr, es */
+  language: string;
+}
+
+export interface SuggestIpResponse {
+  suggested_ip: string | null;
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
@@ -141,6 +156,38 @@ export interface SettingsUpdate {
   config_file_path?: string;
   maintenance_mode?: boolean;
 }
+
+// ─── SMTP Settings ─────────────────────────────────────────────────────────────
+
+export interface SmtpSettings {
+  smtp_server: string | null;
+  smtp_port: number | null;
+  smtp_username: string | null;
+  smtp_from: string | null;
+  smtp_from_name: string | null;
+  smtp_tls: boolean;
+  smtp_ssl: boolean;
+  smtp_verify: boolean;
+  smtp_configured: boolean;
+}
+
+export interface SmtpSettingsUpdate {
+  smtp_server?: string | null;
+  smtp_port?: number | null;
+  smtp_username?: string | null;
+  smtp_password?: string | null;
+  smtp_from?: string | null;
+  smtp_from_name?: string | null;
+  smtp_tls: boolean;
+  smtp_ssl: boolean;
+  smtp_verify: boolean;
+}
+
+export interface SmtpTestRequest {
+  recipient: string;
+}
+
+// ─── OIDC ─────────────────────────────────────────────────────────────────────
 
 export interface OidcAdminSettings {
   enabled: boolean;
@@ -177,7 +224,7 @@ export interface PeerStatus {
 }
 
 export interface WireGuardStatus {
-  state: 'running' | 'stopped' | 'error';
+  state: "running" | "stopped" | "error";
   interface?: string;
   peers: PeerStatus[];
 }

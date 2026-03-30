@@ -1,3 +1,33 @@
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+.page-container {
+  padding: 2rem;
+  max-width: 1400px;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  font-family: "Courier New", monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ── Badge count ─────────────────────────────────────────────────────────── */
 .badge-count {
   font-size: 0.8rem;
   color: #64748b;
@@ -6,6 +36,7 @@
   border-radius: 20px;
 }
 
+/* ── Client cards grid ───────────────────────────────────────────────────── */
 .clients-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -22,21 +53,25 @@
     box-shadow 200ms ease,
     transform 200ms ease;
 }
+
 .client-card:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
+
 .client-card.disabled-card {
   opacity: 0.65;
 }
-.client-card .client-card-header {
+
+.client-card-header {
   display: flex;
   align-items: center;
   gap: 0.875rem;
   padding: 1.25rem;
   border-bottom: 1px solid #f1f5f9;
 }
-.client-card .client-card-header .client-avatar {
+
+.client-avatar {
   width: 44px;
   height: 44px;
   background: linear-gradient(135deg, #00b4d8, #0077b6);
@@ -49,11 +84,13 @@
   color: #fff;
   flex-shrink: 0;
 }
-.client-card .client-card-header .client-info {
+
+.client-info {
   flex: 1;
   overflow: hidden;
 }
-.client-card .client-card-header .client-info .client-name {
+
+.client-name {
   font-size: 0.95rem;
   font-weight: 700;
   color: #1e293b;
@@ -62,7 +99,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.client-card .client-card-header .client-info .client-email {
+
+.client-email {
   font-size: 0.75rem;
   color: #94a3b8;
   white-space: nowrap;
@@ -70,7 +108,8 @@
   text-overflow: ellipsis;
   display: block;
 }
-.client-card .client-card-header .status-pill {
+
+.status-pill {
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -79,35 +118,43 @@
   padding: 0.2rem 0.6rem;
   flex-shrink: 0;
 }
-.client-card .client-card-header .status-pill.active {
+
+.status-pill.active {
   background: rgba(34, 197, 94, 0.1);
   color: #16a34a;
 }
-.client-card .client-card-header .status-pill.inactive {
+
+.status-pill.inactive {
   background: rgba(148, 163, 184, 0.1);
   color: #64748b;
 }
-.client-card .client-details {
+
+/* ── Client details ──────────────────────────────────────────────────────── */
+.client-details {
   padding: 1rem 1.25rem;
 }
-.client-card .client-details .detail-row {
+
+.detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.3rem 0;
 }
-.client-card .client-details .detail-row:not(:last-child) {
+
+.detail-row:not(:last-child) {
   border-bottom: 1px solid #f8fafc;
 }
-.client-card .client-details .detail-row .detail-label {
+
+.detail-label {
   font-size: 0.72rem;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.client-card .client-details .detail-row .detail-value,
-.client-card .client-details .detail-row code.detail-value {
+
+.detail-value,
+code.detail-value {
   font-size: 0.8rem;
   color: #334155;
   font-family: "Fira Code", monospace;
@@ -115,14 +162,18 @@
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
 }
-.client-card .client-actions {
+
+/* ── Client actions ──────────────────────────────────────────────────────── */
+.client-actions {
   display: flex;
   gap: 0.35rem;
   padding: 0.875rem 1.25rem;
   background: #f8fafc;
   border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
 }
-.client-card .client-actions .action-btn {
+
+.action-btn {
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -136,17 +187,36 @@
   cursor: pointer;
   transition: all 150ms ease;
 }
-.client-card .client-actions .action-btn:hover {
+
+.action-btn:hover {
   color: #00b4d8;
   border-color: #00b4d8;
   background: rgba(0, 180, 216, 0.05);
 }
-.client-card .client-actions .action-btn.danger:hover {
+
+.action-btn.danger:hover {
   color: #ef4444;
   border-color: #ef4444;
   background: rgba(239, 68, 68, 0.05);
 }
 
+/* ── Loading / Empty states ──────────────────────────────────────────────── */
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  color: #94a3b8;
+}
+
+/* ── Modal overlay ───────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -167,109 +237,6 @@
     opacity: 1;
   }
 }
-.modal-panel {
-  background: #fff;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: slide-up 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.modal-panel.config-modal {
-  max-width: 700px;
-}
-.modal-panel.confirm-modal {
-  max-width: 400px;
-  text-align: center;
-  padding: 2rem;
-}
-.modal-panel .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 1;
-}
-.modal-panel .modal-header .modal-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-}
-.modal-panel .modal-header .modal-close {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 0.25rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  transition: all 150ms;
-}
-.modal-panel .modal-header .modal-close:hover {
-  color: #1e293b;
-  background: #f1f5f9;
-}
-.modal-panel .modal-form {
-  padding: 1.5rem;
-}
-.modal-panel .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.modal-panel .form-group {
-  margin-bottom: 1rem;
-}
-.modal-panel .form-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.4rem;
-  display: block;
-}
-.modal-panel .form-control {
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  font-size: 0.875rem;
-  transition: border-color 150ms;
-}
-.modal-panel .form-control:focus {
-  border-color: #00b4d8;
-  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
-}
-.modal-panel .form-control.is-invalid {
-  border-color: #ef4444;
-}
-.modal-panel .form-error {
-  font-size: 0.72rem;
-  color: #ef4444;
-  margin-top: 0.3rem;
-}
-.modal-panel .form-checks {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-}
-.modal-panel .form-checks .form-check-label {
-  font-size: 0.875rem;
-}
-.modal-panel .modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
-  margin-top: 0.5rem;
-}
 
 @keyframes slide-up {
   from {
@@ -281,6 +248,170 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* ── Modal panel ─────────────────────────────────────────────────────────── */
+.modal-panel {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slide-up 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-panel.config-modal {
+  max-width: 700px;
+}
+
+.modal-panel.confirm-modal {
+  max-width: 400px;
+  text-align: center;
+  padding: 2rem;
+}
+
+.modal-panel.qr-modal {
+  max-width: 400px;
+}
+
+.modal-panel.email-modal {
+  max-width: 460px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  transition: all 150ms;
+}
+
+.modal-close:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+
+/* ── Form styles ─────────────────────────────────────────────────────────── */
+.modal-form {
+  padding: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  transition: border-color 150ms;
+}
+
+.form-control:focus {
+  border-color: #00b4d8;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
+}
+
+.form-control.is-invalid {
+  border-color: #ef4444;
+}
+
+.form-error {
+  font-size: 0.72rem;
+  color: #ef4444;
+  margin-top: 0.3rem;
+}
+
+.form-checks {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-check-label {
+  font-size: 0.875rem;
+}
+
+/* ── IP suggestion badge ─────────────────────────────────────────────────── */
+.ip-suggestion-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 212, 170, 0.12);
+  color: #00a88a;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Email option card ───────────────────────────────────────────────────── */
+.email-option-card {
+  background: #f8faff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.email-lang-select {
+  margin-top: 0.75rem;
+  max-width: 200px;
+}
+
+/* ── Modal footer ────────────────────────────────────────────────────────── */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 0.5rem;
+}
+
+/* ── Config pre ──────────────────────────────────────────────────────────── */
 .config-pre {
   padding: 1.5rem;
   margin: 0;
@@ -293,6 +424,104 @@
   white-space: pre;
 }
 
+/* ── QR Code modal body ──────────────────────────────────────────────────── */
+.qr-modal-body {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.qr-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.qr-image-wrap {
+  background: #f8fafc;
+  border: 8px solid #e2e8f0;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.qr-image {
+  display: block;
+  max-width: 220px;
+  height: auto;
+}
+
+.qr-hint {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.qr-client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-bottom: 1.25rem;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* ── Email modal body ────────────────────────────────────────────────────── */
+.email-modal-body {
+  padding: 1.5rem;
+}
+
+.email-description {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.lang-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lang-option {
+  padding: 0.4rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #64748b;
+  transition: all 150ms;
+}
+
+.lang-option.selected {
+  border-color: #00b4d8;
+  background: rgba(0, 180, 216, 0.08);
+  color: #00b4d8;
+  font-weight: 600;
+}
+
+.lang-option:hover:not(.selected) {
+  border-color: #00b4d8;
+  color: #00b4d8;
+}
+
+.email-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* ── Confirm modal ───────────────────────────────────────────────────────── */
 .confirm-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
@@ -310,64 +539,43 @@
   margin-bottom: 1.5rem;
 }
 
-.page-container {
-  padding: 2rem;
-  max-width: 1400px;
-}
-.page-container .page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-.page-container .page-header .page-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-.page-container .page-header .page-subtitle {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin: 0.25rem 0 0;
-}
-.page-container .loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem;
-  color: #64748b;
-}
-.page-container .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 4rem;
-  color: #94a3b8;
-}
-.page-container .empty-state .empty-icon {
-  font-size: 3.5rem;
-}
-.page-container .empty-state p {
-  margin: 0;
-  font-size: 0.9rem;
+/* ── Dark theme overrides ────────────────────────────────────────────────── */
+[data-theme="dark"] .client-card,
+[data-theme="dark"] .modal-panel,
+[data-theme="dark"] .modal-header {
+  background: var(--panel-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
 }
 
-.page-title {
-  font-family: "Courier New", monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem;
+[data-theme="dark"] .client-name,
+[data-theme="dark"] .modal-title,
+[data-theme="dark"] .confirm-title {
+  color: var(--text-primary) !important;
 }
 
-.page-subtitle {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  margin: 0;
+[data-theme="dark"] .client-actions,
+[data-theme="dark"] .action-btn,
+[data-theme="dark"] .email-option-card {
+  background: var(--panel-bg-alt) !important;
+  border-color: var(--border-muted) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background: var(--input-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--input-text) !important;
+}
+
+[data-theme="dark"] .lang-option {
+  background: var(--panel-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .qr-image-wrap {
+  background: var(--panel-bg-alt);
+  border-color: var(--border-color);
 }

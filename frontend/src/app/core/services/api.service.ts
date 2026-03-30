@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
+import { map, Observable } from "rxjs";
 import {
   AppVersionResponse,
   ClientConfig,
@@ -11,8 +11,13 @@ import {
   OidcAdminSettings,
   OidcPublicConfig,
   Role,
+  SendClientEmailRequest,
   ServerCreate,
   SettingsUpdate,
+  SmtpSettings,
+  SmtpSettingsUpdate,
+  SmtpTestRequest,
+  SuggestIpResponse,
   TokenResponse,
   User,
   UserCreate,
@@ -20,7 +25,7 @@ import {
   WireGuardClient,
   WireGuardServer,
   WireGuardStatus,
-} from '../../shared/models/api.models';
+} from "../../shared/models/api.models";
 
 export interface WgStatus extends WireGuardStatus {
   is_running: boolean;
@@ -35,107 +40,154 @@ export interface GithubRelease {
   published_at: string;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ApiService {
   private readonly http = inject(HttpClient);
 
+  // ── Status ────────────────────────────────────────────────────────────────
+
   getStatus(): Observable<WgStatus> {
-    return this.http.get<WireGuardStatus>('/api/status').pipe(
+    return this.http.get<WireGuardStatus>("/api/status").pipe(
       map((status) => ({
         ...status,
-        is_running: status.state === 'running',
-      }))
+        is_running: status.state === "running",
+      })),
     );
   }
 
   getAppVersion(): Observable<AppVersionResponse> {
-    return this.http.get<AppVersionResponse>('/api/status/version');
+    return this.http.get<AppVersionResponse>("/api/status/version");
   }
 
+  // ── Clients ───────────────────────────────────────────────────────────────
+
   getClients(): Observable<WireGuardClient[]> {
-    return this.http.get<WireGuardClient[]>('/api/clients');
+    return this.http.get<WireGuardClient[]>("/api/clients");
   }
 
   createClient(data: ClientCreate): Observable<WireGuardClient> {
-    return this.http.post<WireGuardClient>('/api/clients', data);
+    return this.http.post<WireGuardClient>("/api/clients", data);
   }
 
   updateClient(id: number, data: ClientUpdate): Observable<WireGuardClient> {
-    return this.http.patch<WireGuardClient>('/api/clients/' + id, data);
+    return this.http.patch<WireGuardClient>("/api/clients/" + id, data);
   }
 
   deleteClient(id: number): Observable<void> {
-    return this.http.delete<void>('/api/clients/' + id);
+    return this.http.delete<void>("/api/clients/" + id);
   }
 
-  getClientConfig(id: number): Observable<ClientConfig> {
-    return this.http.get<ClientConfig>('/api/clients/' + id + '/config');
+  getClientConfig(id: number, includeQr = true): Observable<ClientConfig> {
+    return this.http.get<ClientConfig>("/api/clients/" + id + "/config", {
+      params: { include_qr: includeQr },
+    });
   }
 
   getClientConfigUrl(id: number): string {
-    return '/api/clients/' + id + '/config';
+    return "/api/clients/" + id + "/config";
   }
 
+  /** Send the WireGuard config by email to the client */
+  sendClientEmail(id: number, body: SendClientEmailRequest): Observable<void> {
+    return this.http.post<void>("/api/clients/" + id + "/send-email", body);
+  }
+
+  /** Get next suggested IP for a new client based on server CIDR and existing clients */
+  suggestClientIp(): Observable<SuggestIpResponse> {
+    return this.http.get<SuggestIpResponse>("/api/clients/suggest-ip");
+  }
+
+  // ── Server ────────────────────────────────────────────────────────────────
+
   getServer(): Observable<WireGuardServer> {
-    return this.http.get<WireGuardServer>('/api/server');
+    return this.http.get<WireGuardServer>("/api/server");
   }
 
   upsertServer(data: ServerCreate): Observable<WireGuardServer> {
-    return this.http.put<WireGuardServer>('/api/server', data);
+    return this.http.put<WireGuardServer>("/api/server", data);
   }
 
   generateServerKeypair(): Observable<KeyPair> {
-    return this.http.post<KeyPair>('/api/server/keypair', {});
+    return this.http.post<KeyPair>("/api/server/keypair", {});
   }
 
   applyServerConfig(): Observable<void> {
-    return this.http.post<void>('/api/server/apply', {});
+    return this.http.post<void>("/api/server/apply", {});
   }
 
-  serverServiceControl(action: 'start' | 'stop' | 'restart'): Observable<void> {
-    return this.http.post<void>('/api/server/service/' + action, {});
+  serverServiceControl(action: "start" | "stop" | "restart"): Observable<void> {
+    return this.http.post<void>("/api/server/service/" + action, {});
   }
+
+  // ── Settings ──────────────────────────────────────────────────────────────
 
   getSettings(): Observable<GlobalSettings> {
-    return this.http.get<GlobalSettings>('/api/settings');
+    return this.http.get<GlobalSettings>("/api/settings");
   }
 
   updateSettings(data: SettingsUpdate): Observable<GlobalSettings> {
-    return this.http.patch<GlobalSettings>('/api/settings', data);
+    return this.http.patch<GlobalSettings>("/api/settings", data);
   }
 
+  // ── SMTP ──────────────────────────────────────────────────────────────────
+
+  getSmtpSettings(): Observable<SmtpSettings> {
+    return this.http.get<SmtpSettings>("/api/smtp");
+  }
+
+  updateSmtpSettings(data: SmtpSettingsUpdate): Observable<SmtpSettings> {
+    return this.http.put<SmtpSettings>("/api/smtp", data);
+  }
+
+  deleteSmtpSettings(data: SmtpSettingsUpdate): Observable<void> {
+    return this.http.post<void>("/api/smtp", data);
+  }
+
+  testSmtpSettings(data: SmtpTestRequest): Observable<void> {
+    return this.http.post<void>("/api/smtp/test", data);
+  }
+
+  // ── Users ─────────────────────────────────────────────────────────────────
+
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>('/api/users');
+    return this.http.get<User[]>("/api/users");
   }
 
   getRoles(): Observable<Role[]> {
-    return this.http.get<Role[]>('/api/users/utils/roles');
+    return this.http.get<Role[]>("/api/users/utils/roles");
   }
 
   createUser(data: UserCreate): Observable<User> {
-    return this.http.post<User>('/api/users', data);
+    return this.http.post<User>("/api/users", data);
   }
 
   updateUser(id: number, data: UserUpdate): Observable<User> {
-    return this.http.patch<User>('/api/users/' + id, data);
+    return this.http.patch<User>("/api/users/" + id, data);
   }
 
   deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>('/api/users/' + id);
+    return this.http.delete<void>("/api/users/" + id);
   }
 
-  changePassword(current_password: string, new_password: string): Observable<void> {
-    return this.http.post<void>('/api/auth/change-password', {
+  changePassword(
+    current_password: string,
+    new_password: string,
+  ): Observable<void> {
+    return this.http.post<void>("/api/auth/change-password", {
       current_password,
       new_password,
     });
   }
 
+  // ── GitHub releases ───────────────────────────────────────────────────────
+
   getLatestGithubRelease(repo: string): Observable<GithubRelease> {
     return this.http.get<GithubRelease>(
-      `https://api.github.com/repos/${repo}/releases/latest`
+      `https://api.github.com/repos/${repo}/releases/latest`,
     );
   }
+
+  // ── OIDC ──────────────────────────────────────────────────────────────────
 
   getOidcSettings(): Observable<OidcAdminSettings> {
     return this.http.get<OidcAdminSettings>("/api/oidc/settings");
@@ -154,7 +206,9 @@ export class ApiService {
   }
 }
 
-@Injectable({ providedIn: 'root' })
+// ── Service facades ──────────────────────────────────────────────────────────
+
+@Injectable({ providedIn: "root" })
 export class ClientsService {
   private readonly api = inject(ApiService);
 
@@ -174,12 +228,20 @@ export class ClientsService {
     return this.api.deleteClient(id);
   }
 
-  getConfig(id: number): Observable<ClientConfig> {
-    return this.api.getClientConfig(id);
+  getConfig(id: number, includeQr = true): Observable<ClientConfig> {
+    return this.api.getClientConfig(id, includeQr);
+  }
+
+  sendEmail(id: number, language: string): Observable<void> {
+    return this.api.sendClientEmail(id, { language });
+  }
+
+  suggestIp(): Observable<SuggestIpResponse> {
+    return this.api.suggestClientIp();
   }
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ServerService {
   private readonly api = inject(ApiService);
 
@@ -199,12 +261,12 @@ export class ServerService {
     return this.api.applyServerConfig();
   }
 
-  controlService(action: 'start' | 'stop' | 'restart'): Observable<void> {
+  controlService(action: "start" | "stop" | "restart"): Observable<void> {
     return this.api.serverServiceControl(action);
   }
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class SettingsService {
   private readonly api = inject(ApiService);
 
@@ -217,7 +279,28 @@ export class SettingsService {
   }
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
+export class SmtpService {
+  private readonly api = inject(ApiService);
+
+  get(): Observable<SmtpSettings> {
+    return this.api.getSmtpSettings();
+  }
+
+  update(data: SmtpSettingsUpdate): Observable<SmtpSettings> {
+    return this.api.updateSmtpSettings(data);
+  }
+
+  delete(data: SmtpSettingsUpdate): Observable<void> {
+    return this.api.deleteSmtpSettings(data);
+  }
+
+  test(recipient: string): Observable<void> {
+    return this.api.testSmtpSettings({ recipient });
+  }
+}
+
+@Injectable({ providedIn: "root" })
 export class UsersService {
   private readonly api = inject(ApiService);
 
