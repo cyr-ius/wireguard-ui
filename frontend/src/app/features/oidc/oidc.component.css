@@ -32,7 +32,7 @@
   align-items: center;
   gap: 1rem;
   padding: 3rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .config-form {
@@ -42,8 +42,8 @@
 }
 
 .config-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 1.5rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
@@ -52,10 +52,10 @@
 .section-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--panel-bg-alt);
 }
 
 .form-row {
@@ -71,7 +71,7 @@
 .form-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.4rem;
@@ -80,7 +80,7 @@
 
 .form-control {
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   font-size: 0.875rem;
   transition: border-color 150ms;
 }
