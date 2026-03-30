@@ -118,3 +118,92 @@
   display: flex;
   gap: 1rem;
 }
+
+.test-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1055;
+}
+
+.test-modal__card {
+  width: min(100%, 640px);
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  z-index: 1056;
+}
+
+.test-modal__header,
+.test-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.test-modal__header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.test-modal__body {
+  padding: 1.5rem;
+}
+
+.test-modal__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.test-modal__subtitle {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.test-modal__actions {
+  border-top: 1px solid #e2e8f0;
+  justify-content: flex-end;
+}
+
+.mail-preview {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid #dbeafe;
+  background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
+  color: #1e293b;
+}
+
+.mail-preview p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+  .test-modal__header,
+  .test-modal__actions {
+    padding: 1rem;
+  }
+
+  .test-modal__body {
+    padding: 1rem;
+  }
+}
+
+.text-muted {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}

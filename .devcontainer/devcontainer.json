@@ -5,7 +5,7 @@
   "workspaceFolder": "/workspace",
 
   "mounts": [
-    "source=${env:HOME}/.codex/auth.json,target=/home/vscode/.codex/auth.json,type=bind,consistency=cached"
+    "source=${env:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached"
   ],
 
   // ─── VS Code extensions ────────────────────────────────────────────────

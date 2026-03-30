@@ -7,12 +7,8 @@
       </h1>
       <p class="page-subtitle">SMTP interface settings</p>
     </div>
-    <!-- Service controls -->
     <div class="service-controls">
-      <button
-        class="btn btn-sm btn-outline-success"
-        (click)="controlService('test')"
-      >
+      <button class="btn btn-sm btn-outline-success" (click)="openTestModal()">
         <i class="bi bi-send-fill me-1"></i>Test
       </button>
     </div>
@@ -44,44 +40,52 @@
         <h2 class="section-title"><i class="bi bi-ethernet me-2"></i>Server</h2>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"><i class="bi bi-server"></i>Server</label>
+            <label class="form-label">Server</label>
             <input
               type="text"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('smtp_server')"
               [formField]="smtpForm.smtp_server"
               placeholder="smtp.example.com"
             />
+            @if (isFieldInvalid("smtp_server")) {
+              <div class="form-error">{{ getFieldError("smtp_server") }}</div>
+            }
           </div>
           <div class="form-group">
-            <label class="form-label"><i class="bi bi-server"></i>Port</label>
+            <label class="form-label">Port</label>
             <input
               type="number"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('smtp_port')"
               [formField]="smtpForm.smtp_port"
               placeholder="25"
             />
+            @if (isFieldInvalid("smtp_port")) {
+              <div class="form-error">{{ getFieldError("smtp_port") }}</div>
+            }
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"
-              ><i class="bi bi-server"></i>Username</label
-            >
+            <label class="form-label">Username</label>
             <input
               type="text"
               class="form-control"
               [formField]="smtpForm.smtp_username"
-              placeholder="username"
+              placeholder="Username"
             />
+            <small class="text-muted"
+              >Used as fallback sender if it is a valid email address.</small
+            >
           </div>
           <div class="form-group">
-            <label class="form-label"
-              ><i class="bi bi-server"></i>Password</label
-            >
+            <label class="form-label">Password</label>
             <input
               type="password"
               class="form-control"
               [formField]="smtpForm.smtp_password"
+              placeholder="Password"
             />
           </div>
         </div>
@@ -91,16 +95,20 @@
               class="form-check-input"
               type="checkbox"
               [formField]="smtpForm.smtp_tls"
+              (change)="onStartTlsToggle($event)"
             />
-            <label class="form-check-label" for="checkDefault"> TLS </label>
+            <label class="form-check-label" for="checkDefault">
+              STARTTLS
+            </label>
           </div>
           <div class="form-check">
             <input
               class="form-check-input"
               type="checkbox"
               [formField]="smtpForm.smtp_ssl"
+              (change)="onSslToggle($event)"
             />
-            <label class="form-check-label" for="checkDefault"> SSL </label>
+            <label class="form-check-label" for="checkDefault"> SSL/TLS </label>
           </div>
           <div class="form-check">
             <input
@@ -115,26 +123,55 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"
-              ><i class="bi bi-server"></i>Mail Form</label
-            >
+            <label class="form-label">Mail From</label>
             <input
               type="text"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('smtp_from')"
               [formField]="smtpForm.smtp_from"
-              placeholder="no-reply@wireguard.local"
+              placeholder="sender@yourdomain.com"
             />
+            @if (isFieldInvalid("smtp_from")) {
+              <div class="form-error">{{ getFieldError("smtp_from") }}</div>
+            } @else {
+              <small class="text-muted"
+                >Optional, but if filled it must be a valid email
+                address.</small
+              >
+            }
           </div>
           <div class="form-group">
-            <label class="form-label"
-              ><i class="bi bi-server"></i>Mail name</label
-            >
+            <label class="form-label">Mail Name</label>
             <input
               type="text"
               class="form-control"
               [formField]="smtpForm.smtp_from_name"
-              placeholder="Wireguard UI"
+              placeholder="WireGuard UI"
             />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Default Email Language</label>
+            <select
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('default_email_language')"
+              [formField]="smtpForm.default_email_language"
+            >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+            </select>
+            @if (isFieldInvalid("default_email_language")) {
+              <div class="form-error">
+                {{ getFieldError("default_email_language") }}
+              </div>
+            } @else {
+              <small class="text-muted"
+                >Used by default when sending WireGuard configuration
+                emails.</small
+              >
+            }
           </div>
         </div>
       </div>
@@ -142,24 +179,123 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="smtpForm().invalid()"
-          [aria-busy]="smtpForm().submitting()"
+          [disabled]="saving() || resetting()"
+          [aria-busy]="saving()"
         >
-          @if (smtpForm().submitting()) {
+          @if (saving()) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           }
-          <i class="bi bi-floppy me-1"></i>Save Configuration
+          <i class="bi bi-floppy me-1"></i>Save Mail Settings
         </button>
         <button
-          type="reset"
-          class="btn btn-danger"
-          (click)="cleanConfig()"
-          [disabled]="smtpForm().submitting()"
-          [aria-busy]="smtpForm().submitting()"
+          type="button"
+          class="btn btn-outline-danger"
+          (click)="resetConfig()"
+          [disabled]="saving() || resetting()"
+          [aria-busy]="resetting()"
         >
-          <i class="bi bi-trash3 me-1"></i>Clean Configuration
+          @if (resetting()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Mail Settings
         </button>
       </div>
     </form>
+  }
+
+  @if (showTestModal()) {
+    <div class="modal-backdrop fade show" (click)="closeTestModal()"></div>
+    <div
+      class="test-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="smtp-test-title"
+    >
+      <div class="test-modal__card" (click)="$event.stopPropagation()">
+        <div class="test-modal__header">
+          <div>
+            <h2 id="smtp-test-title" class="test-modal__title">
+              Send Test Email
+            </h2>
+            <p class="test-modal__subtitle">
+              Review the fake message preview and choose the recipient.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Close"
+            (click)="closeTestModal()"
+          ></button>
+        </div>
+
+        <div class="test-modal__body">
+          @if (testError()) {
+            <div class="alert alert-danger mb-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i
+              >{{ testError() }}
+            </div>
+          }
+
+          <label class="form-label">Recipient Email</label>
+          <input
+            type="email"
+            class="form-control"
+            [class.is-invalid]="!!testRecipientError()"
+            [value]="testRecipient()"
+            (input)="updateTestRecipient($event)"
+            placeholder="admin@example.com"
+          />
+          @if (testRecipientError()) {
+            <div class="form-error">{{ testRecipientError() }}</div>
+          }
+
+          <div class="mail-preview">
+            <div>
+              <strong>From:</strong> {{ previewFromName() }} &lt;{{
+                previewFrom()
+              }}&gt;
+            </div>
+            <div>
+              <strong>To:</strong>
+              {{ testRecipient() || "recipient@example.com" }}
+            </div>
+            <div><strong>Subject:</strong> {{ testSubject() }}</div>
+            <hr />
+            <p>Hello,</p>
+            <p>
+              This is a fake preview of the SMTP test email sent from the setup
+              configuration screen.
+            </p>
+            <p>
+              If the SMTP settings are valid, the real test email will contain a
+              delivery confirmation for this environment.
+            </p>
+          </div>
+        </div>
+
+        <div class="test-modal__actions">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            [disabled]="testing()"
+            (click)="closeTestModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-success"
+            [disabled]="testing()"
+            (click)="sendTestEmail()"
+          >
+            @if (testing()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            <i class="bi bi-send-fill me-1"></i>Send Test Email
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </div>

@@ -53,8 +53,9 @@ async def create_user(
         if (await db.exec(select(User).where(field == value))).one_or_none():
             raise HTTPException(422, detail=msg)
 
-    user = User.model_validate(data.model_dump(exclude={"password", "role_ids"}))
-    user.hashed_password = hash_password(data.password)
+    payload = data.model_dump(exclude={"password", "role_ids"})
+    payload["hashed_password"] = hash_password(data.password)
+    user = User.model_validate(payload)
     user.roles = await _load_roles(db, data.role_ids)
     db.add(user)
     await db.commit()
