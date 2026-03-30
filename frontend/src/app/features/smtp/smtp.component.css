@@ -13,13 +13,13 @@
 .page-container .page-header .page-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.02em;
 }
 .page-container .page-header .page-subtitle {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0.25rem 0 0;
 }
 .page-container .service-controls {
@@ -33,7 +33,7 @@
   align-items: center;
   gap: 1rem;
   padding: 3rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .page-title {
@@ -56,8 +56,8 @@
   gap: 1.5rem;
 }
 .config-form .config-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 1.5rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
@@ -65,10 +65,10 @@
 .config-form .config-card .section-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--panel-bg-alt);
 }
 .config-form .form-row {
   display: grid;
@@ -86,7 +86,7 @@
 .config-form .form-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.4rem;
@@ -94,7 +94,7 @@
 }
 .config-form .form-control {
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   font-size: 0.875rem;
   transition: border-color 150ms;
 }
@@ -131,10 +131,10 @@
 
 .test-modal__card {
   width: min(100%, 640px);
-  background: #ffffff;
+  background: var(--panel-bg);
   border-radius: 18px;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   position: relative;
   z-index: 1056;
 }
@@ -149,7 +149,7 @@
 }
 
 .test-modal__header {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .test-modal__body {
@@ -160,17 +160,17 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .test-modal__subtitle {
   margin: 0.35rem 0 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .test-modal__actions {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color);
   justify-content: flex-end;
 }
 
@@ -178,9 +178,9 @@
   margin-top: 1rem;
   padding: 1rem;
   border-radius: 14px;
-  border: 1px solid #dbeafe;
-  background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
-  color: #1e293b;
+  border: 1px solid var(--border-color);
+  background: var(--panel-bg-alt);
+  color: var(--text-primary);
 }
 
 .mail-preview p:last-child {

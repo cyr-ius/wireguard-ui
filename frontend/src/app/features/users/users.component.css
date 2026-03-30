@@ -12,13 +12,13 @@
 .page-container .page-header .page-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.02em;
 }
 .page-container .page-header .page-subtitle {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0.25rem 0 0;
 }
 .page-container .loading-state {
@@ -27,7 +27,7 @@
   align-items: center;
   gap: 1rem;
   padding: 3rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 .page-title {
   font-family: "Courier New", monospace;
@@ -43,8 +43,8 @@
   margin: 0;
 }
 .content-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -58,18 +58,18 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94a3b8;
+  color: var(--text-subtle);
   padding: 0.875rem 1rem;
-  border-bottom: 2px solid #f1f5f9;
-  background: #fafafa;
+  border-bottom: 2px solid var(--panel-bg-alt);
+  background: var(--panel-bg-alt);
 }
 .users-table td {
   padding: 0.875rem 1rem;
   vertical-align: middle;
-  color: #334155;
+  color: var(--text-secondary);
 }
 .users-table tr:hover td {
-  background: #f8fafc;
+  background: var(--panel-bg-alt);
 }
 
 .user-cell {
@@ -96,7 +96,7 @@
 }
 .user-cell .user-username {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-subtle);
 }
 
 .role-tags {
@@ -111,8 +111,8 @@
   letter-spacing: 0.06em;
   border-radius: 6px;
   padding: 0.15rem 0.5rem;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--panel-bg-alt);
+  color: var(--text-muted);
 }
 .role-tags .role-tag.role-admin {
   background: rgba(0, 180, 216, 0.12);
@@ -133,7 +133,7 @@
 }
 .status-pill.inactive {
   background: rgba(148, 163, 184, 0.1);
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .table-actions {
@@ -142,8 +142,8 @@
 }
 
 .action-btn {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
   border-radius: 7px;
   width: 32px;
   height: 32px;
@@ -151,7 +151,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 150ms ease;
 }
@@ -187,7 +187,7 @@
   }
 }
 .modal-panel {
-  background: #fff;
+  background: var(--panel-bg);
   border-radius: 16px;
   width: 100%;
   max-width: 600px;
@@ -205,29 +205,29 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--panel-bg-alt);
   position: sticky;
   top: 0;
-  background: #fff;
+  background: var(--panel-bg);
 }
 .modal-panel .modal-header .modal-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0;
 }
 .modal-panel .modal-header .modal-close {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-subtle);
   cursor: pointer;
   font-size: 1rem;
   border-radius: 6px;
   padding: 0.25rem;
 }
 .modal-panel .modal-header .modal-close:hover {
-  color: #1e293b;
-  background: #f1f5f9;
+  color: var(--text-primary);
+  background: var(--panel-bg-alt);
 }
 .modal-panel .modal-form {
   padding: 1.5rem;
@@ -249,7 +249,7 @@
 .modal-panel .form-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.4rem;
@@ -257,7 +257,7 @@
 }
 .modal-panel .form-control {
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   font-size: 0.875rem;
 }
 .modal-panel .form-control:focus {
@@ -268,7 +268,7 @@
   border-color: #ef4444;
 }
 .modal-panel .form-control[readonly] {
-  background: #f8fafc;
+  background: var(--panel-bg-alt);
 }
 .modal-panel .form-error {
   font-size: 0.72rem;
@@ -285,7 +285,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 0.875rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.875rem;
@@ -294,7 +294,7 @@
 }
 .modal-panel .role-checkboxes .role-checkbox small {
   font-weight: 400;
-  color: #94a3b8;
+  color: var(--text-subtle);
   margin-left: auto;
   font-size: 0.75rem;
 }
@@ -314,7 +314,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--panel-bg-alt);
   margin-top: 0.5rem;
 }
 
@@ -336,11 +336,11 @@
 .confirm-title {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .confirm-msg {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 1.5rem;
 }

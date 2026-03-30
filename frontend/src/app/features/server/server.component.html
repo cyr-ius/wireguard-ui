@@ -13,21 +13,39 @@
     <div class="service-controls">
       <button
         class="btn btn-sm btn-outline-success"
+        [disabled]="serviceActionLoading() !== null"
         (click)="controlService('start')"
       >
-        <i class="bi bi-play-fill me-1"></i>Start
+        @if (serviceActionLoading() === "start") {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        } @else {
+          <i class="bi bi-play-fill me-1"></i>
+        }
+        Start
       </button>
       <button
         class="btn btn-sm btn-outline-warning"
+        [disabled]="serviceActionLoading() !== null"
         (click)="controlService('stop')"
       >
-        <i class="bi bi-stop-fill me-1"></i>Stop
+        @if (serviceActionLoading() === "stop") {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        } @else {
+          <i class="bi bi-stop-fill me-1"></i>
+        }
+        Stop
       </button>
       <button
         class="btn btn-sm btn-outline-info"
+        [disabled]="serviceActionLoading() !== null"
         (click)="controlService('restart')"
       >
-        <i class="bi bi-arrow-repeat me-1"></i>Restart
+        @if (serviceActionLoading() === "restart") {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        } @else {
+          <i class="bi bi-arrow-repeat me-1"></i>
+        }
+        Restart
       </button>
     </div>
   </div>

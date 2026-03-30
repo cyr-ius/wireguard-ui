@@ -36,6 +36,9 @@ export class ServerComponent implements OnInit {
   readonly saving = signal(false);
   readonly applying = signal(false);
   readonly resetting = signal(false);
+  readonly serviceActionLoading = signal<'start' | 'stop' | 'restart' | null>(
+    null,
+  );
   readonly error = signal<string | null>(null);
   readonly saveError = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
@@ -153,9 +156,26 @@ export class ServerComponent implements OnInit {
   }
 
   controlService(action: 'start' | 'stop' | 'restart'): void {
+    if (this.serviceActionLoading()) return;
+
+    this.serviceActionLoading.set(action);
+    this.saveError.set(null);
+    this.successMessage.set(null);
+
     this.serverService.controlService(action).subscribe({
-      next: () => this.successMessage.set(`Service ${action}ed successfully`),
-      error: (err) => this.saveError.set(err?.error?.detail ?? `Failed to ${action} service`),
+      next: () => {
+        const pastTense: Record<'start' | 'stop' | 'restart', string> = {
+          start: 'started',
+          stop: 'stopped',
+          restart: 'restarted',
+        };
+        this.successMessage.set(`Service ${pastTense[action]} successfully`);
+      },
+      error: (err) => {
+        this.saveError.set(err?.error?.detail ?? `Failed to ${action} service`);
+        this.serviceActionLoading.set(null);
+      },
+      complete: () => this.serviceActionLoading.set(null),
     });
   }
 
