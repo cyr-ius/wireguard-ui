@@ -5,6 +5,7 @@ set -euo pipefail
 WORKSPACE="/workspace"
 BACKEND_DIR="$WORKSPACE/backend"
 FRONTEND_DIR="$WORKSPACE/frontend"
+DATA_DIR="/data"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  🚀  Post-Create Setup — FastAPI + Angular DevContainer  "
@@ -82,10 +83,18 @@ for dir in "$BACKEND_DIR" "$FRONTEND_DIR"; do
   fi
 done
 
+# ── 6. IA Agent local ─────────────────────────────────────────────────────────
 if [ -d "/home/vscode/.codex" ]; then
   echo ""
   echo "📄 Codex settings..."
   mkdir -p /home/vscode/.codex && sudo chown vscode:vscode /home/vscode/.codex
+fi
+
+# ── 7. Data volume ─────────────────────────────────────────────────────────
+if [ -d "$DATA_DIR" ]; then
+  echo ""
+  echo "📄 Data volume settings..."
+  sudo chown vscode:vscode $DATA_DIR
 fi
 
 echo ""
