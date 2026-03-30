@@ -89,8 +89,14 @@ class WireGuardServer(SQLModel, table=True):
     listen_port: int = Field(default=51820)
     private_key: str = Field(max_length=255)
     public_key: str = Field(max_length=255)
-    postup: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
-    postdown: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    postup: str | None = Field(
+        default="iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE",
+        sa_column=Column(Text, nullable=True),
+    )
+    postdown: str | None = Field(
+        default="iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE",
+        sa_column=Column(Text, nullable=True),
+    )
     updated_at: datetime = Field(
         default_factory=utc_now,
         sa_column_kwargs={"onupdate": utc_now},
