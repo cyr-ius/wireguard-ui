@@ -1,0 +1,53 @@
+<!-- Root application shell -->
+<!-- Conditional rendering based on API health status -->
+
+<!-- ── API is unavailable ─────────────────────────────────────────────────── -->
+@if (health.isDown()) {
+  <div class="api-error-page">
+    <div class="api-error-card">
+      <!-- Animated warning icon -->
+      <div class="api-error-icon">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+
+      <h1 class="api-error-title">Service Unavailable</h1>
+      <p class="api-error-subtitle">
+        The backend API is currently unreachable.<br />
+        Please check that the service is running and try again.
+      </p>
+
+      <!-- Technical detail block -->
+      <div class="api-error-detail">
+        <i class="bi bi-hdd-network me-2"></i>
+        <code>GET /api/health</code>
+        <span class="ms-2 api-error-badge">unreachable</span>
+      </div>
+
+      <!-- Retry button -->
+      <button class="api-error-btn" type="button" (click)="retry()">
+        <i class="bi bi-arrow-clockwise me-2"></i>
+        Retry connection
+      </button>
+
+      <p class="api-error-hint">
+        <i class="bi bi-info-circle me-1"></i>
+        The page will refresh automatically once the API responds.
+      </p>
+    </div>
+  </div>
+}
+
+<!-- ── Checking API for the first time (initial load) ────────────────────── -->
+@if (health.isApiAvailable() === null) {
+  <div class="api-checking-page">
+    <div class="api-checking-card">
+      <div class="api-checking-spinner"></div>
+      <p class="api-checking-text">Connecting to backend&hellip;</p>
+    </div>
+  </div>
+}
+
+<!-- ── API is available — render the full application ────────────────────── -->
+@if (health.isReady()) {
+  <router-outlet />
+}
