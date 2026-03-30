@@ -32,7 +32,6 @@
   }
 
   @if (!loading()) {
-    <!-- Clients grid -->
     @if (clients().length === 0) {
       <div class="empty-state">
         <i class="bi bi-people empty-icon"></i>
@@ -80,13 +79,15 @@
             </div>
 
             <div class="client-actions">
+              <!-- View config -->
               <button
                 class="action-btn"
                 title="View config"
                 (click)="viewConfig(client)"
               >
-                <i class="bi bi-eye"></i>
+                <i class="bi bi-file-code"></i>
               </button>
+              <!-- Download config -->
               <button
                 class="action-btn"
                 title="Download config"
@@ -94,6 +95,23 @@
               >
                 <i class="bi bi-download"></i>
               </button>
+              <!-- Show QR code -->
+              <button
+                class="action-btn"
+                title="Show QR Code"
+                (click)="openQrModal(client)"
+              >
+                <i class="bi bi-qr-code"></i>
+              </button>
+              <!-- Send email -->
+              <button
+                class="action-btn"
+                title="Send by email"
+                (click)="openEmailModal(client)"
+              >
+                <i class="bi bi-envelope"></i>
+              </button>
+              <!-- Edit -->
               <button
                 class="action-btn"
                 title="Edit"
@@ -101,6 +119,7 @@
               >
                 <i class="bi bi-pencil"></i>
               </button>
+              <!-- Toggle enabled -->
               <button
                 class="action-btn"
                 [title]="client.enabled ? 'Disable' : 'Enable'"
@@ -112,6 +131,7 @@
                   [class.bi-play-circle]="!client.enabled"
                 ></i>
               </button>
+              <!-- Delete -->
               <button
                 class="action-btn danger"
                 title="Delete"
@@ -126,7 +146,7 @@
     }
   }
 
-  <!-- Create / Edit Modal -->
+  <!-- ─── Create / Edit Modal ─────────────────────────────────────────────── -->
   @if (modalMode()) {
     <div class="modal-overlay" (click)="closeModal()">
       <div class="modal-panel" (click)="$event.stopPropagation()">
@@ -182,16 +202,29 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Allocated IP *</label>
+              <label class="form-label">
+                Allocated IP *
+                @if (suggestedIp()) {
+                  <span class="ip-suggestion-badge">
+                    <i class="bi bi-magic me-1"></i>Suggested
+                  </span>
+                }
+              </label>
               <input
                 type="text"
                 formControlName="allocated_ips"
                 class="form-control"
                 [class.is-invalid]="isInvalid('allocated_ips')"
-                placeholder="192.168.1.1/32"
+                placeholder="10.0.0.2/32"
               />
               @if (isInvalid("allocated_ips")) {
                 <div class="form-error">IP address is required</div>
+              }
+              @if (suggestedIp() && modalMode() === "create") {
+                <small class="text-muted">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Next available IP in the server network
+                </small>
               }
             </div>
             <div class="form-group">
@@ -241,6 +274,38 @@
             </div>
           </div>
 
+          <!-- Email sending option (only on create) -->
+          @if (modalMode() === "create") {
+            <div class="email-option-card">
+              <div class="form-check mb-2">
+                <input
+                  type="checkbox"
+                  formControlName="send_email"
+                  class="form-check-input"
+                  id="sendEmail"
+                />
+                <label class="form-check-label fw-semibold" for="sendEmail">
+                  <i class="bi bi-envelope me-1"></i>
+                  Send configuration by email after creation
+                </label>
+              </div>
+
+              @if (clientForm.get("send_email")?.value) {
+                <div class="email-lang-select">
+                  <label class="form-label small">Email language</label>
+                  <select
+                    formControlName="email_language"
+                    class="form-select form-select-sm"
+                  >
+                    @for (lang of emailLanguages; track lang.code) {
+                      <option [value]="lang.code">{{ lang.label }}</option>
+                    }
+                  </select>
+                </div>
+              }
+            </div>
+          }
+
           <div class="modal-footer">
             <button
               type="button"
@@ -265,7 +330,7 @@
     </div>
   }
 
-  <!-- Config viewer modal -->
+  <!-- ─── Config viewer modal ──────────────────────────────────────────────── -->
   @if (showConfig()) {
     <div class="modal-overlay" (click)="closeConfig()">
       <div class="modal-panel config-modal" (click)="$event.stopPropagation()">
@@ -282,7 +347,135 @@
     </div>
   }
 
-  <!-- Delete confirmation modal -->
+  <!-- ─── QR Code modal ───────────────────────────────────────────────────── -->
+  @if (qrClient()) {
+    <div class="modal-overlay" (click)="closeQrModal()">
+      <div class="modal-panel qr-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <i class="bi bi-qr-code me-2"></i>QR Code — {{ qrClient()!.name }}
+          </h2>
+          <button class="modal-close" (click)="closeQrModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="qr-modal-body">
+          @if (qrLoading()) {
+            <div class="qr-loading">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p>Generating QR code...</p>
+            </div>
+          } @else if (qrCodeBase64()) {
+            <div class="qr-image-wrap">
+              <img
+                [src]="'data:image/png;base64,' + qrCodeBase64()"
+                alt="WireGuard QR Code"
+                class="qr-image"
+              />
+            </div>
+            <p class="qr-hint">
+              <i class="bi bi-phone me-1"></i>
+              Open WireGuard on your mobile → Add Tunnel → Scan QR Code
+            </p>
+            <div class="qr-client-info">
+              <span><strong>IP:</strong> {{ qrClient()!.allocated_ips }}</span>
+              <span><strong>Email:</strong> {{ qrClient()!.email }}</span>
+            </div>
+            <div class="qr-actions">
+              <button
+                class="btn btn-outline-primary btn-sm"
+                (click)="downloadQrCode()"
+              >
+                <i class="bi bi-download me-1"></i>Download QR
+              </button>
+              <button
+                class="btn btn-outline-secondary btn-sm"
+                (click)="closeQrModal()"
+              >
+                Close
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ─── Send Email modal ─────────────────────────────────────────────────── -->
+  @if (emailTarget()) {
+    <div class="modal-overlay" (click)="closeEmailModal()">
+      <div class="modal-panel email-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <i class="bi bi-envelope me-2"></i>Send Configuration by Email
+          </h2>
+          <button class="modal-close" (click)="closeEmailModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="email-modal-body">
+          @if (emailSuccess()) {
+            <div class="alert alert-success">
+              <i class="bi bi-check-circle-fill me-2"></i>{{ emailSuccess() }}
+            </div>
+          } @else {
+            <p class="email-description">
+              An email with the WireGuard configuration file and QR code will be
+              sent to <strong>{{ emailTarget()!.email }}</strong
+              >.
+            </p>
+
+            @if (emailError()) {
+              <div class="alert alert-danger mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i
+                >{{ emailError() }}
+              </div>
+            }
+
+            <div class="form-group mb-4">
+              <label class="form-label">Email language</label>
+              <div class="lang-options">
+                @for (lang of emailLanguages; track lang.code) {
+                  <label
+                    class="lang-option"
+                    [class.selected]="selectedEmailLang() === lang.code"
+                  >
+                    <input
+                      type="radio"
+                      name="emailLang"
+                      [value]="lang.code"
+                      [checked]="selectedEmailLang() === lang.code"
+                      (change)="selectedEmailLang.set(lang.code)"
+                      class="visually-hidden"
+                    />
+                    {{ lang.label }}
+                  </label>
+                }
+              </div>
+            </div>
+
+            <div class="email-modal-footer">
+              <button class="btn btn-secondary" (click)="closeEmailModal()">
+                Cancel
+              </button>
+              <button
+                class="btn btn-primary"
+                (click)="sendEmail()"
+                [disabled]="sendingEmail()"
+              >
+                @if (sendingEmail()) {
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                <i class="bi bi-send me-1"></i>Send Email
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ─── Delete confirmation modal ───────────────────────────────────────── -->
   @if (deleteTarget()) {
     <div class="modal-overlay" (click)="deleteTarget.set(null)">
       <div class="modal-panel confirm-modal" (click)="$event.stopPropagation()">
