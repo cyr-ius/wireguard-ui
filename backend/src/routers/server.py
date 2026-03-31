@@ -1,5 +1,7 @@
 """WireGuard server configuration and service control router."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import delete, select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -18,6 +20,7 @@ from ..services.wireguard import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("", response_model=ServerResponse)
@@ -84,9 +87,15 @@ async def apply_config(
         await write_server_config(s, clients, settings)
         await restart_service()
     except WireGuardError as exc:
-        raise HTTPException(500, detail=str(exc))
+        logger.exception("WireGuard apply config failed: %s", exc)
+        raise HTTPException(
+            500, detail="Failed to apply WireGuard configuration. Check server logs."
+        )
     except Exception as exc:
-        raise HTTPException(500, detail=f"Failed to apply config: {exc}")
+        logger.exception("Unexpected error while applying WireGuard config: %s", exc)
+        raise HTTPException(
+            500, detail="Failed to apply WireGuard configuration. Check server logs."
+        )
 
 
 @router.post("/service/{action}", status_code=status.HTTP_204_NO_CONTENT)
@@ -103,4 +112,7 @@ async def control_service(action: str, _: User = Depends(get_current_admin)):
             case _:
                 raise HTTPException(400, detail=f"Unknown action: {action}")
     except WireGuardError as exc:
-        raise HTTPException(500, detail=str(exc))
+        logger.exception("WireGuard service action '%s' failed: %s", action, exc)
+        raise HTTPException(
+            500, detail="WireGuard service action failed. Check server logs."
+        )
