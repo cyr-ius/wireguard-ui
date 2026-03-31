@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import base64
-import io
 import logging
 
-import qrcode
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -25,6 +22,7 @@ from ..schemas import (
 )
 from ..services.email import SupportedLanguage, send_client_config_email
 from ..services.ip_suggestion import suggest_next_ip
+from ..services.qr import generate_qr_code_base64
 from ..services.wireguard import (
     WireGuardError,
     build_client_config,
@@ -35,32 +33,6 @@ from ..services.wireguard import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-
-def _generate_qr_code_base64(config_content: str) -> str:
-    """Generate a QR code image from WireGuard config and return as base64 string.
-
-    Args:
-        config_content: WireGuard configuration file content.
-
-    Returns:
-        str: Base64-encoded PNG image.
-    """
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=qrcode.ERROR_CORRECT_L,
-        box_size=6,
-        border=4,
-    )
-    qr.add_data(config_content)
-    qr.make(fit=True)
-
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffer = io.BytesIO()
-    img.save(buffer, "PNG")
-    buffer.seek(0)
-
-    return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
 @router.get("", response_model=list[ClientResponse])
@@ -263,7 +235,7 @@ async def get_client_config(
         raise HTTPException(400, detail="Settings not configured")
 
     config_content = build_client_config(client, server, settings)
-    qr_code_base64 = _generate_qr_code_base64(config_content)
+    qr_code_base64 = generate_qr_code_base64(config_content)
 
     return ClientConfigResponse(
         client_id=client_id,
