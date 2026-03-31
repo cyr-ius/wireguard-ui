@@ -9,7 +9,7 @@ Préparer rapidement un environnement local pour **analyser le code**, exécuter
 ## Arborescence utile
 
 - `backend/` : API FastAPI (Python, `uv`)
-- `frontend/` : UI Angular (Node + npm)
+- `frontend/` : UI Angular (Node + npm + @angular/cli)
 
 ## Prérequis système
 
@@ -31,6 +31,7 @@ uv sync --extra dev
 
 ```bash
 cd frontend
+npm install @angular/cli@21
 npm ci
 ```
 
