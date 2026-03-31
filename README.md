@@ -169,6 +169,7 @@ Les contributions sont bienvenues : bugfix, amélioration UX, sécurité, docume
    ```
 2. Développer avec des commits atomiques et des messages explicites.
 3. Vérifier localement avant PR :
+
    ```bash
    # Backend
    cd backend
@@ -179,6 +180,7 @@ Les contributions sont bienvenues : bugfix, amélioration UX, sécurité, docume
    cd ../frontend
    npm run build
    ```
+
 4. Ouvrir une Pull Request avec :
    - le contexte / problème,
    - la solution proposée,
