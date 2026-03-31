@@ -5,13 +5,11 @@ Supports multilingual templates (en, fr, es) with QR code and config file attach
 
 from __future__ import annotations
 
-import base64
 import io
 import logging
 from pathlib import Path
 from typing import Literal, cast
 
-import qrcode
 from email_validator import EmailNotValidError, validate_email
 from fastapi_mail import (
     ConnectionConfig,
@@ -25,6 +23,7 @@ from pydantic import SecretStr
 from starlette.datastructures import Headers, UploadFile
 
 from ..models import GlobalSettings, WireGuardClient, WireGuardServer
+from .qr import generate_qr_code_base64
 
 logger = logging.getLogger(__name__)
 
@@ -33,32 +32,6 @@ TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 
 # Supported language codes for email templates
 SupportedLanguage = Literal["en", "fr", "es"]
-
-
-def _generate_qr_code_base64(config_content: str) -> str:
-    """Generate a QR code from WireGuard config content and return it as base64 PNG.
-
-    Args:
-        config_content: The WireGuard configuration file content.
-
-    Returns:
-        str: Base64-encoded PNG image of the QR code.
-    """
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=qrcode.ERROR_CORRECT_L,
-        box_size=6,
-        border=4,
-    )
-    qr.add_data(config_content)
-    qr.make(fit=True)
-
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffer = io.BytesIO()
-    img.save(buffer, "PNG")
-    buffer.seek(0)
-
-    return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
 def _resolve_mail_from(settings: GlobalSettings) -> str:
@@ -139,7 +112,7 @@ async def send_client_config_email(
         raise ValueError("SMTP server is not configured in global settings.")
 
     # Generate QR code from config content
-    qr_code_base64 = _generate_qr_code_base64(config_content)
+    qr_code_base64 = generate_qr_code_base64(config_content)
 
     # Render HTML template
     html_content = _render_email_template(language, client, qr_code_base64, settings)

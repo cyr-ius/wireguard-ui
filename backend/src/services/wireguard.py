@@ -205,11 +205,18 @@ async def write_server_config(
     settings: GlobalSettings,
 ) -> None:
     """Write the server config file to disk (async executor to avoid blocking)."""
+
+    def _write_config_file(path: str, data: str) -> None:
+        with open(path, "w", encoding="utf-8") as config_file:
+            config_file.write(data)
+
     content = build_server_config(server, clients, settings)
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(
         None,
-        lambda: open(settings.config_file_path, "w").write(content),
+        _write_config_file,
+        settings.config_file_path,
+        content,
     )
 
 

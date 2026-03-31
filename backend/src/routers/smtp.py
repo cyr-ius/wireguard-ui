@@ -98,7 +98,12 @@ async def _get_settings(db: AsyncSession) -> GlobalSettings:
     Returns:
         GlobalSettings: The settings ORM object.
     """
-    settings = (await db.exec(select(GlobalSettings))).one()
+    settings = (await db.exec(select(GlobalSettings))).one_or_none()
+    if settings is None:
+        settings = GlobalSettings()
+        db.add(settings)
+        await db.commit()
+        await db.refresh(settings)
     return settings
 
 
