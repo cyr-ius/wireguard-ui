@@ -224,5 +224,7 @@ async def test_smtp_settings(
         logger.info("SMTP test email scheduled to %s", body.recipient)
 
     except Exception as exc:
-        logger.error("SMTP test failed: %s", exc)
-        raise HTTPException(500, detail=f"SMTP test failed: {exc!s}")
+        logger.exception("SMTP test failed: %s", exc)
+        raise HTTPException(
+            500, detail="SMTP test failed due to an internal error. Check server logs."
+        )
