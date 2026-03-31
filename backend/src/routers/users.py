@@ -14,12 +14,15 @@ router = APIRouter()
 
 
 async def _load_roles(db: AsyncSession, role_ids: list[int]) -> list[Role]:
-    roles = []
-    for rid in role_ids:
-        r = (await db.exec(select(Role).where(Role.id == rid))).one_or_none()
-        if r:
-            roles.append(r)
-    return roles
+    if not role_ids:
+        return []
+
+    result = await db.exec(select(Role).where(Role.id.in_(role_ids)))
+    roles = result.all()
+    role_by_id = {r.id: r for r in roles if r.id is not None}
+
+    # Keep the input order and silently ignore unknown role ids (current behavior).
+    return [role_by_id[rid] for rid in role_ids if rid in role_by_id]
 
 
 @router.get("", response_model=list[UserResponse])
@@ -98,6 +101,13 @@ async def update_user(
         raise HTTPException(404, detail="User not found")
 
     payload = data.model_dump(exclude_unset=True)
+    if "email" in payload and payload["email"] != u.email:
+        existing_user = (
+            await db.exec(select(User).where(User.email == payload["email"]))
+        ).one_or_none()
+        if existing_user:
+            raise HTTPException(422, detail="Email already in use")
+
     if "role_ids" in payload:
         u.roles = await _load_roles(db, payload.pop("role_ids"))
     u.sqlmodel_update(payload)

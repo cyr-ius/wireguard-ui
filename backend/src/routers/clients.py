@@ -191,7 +191,27 @@ async def update_client(
     c = await db.get(WireGuardClient, client_id)
     if not c:
         raise HTTPException(404, detail="Client not found")
-    c.sqlmodel_update(data.model_dump(exclude_unset=True))
+
+    payload = data.model_dump(exclude_unset=True)
+    unique_checks = [
+        ("name", WireGuardClient.name, "Client name already in use"),
+        ("email", WireGuardClient.email, "Email address already in use"),
+        ("allocated_ips", WireGuardClient.allocated_ips, "IP address already in use"),
+    ]
+    for field_name, model_field, message in unique_checks:
+        if field_name not in payload:
+            continue
+        if payload[field_name] == getattr(c, field_name):
+            continue
+        existing = (
+            await db.exec(
+                select(WireGuardClient).where(model_field == payload[field_name])
+            )
+        ).one_or_none()
+        if existing:
+            raise HTTPException(422, detail=message)
+
+    c.sqlmodel_update(payload)
     db.add(c)
     await db.commit()
     await db.refresh(c)
