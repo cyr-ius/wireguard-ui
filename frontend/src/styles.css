@@ -124,6 +124,149 @@ input:-webkit-autofill:focus {
   background: rgba(0, 0, 0, 0.25);
 }
 
+/* Shared page + form styles used across settings-like feature pages */
+.page-container {
+  padding: 2rem;
+  max-width: 900px;
+}
+
+.page-container .page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.page-container .page-header .page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.page-container .page-header .page-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.page-container .service-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.page-container .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.page-title {
+  font-family: "Courier New", monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.content-card,
+.config-form .config-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.config-form .config-card {
+  padding: 1.5rem;
+}
+
+.config-form .config-card .section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--panel-bg-alt);
+}
+
+.config-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.config-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.config-form .form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.config-form .form-control {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  transition: border-color 150ms;
+}
+
+.config-form .form-control:focus {
+  border-color: #00b4d8;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
+}
+
+.config-form .form-control.is-invalid {
+  border-color: #ef4444;
+}
+
+.config-form .font-mono {
+  font-family: "Fira Code", monospace;
+  font-size: 0.8rem;
+}
+
+.config-form .form-error {
+  font-size: 0.72rem;
+  color: #ef4444;
+  margin-top: 0.3rem;
+}
+
+.config-form .form-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .config-form .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Dark theme readability overrides for pages that still used light cards */
 [data-theme="dark"] .page-title {
   color: var(--text-primary) !important;
