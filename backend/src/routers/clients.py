@@ -204,7 +204,9 @@ async def update_client(
         if payload[field_name] == getattr(c, field_name):
             continue
         existing = (
-            await db.exec(select(WireGuardClient).where(model_field == payload[field_name]))
+            await db.exec(
+                select(WireGuardClient).where(model_field == payload[field_name])
+            )
         ).one_or_none()
         if existing:
             raise HTTPException(422, detail=message)
