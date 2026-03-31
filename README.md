@@ -114,16 +114,86 @@ Le volume `wireguard-ui_data` est monté sur `/data` dans le conteneur.
 
 ## 🧪 Développement local (sans Docker)
 
-Le projet contient :
+Le projet est découpé en deux applications :
 
-- `backend/` (FastAPI)
+- `backend/` (API FastAPI)
 - `frontend/` (Angular)
 
-Vous pouvez lancer chaque partie indépendamment selon votre workflow (Node/Python).
+### Prérequis
 
-## 🤝 Crédits
+- Python **3.14+**
+- [uv](https://docs.astral.sh/uv/) (gestion des dépendances Python)
+- Node.js **22+** et npm
 
-Ce README a été restructuré dans un format inspiré des projets de l’écosystème **cyr-ius** (ex : PortalCrane), avec une organisation orientée onboarding et exploitation.
+### 1) Installer les dépendances backend
+
+Depuis la racine du dépôt :
+
+```bash
+cd backend
+uv sync --extra dev
+```
+
+### 2) Lancer le backend
+
+```bash
+uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 3) Installer les dépendances frontend
+
+Dans un autre terminal :
+
+```bash
+cd frontend
+npm ci
+```
+
+### 4) Lancer le frontend
+
+```bash
+npm start
+```
+
+Par défaut, le frontend est accessible sur `http://localhost:4200`.
+
+## 🤝 Contribuer
+
+Les contributions sont bienvenues : bugfix, amélioration UX, sécurité, documentation.
+
+### Workflow recommandé
+
+1. Forker le dépôt et créer une branche :
+   ```bash
+   git checkout -b feat/ma-feature
+   ```
+2. Développer avec des commits atomiques et des messages explicites.
+3. Vérifier localement avant PR :
+   ```bash
+   # Backend
+   cd backend
+   uv run ruff check src
+   uv run mypy src
+
+   # Frontend
+   cd ../frontend
+   npm run build
+   ```
+4. Ouvrir une Pull Request avec :
+   - le contexte / problème,
+   - la solution proposée,
+   - les tests effectués,
+   - les éventuels impacts (migration, compatibilité, sécurité).
+
+### Bonnes pratiques
+
+- Éviter les changements hors-sujet dans une même PR.
+- Préférer les PR petites et faciles à relire.
+- Mettre à jour la documentation si comportement fonctionnel modifié.
+
+## 🤖 Instructions pour agents IA
+
+Un fichier `AGENTS.md` est fourni à la racine pour aider les agents (Codex, assistants IA, etc.) à installer les dépendances et lancer les vérifications nécessaires à l’analyse du projet.
 
 ## 📄 Licence
 
