@@ -1,20 +1,21 @@
 """
 WireGuard UI - FastAPI Backend
-Entry point: run with `uvicorn main:app --reload` from the backend/ directory.
+Copyright (C) 2021-2024  Cyr-ius (github.com/cyr-ius)
 """
 
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from sqlmodel import SQLModel
 
 from .config import app_settings
 from .database import engine
+from .helpers import resolve_safe_path
 from .routers import auth, clients, oidc, server, settings, smtp, status, users
+from .security import SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
 
 logger = logging.getLogger(__name__)
@@ -40,18 +41,12 @@ app = FastAPI(
     version=app_settings.app_version,
     lifespan=lifespan,
     docs_url="/api/docs",
-    redoc_url="/api/redoc",
+    redoc_url=None,
     openapi_url="/api/openapi.json",
 )
 
-# ── CORS ──────────────────────────────────────────────────────────────────────
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=app_settings.cors_origins(),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ── Middleware ───────────────────────────────────────────────────────────────
+app.add_middleware(SecurityHeadersMiddleware)
 
 # ── API routers ───────────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
@@ -72,7 +67,29 @@ async def health_check():
 
 
 # ── Serve Angular SPA (must be last) ─────────────────────────────────────────
-frontend_dist = Path(__file__).resolve().parent.parent / "frontend"
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_spa(full_path: str) -> FileResponse:
+    """
+    Serve Angular static files with path traversal protection.
 
-if frontend_dist.is_dir():
-    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="static")
+    Requests for existing static assets (JS, CSS, images) are served directly.
+    All other paths fall back to index.html to support client-side SPA routing.
+    Unknown or unsafe paths also fall back to index.html rather than 404-ing,
+    letting the Angular router handle the error page.
+    """
+
+    # Resolve once at module load — avoids repeated filesystem calls per request.
+    project_root = Path(__file__).resolve().parents[2]
+    frontend_dist = (project_root / "frontend").resolve()
+    frontend_index = frontend_dist / "index.html"
+
+    if not frontend_index.is_file():
+        logger.error("SPA index.html not found at %s", frontend_index)
+        raise HTTPException(status_code=503, detail="Frontend not available.")
+
+    safe = resolve_safe_path(full_path, frontend_dist)
+    if safe is not None:
+        return FileResponse(safe)
+
+    # SPA fallback: Angular router handles unknown client-side routes.
+    return FileResponse(frontend_index)
