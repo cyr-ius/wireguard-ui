@@ -53,7 +53,7 @@ RUN --mount=type=bind,source=backend/pyproject.toml,target=pyproject.toml \
 
 COPY --from=frontend-builder /build/frontend/dist/wireguard-ui/browser ./frontend
 
-COPY backend/src ./backend
+COPY backend ./backend
 
 ARG VERSION
 ENV APP_VERSION=${VERSION:-"1.0.0"}

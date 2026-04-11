@@ -35,7 +35,7 @@ repos:
           - --skip="./.*,*.csv,*.json,*.ambr"
           - --quiet-level=2
         exclude_types: [csv, json, yaml]
-        exclude: "^(.devcontainer|.claude|.agent|.pre-commit-config.yaml)"
+        exclude: .devcontainer|.claude|.agent|.pre-commit-config.yaml|client_config_es.html|client_config_fr.html
 
   # ── TypeScript / Angular: Prettier ───────────────────────────────────────
   - repo: https://github.com/pre-commit/mirrors-prettier
