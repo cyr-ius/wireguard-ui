@@ -17,3 +17,5 @@ node_modules/
 */node_modules/
 */dist/
 */.angular/
+*/.ruff_cache/
+*/__pycache__/
