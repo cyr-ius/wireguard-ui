@@ -9,9 +9,6 @@ RUN apk add --no-cache \
     curl \
     git \
     python3 \
-    # python3-dev \
-    # build-base \
-    # linux-headers \
     nodejs \
     npm \
     wireguard-tools \
