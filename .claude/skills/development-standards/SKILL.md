@@ -318,6 +318,17 @@ import {
   template: `
     <form [formRoot]="registrationForm">
       <input [formField]="registrationForm.username" />
+      @if (
+        registrationForm.username().invalid() &&
+        registrationForm.username().errors().length
+      ) {
+        <ul>
+          @for (error of registrationForm.username().errors(); track error) {
+            <li>{{ error.message }}</li>
+          }
+        </ul>
+      }
+
       <input type="email" [formField]="registrationForm.email" />
       <input type="password" [formField]="registrationForm.password" />
       <input type="password" [formField]="registrationForm.confirmPassword" />

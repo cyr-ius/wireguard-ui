@@ -1,9 +1,7 @@
 {
   "name": "FastAPI + Angular Dev Environment",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspace",
-
+  "dockerFile": "Dockerfile",
+  "runArgs": ["--cap-add=NET_ADMIN"],
   "mounts": [
     "source=${env:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached"
   ],
@@ -30,8 +28,8 @@
       ],
       "settings": {
         // ── Python ──────────────────────────────────────────────────────
-        "python.defaultInterpreterPath": "/workspace/backend/.venv/bin/python",
-        "python.pythonPath": "/workspace/backend/.venv/bin/python",
+        "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+        "python.pythonPath": "${workspaceFolder}/backend/.venv/bin/python",
         "python.terminal.activateEnvInCurrentTerminal": true,
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff",
@@ -89,7 +87,7 @@
   },
 
   // ─── Cycle de vie ──────────────────────────────────────────────────────
-  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh ${containerWorkspaceFolder}",
 
   // ─── Utilisateur non-root ──────────────────────────────────────────────
   "remoteUser": "vscode"
