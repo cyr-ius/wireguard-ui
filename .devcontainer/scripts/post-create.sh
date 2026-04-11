@@ -2,7 +2,7 @@
 # ─── Post-Create Setup Script ───────────────────────────────────────────────
 set -euo pipefail
 
-WORKSPACE="/workspace"
+WORKSPACE="$1"
 BACKEND_DIR="$WORKSPACE/backend"
 FRONTEND_DIR="$WORKSPACE/frontend"
 DATA_DIR="/data"

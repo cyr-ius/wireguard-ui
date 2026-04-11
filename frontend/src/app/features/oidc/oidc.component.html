@@ -28,7 +28,7 @@
       <p>Loading OIDC configuration...</p>
     </div>
   } @else {
-    <form [formGroup]="oidcForm" (ngSubmit)="save()" class="config-form">
+    <form (submit)="save($event)" class="config-form">
       <div class="config-card">
         <h2 class="section-title">
           <i class="bi bi-sliders me-2"></i>Connector
@@ -38,7 +38,7 @@
             class="form-check-input"
             type="checkbox"
             id="oidcEnabled"
-            formControlName="enabled"
+            [formField]="oidcForm.enabled"
           />
           <label class="form-check-label" for="oidcEnabled">
             Enable OIDC authentication
@@ -50,13 +50,19 @@
           <input
             type="text"
             class="form-control"
-            formControlName="issuer"
+            [formField]="oidcForm.issuer"
             placeholder="https://idp.example.com/realms/main"
           />
+
           <small class="text-muted">
             Base issuer used for discovery at
             <code>/.well-known/openid-configuration</code>
           </small>
+
+          <form-extra-fields
+            [fieldRef]="oidcForm.issuer"
+            class="form-error"
+          ></form-extra-fields>
         </div>
 
         <div class="form-row">
@@ -65,18 +71,26 @@
             <input
               type="text"
               class="form-control"
-              formControlName="client_id"
+              [formField]="oidcForm.client_id"
               placeholder="wireguard-ui"
             />
+            <form-extra-fields
+              [fieldRef]="oidcForm.client_id"
+              class="form-error"
+            ></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Client Secret</label>
             <input
               type="password"
               class="form-control"
-              formControlName="client_secret"
+              [formField]="oidcForm.client_secret"
               placeholder="••••••••"
             />
+            <form-extra-fields
+              [fieldRef]="oidcForm.client_secret"
+              class="form-error"
+            ></form-extra-fields>
           </div>
         </div>
 
@@ -86,18 +100,26 @@
             <input
               type="text"
               class="form-control"
-              formControlName="redirect_uri"
+              [formField]="oidcForm.redirect_uri"
               placeholder="https://your-ui/auth/callback"
             />
+            <form-extra-fields
+              [fieldRef]="oidcForm.redirect_uri"
+              class="form-error"
+            ></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Post Logout Redirect URI</label>
             <input
               type="text"
               class="form-control"
-              formControlName="post_logout_redirect_uri"
+              [formField]="oidcForm.post_logout_redirect_uri"
               placeholder="https://your-ui/login"
             />
+            <form-extra-fields
+              [fieldRef]="oidcForm.post_logout_redirect_uri"
+              class="form-error"
+            ></form-extra-fields>
           </div>
         </div>
 
@@ -107,18 +129,26 @@
             <input
               type="text"
               class="form-control"
-              formControlName="response_type"
+              [formField]="oidcForm.response_type"
               placeholder="code"
             />
+            <form-extra-fields
+              [fieldRef]="oidcForm.response_type"
+              class="form-error"
+            ></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Scope</label>
             <input
               type="text"
               class="form-control"
-              formControlName="scope"
+              [formField]="oidcForm.scope"
               placeholder="openid profile email"
             />
+            <form-extra-fields
+              [fieldRef]="oidcForm.scope"
+              class="form-error"
+            ></form-extra-fields>
           </div>
         </div>
       </div>
@@ -127,9 +157,10 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="saving() || oidcForm.invalid"
+          [disabled]="!oidcForm().valid()"
+          [aria-busy]="oidcForm().submitting()"
         >
-          @if (saving()) {
+          @if (oidcForm().submitting()) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           }
           <i class="bi bi-floppy me-1"></i>Save OIDC Settings

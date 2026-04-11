@@ -1,17 +1,17 @@
-# ─── FastAPI + Angular Development Image ─────────────────────────────────────────────
+# ─── FastAPI + Angular Development Image ───────────────────────────────────────
 
 FROM mcr.microsoft.com/devcontainers/base:alpine
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# ── System dependencies (apk = gestionnaire Alpine) ────────────────────────
+# ── System dependencies (apk = gestionnaire Alpine) ────────────────────────────
 RUN apk add --no-cache \
     curl \
     git \
     python3 \
-    python3-dev \
-    build-base \
-    linux-headers \
+    # python3-dev \
+    # build-base \
+    # linux-headers \
     nodejs \
     npm \
     wireguard-tools \
@@ -20,7 +20,9 @@ RUN apk add --no-cache \
 # ── uv (fast Python package manager) ──────────────────────────────────────────
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
+# ── Environment variables for Python and uv ─────────────────────────────────────────
 ENV UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -38,11 +40,13 @@ RUN mkdir -p /etc/wireguard \
 
 USER vscode
 
-# ── Dépendances Python via uv ───────────────────────────────────────────────
+# ── Dependencies ───────────────────────────────────────────────────────────────
 RUN uv tool install ruff \
     && uv tool install pre-commit
 
-# ── Workspace ───────────────────────────────────────────────────────────────
+
+# ── Volume for WireGuard configuration and data ────────────────────────────────
 VOLUME ["/data"]
 
+# ── Workspace ──────────────────────────────────────────────────────────────────
 WORKDIR /workspace

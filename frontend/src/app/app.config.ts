@@ -18,16 +18,9 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // Zoneless change detection powered by signals
     provideZonelessChangeDetection(),
-
-    // HTTP client using the modern Fetch API backend + JWT interceptor
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
-
-    // Router with hash location for SPA inside static file server
     provideRouter(routes, withHashLocation()),
-
-    // Async animations
     provideAnimationsAsync(),
   ],
 };
