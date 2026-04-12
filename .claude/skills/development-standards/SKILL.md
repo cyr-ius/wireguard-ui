@@ -375,10 +375,15 @@ export class RegistrationFormComponent {
     },
   );
 
-  private submitToServer(f: form) {
+  private async submitToServer(f: form) {
     const formData = this.registrationForm().value();
     console.log("Form submitted:", formData);
-    this.registrationForm().reset({ ...this.registrationInit });
+    try {
+      await firstValueFrom(this.registrationService.register(formData));
+      this.registrationForm().reset({ ...this.registrationInit });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   }
 }
 ```

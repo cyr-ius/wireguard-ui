@@ -1,6 +1,6 @@
 """OIDC configuration router (portalcrane-style /api/oidc/settings endpoints)."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -10,6 +10,17 @@ from ..models import GlobalSettings, User
 from ..schemas import OidcSettingsResponse, OidcSettingsUpdate
 
 router = APIRouter()
+
+OIDC_DEFAULT = {
+    "oidc_enabled": False,
+    "oidc_issuer": None,
+    "oidc_client_id": None,
+    "oidc_client_secret": None,
+    "oidc_redirect_uri": None,
+    "oidc_post_logout_redirect_uri": None,
+    "oidc_response_type": "code",
+    "oidc_scope": "openid profile email",
+}
 
 
 def _get_bool_attr(obj: object, name: str, default: bool = False) -> bool:
@@ -39,16 +50,7 @@ def _to_oidc_response(settings: GlobalSettings) -> OidcSettingsResponse:
 async def _get_or_create_settings(db: AsyncSession) -> GlobalSettings:
     settings = (await db.exec(select(GlobalSettings))).one_or_none()
     if settings is None:
-        settings = GlobalSettings.model_validate(
-            {
-                "dns_servers": "1.1.1.1,8.8.8.8",
-                "config_file_path": "/etc/wireguard/wg0.conf",
-                "maintenance_mode": False,
-                "oidc_enabled": False,
-                "oidc_response_type": "code",
-                "oidc_scope": "openid profile email",
-            }
-        )
+        settings = GlobalSettings.model_validate(OIDC_DEFAULT)
         db.add(settings)
         await db.commit()
         await db.refresh(settings)
@@ -89,3 +91,18 @@ async def update_oidc_settings(
     await db.refresh(settings)
 
     return _to_oidc_response(settings)
+
+
+@router.delete("/reset", status_code=status.HTTP_204_NO_CONTENT)
+async def reset_oidc_settings(
+    _: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Reset oidc settings."""
+
+    settings = (await db.exec(select(GlobalSettings))).one_or_none()
+    if settings is not None:
+        settings.sqlmodel_update(OIDC_DEFAULT)
+        db.add(settings)
+        await db.commit()
+        await db.refresh(settings)

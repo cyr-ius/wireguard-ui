@@ -13,7 +13,17 @@
   </div>
 
   @if (error()) {
-    <div class="alert alert-danger">{{ error() }}</div>
+    <div class="alert alert-danger mb-3">
+      @if (errorEntries().length > 0) {
+        @for (err of errorEntries(); track err[0]) {
+          <div>
+            <strong>{{ err[0] }}</strong> : {{ err[1] }}
+          </div>
+        }
+      } @else {
+        {{ error() }}
+      }
+    </div>
   }
 
   @if (loading()) {
@@ -113,9 +123,19 @@
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
-        <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="modal-form">
+        <form [formRoot]="userForm" class="modal-form">
           @if (formError()) {
-            <div class="alert alert-danger mb-3">{{ formError() }}</div>
+            <div class="alert alert-danger mb-3">
+              @if (formErrorEntries().length > 0) {
+                @for (err of formErrorEntries(); track err[0]) {
+                  <div>
+                    <strong>{{ err[0] }}</strong> : {{ err[1] }}
+                  </div>
+                }
+              } @else {
+                {{ formError() }}
+              }
+            </div>
           }
 
           <div class="form-row">
@@ -123,48 +143,53 @@
               <label class="form-label">Username *</label>
               <input
                 type="text"
-                formControlName="username"
                 class="form-control"
-                [class.is-invalid]="isInvalid('username')"
-                [readonly]="modalMode() === 'edit'"
+                [formField]="userForm.username"
               />
-              @if (isInvalid("username")) {
-                <div class="form-error">Username required (min 3 chars)</div>
-              }
+              <form-extra-fields
+                [fieldRef]="userForm.username"
+                class="form-error"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Email *</label>
               <input
                 type="email"
-                formControlName="email"
                 class="form-control"
-                [class.is-invalid]="isInvalid('email')"
+                [formField]="userForm.email"
               />
-              @if (isInvalid("email")) {
-                <div class="form-error">Valid email required</div>
-              }
+              <form-extra-fields
+                [fieldRef]="userForm.email"
+                class="form-error"
+              ></form-extra-fields>
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">First Name</label>
               <input
                 type="text"
-                formControlName="first_name"
                 class="form-control"
+                [formField]="userForm.first_name"
               />
+              <form-extra-fields
+                [fieldRef]="userForm.first_name"
+                class="form-error"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Last Name</label>
               <input
                 type="text"
-                formControlName="last_name"
                 class="form-control"
+                [formField]="userForm.last_name"
               />
+              <form-extra-fields
+                [fieldRef]="userForm.last_name"
+                class="form-error"
+              ></form-extra-fields>
             </div>
           </div>
-
           <div class="form-group">
             <label class="form-label">{{
               modalMode() === "create"
@@ -173,17 +198,14 @@
             }}</label>
             <input
               type="password"
-              formControlName="password"
               class="form-control"
-              [class.is-invalid]="isInvalid('password')"
+              [formField]="userForm.password"
             />
-            @if (isInvalid("password")) {
-              <div class="form-error">
-                Password must be at least 8 characters
-              </div>
-            }
+            <form-extra-fields
+              [fieldRef]="userForm.password"
+              class="form-error"
+            ></form-extra-fields>
           </div>
-
           <div class="form-group">
             <label class="form-label">Roles</label>
             <div class="role-checkboxes">
@@ -205,20 +227,21 @@
                 </label>
               }
             </div>
+            <form-extra-fields
+              [fieldRef]="userForm.role_ids"
+              class="form-error"
+            ></form-extra-fields>
           </div>
-
           <div class="form-check mb-3">
             <input
               type="checkbox"
-              formControlName="active"
               class="form-check-input"
-              id="userActive"
+              [formField]="userForm.active"
             />
             <label class="form-check-label" for="userActive"
               >Account active</label
             >
           </div>
-
           <div class="modal-footer">
             <button
               type="button"
@@ -230,9 +253,9 @@
             <button
               type="submit"
               class="btn btn-primary"
-              [disabled]="userForm.invalid || saving()"
+              [disabled]="userForm().invalid() || userForm().submitting()"
             >
-              @if (saving()) {
+              @if (userForm().submitting()) {
                 <span class="spinner-border spinner-border-sm me-1"></span>
               }
               {{ modalMode() === "create" ? "Create User" : "Save Changes" }}

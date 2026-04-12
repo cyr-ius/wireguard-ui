@@ -1,41 +1,18 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  OnInit,
-  signal,
-} from "@angular/core";
-import { form, FormField, max, min, required, submit } from "@angular/forms/signals";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
+import { email, form, FormField, FormRoot, max, min, required } from "@angular/forms/signals";
 import { firstValueFrom } from "rxjs";
+import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
 import { SmtpService } from "../../core/services/api.service";
 import { SmtpSettings, SmtpSettingsUpdate } from "../../shared/models/api.models";
 
-const SMTP_DEFAULTS = {
-  smtp_server: "",
-  smtp_port: 25,
-  smtp_username: "",
-  smtp_password: "",
-  smtp_from: "",
-  smtp_from_name: "WireGuard UI",
-  smtp_tls: true,
-  smtp_ssl: false,
-  smtp_verify: true,
-  default_email_language: "en",
-};
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type SmtpField =
-  | "smtp_server"
-  | "smtp_port"
-  | "smtp_from"
-  | "default_email_language";
+type SmtpField = "smtp_server" | "smtp_port" | "smtp_from" | "default_email_language";
 
 @Component({
   selector: "app-smtp",
   standalone: true,
-  imports: [FormField],
+  imports: [FormRoot, FormField, FormExtraFields],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./smtp.component.html",
   styleUrls: ["./smtp.component.css"],
@@ -44,7 +21,6 @@ export class SmtpComponent implements OnInit {
   private readonly smtpService = inject(SmtpService);
 
   readonly loading = signal(true);
-  readonly saving = signal(false);
   readonly resetting = signal(false);
   readonly submitted = signal(false);
   readonly error = signal<string | null>(null);
@@ -56,20 +32,31 @@ export class SmtpComponent implements OnInit {
   readonly testError = signal<string | null>(null);
   readonly testing = signal(false);
   readonly testSubject = signal("WireGuard UI - SMTP Test Email");
-  readonly previewFrom = computed(
-    () => this.smtpSignal().smtp_from || this.smtpSignal().smtp_username || "sender@example.com",
-  );
-  readonly previewFromName = computed(
-    () => this.smtpSignal().smtp_from_name || SMTP_DEFAULTS.smtp_from_name,
-  );
+  readonly previewFrom = computed(() => this.smtpSignal().smtp_from || this.smtpSignal().smtp_username || "sender@example.com");
+  readonly previewFromName = computed(() => this.smtpSignal().smtp_from_name || this.smtpInit.smtp_from_name);
 
-  readonly smtpSignal = signal({ ...SMTP_DEFAULTS });
+  private readonly smtpInit = {
+    smtp_server: "",
+    smtp_port: 25,
+    smtp_username: "",
+    smtp_password: "",
+    smtp_from: "no-reply@wg.ui",
+    smtp_from_name: "WireGuard UI",
+    smtp_tls: true,
+    smtp_ssl: false,
+    smtp_verify: true,
+    default_email_language: "en",
+  };
+
+  readonly smtpSignal = signal({ ...this.smtpInit });
   readonly smtpForm = form(this.smtpSignal, (p) => {
-    required(p.smtp_server);
-    required(p.smtp_port);
-    min(p.smtp_port, 1);
-    max(p.smtp_port, 65535);
-    required(p.default_email_language);
+    required(p.smtp_server, { message: "SMTP server is required" });
+    required(p.smtp_port, { message: "SMTP port is required" });
+    required(p.smtp_from_name, { message: "Mail From Name is required" });
+    required(p.smtp_from, { message: "Mail From is required" });
+    min(p.smtp_port, 1, { message: "SMTP port must be at least 1" });
+    max(p.smtp_port, 65535, { message: "SMTP port must be at most 65535" });
+    email(p.smtp_from, { message: "Mail From must be a valid email address" });
   });
 
   ngOnInit(): void {
@@ -89,38 +76,29 @@ export class SmtpComponent implements OnInit {
         if (err.status !== 404) {
           this.error.set(this.extractErrorMessage(err, "Failed to load mail configuration"));
         } else {
-          this.resetLocalForm();
+          this.smtpSignal.set({ ...this.smtpInit });
+          this.submitted.set(false);
+          this.testError.set(null);
+          this.testRecipientError.set(null);
         }
         this.loading.set(false);
       },
     });
   }
 
-  onSubmit(event: Event): void {
-    event.preventDefault();
-    this.submitted.set(true);
+  async onSubmit(f: SmtpSettingsUpdate): Promise<void> {
     this.saveError.set(null);
     this.successMessage.set(null);
 
-    if (this.hasFormErrors()) {
-      this.saveError.set("Please correct the highlighted fields before saving.");
+    try {
+      const saved = await firstValueFrom(this.smtpService.update(this.buildPayload()));
+      this.applySmtpSettings(saved);
+      this.successMessage.set("Mail settings saved successfully");
+      setTimeout(() => this.successMessage.set(null), 4000);
+    } catch (err: unknown) {
+      this.saveError.set(this.extractErrorMessage(err, "Failed to save mail settings"));
       return;
     }
-
-    this.saving.set(true);
-
-    submit(this.smtpForm, async () => {
-      try {
-        const saved = await firstValueFrom(this.smtpService.update(this.buildPayload()));
-        this.applySmtpSettings(saved);
-        this.successMessage.set("Mail settings saved successfully");
-        setTimeout(() => this.successMessage.set(null), 4000);
-      } catch (err: unknown) {
-        this.saveError.set(this.extractErrorMessage(err, "Failed to save mail settings"));
-      } finally {
-        this.saving.set(false);
-      }
-    });
   }
 
   resetConfig(): void {
@@ -167,7 +145,6 @@ export class SmtpComponent implements OnInit {
     this.testRecipientError.set(null);
     this.testError.set(null);
   }
-
 
   onSslToggle(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
@@ -232,27 +209,19 @@ export class SmtpComponent implements OnInit {
       case "smtp_server":
         return smtp.smtp_server.trim() ? null : "SMTP server is required.";
       case "smtp_port":
-        return Number.isInteger(smtp.smtp_port) && smtp.smtp_port >= 1 && smtp.smtp_port <= 65535
-          ? null
-          : "SMTP port must be between 1 and 65535.";
+        return Number.isInteger(smtp.smtp_port) && smtp.smtp_port >= 1 && smtp.smtp_port <= 65535 ? null : "SMTP port must be between 1 and 65535.";
       case "smtp_from":
         if (!smtp.smtp_from.trim()) return null;
-        return EMAIL_REGEX.test(smtp.smtp_from.trim())
-          ? null
-          : "Mail From must be a valid email address.";
+        return EMAIL_REGEX.test(smtp.smtp_from.trim()) ? null : "Mail From must be a valid email address.";
       case "default_email_language":
-        return ["en", "fr", "es"].includes(smtp.default_email_language)
-          ? null
-          : "Please select a supported email language.";
+        return ["en", "fr", "es"].includes(smtp.default_email_language) ? null : "Please select a supported email language.";
       default:
         return null;
     }
   }
 
   private hasFormErrors(): boolean {
-    return ["smtp_server", "smtp_port", "smtp_from", "default_email_language"].some(
-      (field) => this.getFieldError(field as SmtpField) !== null,
-    );
+    return ["smtp_server", "smtp_port", "smtp_from", "default_email_language"].some((field) => this.getFieldError(field as SmtpField) !== null);
   }
 
   private buildPayload(): SmtpSettingsUpdate {
@@ -263,7 +232,7 @@ export class SmtpComponent implements OnInit {
       smtp_username: smtp.smtp_username.trim() || null,
       smtp_password: smtp.smtp_password.trim() || null,
       smtp_from: smtp.smtp_from.trim() || null,
-      smtp_from_name: smtp.smtp_from_name.trim() || SMTP_DEFAULTS.smtp_from_name,
+      smtp_from_name: smtp.smtp_from_name.trim() || this.smtpInit.smtp_from_name,
       smtp_tls: smtp.smtp_tls,
       smtp_ssl: smtp.smtp_ssl,
       smtp_verify: smtp.smtp_verify,
@@ -271,29 +240,15 @@ export class SmtpComponent implements OnInit {
     };
   }
 
-  private applySmtpSettings(smtp: SmtpSettings): void {
-    this.smtpSignal.set({
-      smtp_server: smtp.smtp_server ?? "",
-      smtp_port: smtp.smtp_port ?? SMTP_DEFAULTS.smtp_port,
-      smtp_username: smtp.smtp_username ?? "",
-      smtp_password: "",
-      smtp_tls: smtp.smtp_tls,
-      smtp_ssl: smtp.smtp_ssl,
-      smtp_verify: smtp.smtp_verify,
-      smtp_from: smtp.smtp_from ?? SMTP_DEFAULTS.smtp_from,
-      smtp_from_name: smtp.smtp_from_name ?? SMTP_DEFAULTS.smtp_from_name,
-      default_email_language:
-        smtp.default_email_language ?? SMTP_DEFAULTS.default_email_language,
-    });
+  private applySmtpSettings(smtp: any): void {
+    this.smtpSignal.set({ ...this.smtpInit, ...smtp });
     this.submitted.set(false);
     this.testError.set(null);
     this.testRecipientError.set(null);
   }
 
   private extractErrorMessage(err: unknown, fallback: string): string {
-    const httpErr = err as
-      | { error?: { detail?: string | string[] | { msg?: string }[] } }
-      | undefined;
+    const httpErr = err as { error?: { detail?: string | string[] | { msg?: string }[] } } | undefined;
 
     const detail = httpErr?.error?.detail;
 
@@ -311,12 +266,5 @@ export class SmtpComponent implements OnInit {
     }
 
     return fallback;
-  }
-
-  private resetLocalForm(): void {
-    this.smtpSignal.set({ ...SMTP_DEFAULTS });
-    this.submitted.set(false);
-    this.testError.set(null);
-    this.testRecipientError.set(null);
   }
 }

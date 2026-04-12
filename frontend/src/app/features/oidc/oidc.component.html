@@ -13,9 +13,6 @@
   @if (error()) {
     <div class="alert alert-danger">{{ error() }}</div>
   }
-  @if (saveError()) {
-    <div class="alert alert-danger">{{ saveError() }}</div>
-  }
   @if (successMessage()) {
     <div class="alert alert-success">
       <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
@@ -28,7 +25,7 @@
       <p>Loading OIDC configuration...</p>
     </div>
   } @else {
-    <form (submit)="save($event)" class="config-form">
+    <form [formRoot]="oidcForm" class="config-form">
       <div class="config-card">
         <h2 class="section-title">
           <i class="bi bi-sliders me-2"></i>Connector
@@ -157,13 +154,24 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="!oidcForm().valid()"
+          [disabled]="oidcForm().invalid() || oidcForm().submitting()"
           [aria-busy]="oidcForm().submitting()"
         >
           @if (oidcForm().submitting()) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           }
           <i class="bi bi-floppy me-1"></i>Save OIDC Settings
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-danger"
+          [disabled]="resetting() || oidcForm().submitting()"
+          (click)="reset()"
+        >
+          @if (resetting()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Settings
         </button>
       </div>
     </form>

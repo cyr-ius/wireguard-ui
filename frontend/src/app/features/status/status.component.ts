@@ -3,16 +3,16 @@
  * Uses signals + toSignal() for reactive data flow.
  */
 
-import { Component, inject, signal, computed } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ApiService, WgStatus } from '../../core/services/api.service';
-import { interval, switchMap, startWith } from 'rxjs';
+import { Component, computed, inject, signal } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { interval, startWith, switchMap } from "rxjs";
+import { ApiService, WgStatus } from "../../core/services/api.service";
 
 @Component({
-  selector: 'app-status',
+  selector: "app-status",
   standalone: true,
-  templateUrl: './status.component.html',
-  styleUrl: './status.component.css',
+  templateUrl: "./status.component.html",
+  styleUrl: "./status.component.css",
 })
 export class StatusComponent {
   private readonly api = inject(ApiService);
@@ -22,7 +22,7 @@ export class StatusComponent {
   // Auto-refresh every 10 seconds
   private readonly status$ = interval(10_000).pipe(
     startWith(0),
-    switchMap(() => this.api.getStatus())
+    switchMap(() => this.api.getStatus()),
   );
 
   readonly status = toSignal<WgStatus>(this.status$);

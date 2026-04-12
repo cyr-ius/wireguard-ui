@@ -4,10 +4,10 @@
  * All role checks are mirrored from backend enforcement.
  */
 
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { tap } from 'rxjs/operators';
+import { HttpClient } from "@angular/common/http";
+import { Injectable, computed, inject, signal } from "@angular/core";
+import { Router } from "@angular/router";
+import { tap } from "rxjs/operators";
 
 export interface TokenResponse {
   access_token: string;
@@ -20,13 +20,13 @@ export interface TokenResponse {
 
 export interface CurrentUser {
   username: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
   token: string;
 }
 
-const STORAGE_KEY = 'wg_auth';
+const STORAGE_KEY = "wg_auth";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
@@ -37,14 +37,12 @@ export class AuthService {
   // Public computed signals
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => this._currentUser() !== null);
-  readonly isAdmin = computed(() => this._currentUser()?.role === 'admin');
-  readonly username = computed(() => this._currentUser()?.username ?? '');
+  readonly isAdmin = computed(() => this._currentUser()?.role === "admin");
+  readonly username = computed(() => this._currentUser()?.username ?? "");
 
   /** Login: exchange credentials for JWT token. */
   login(username: string, password: string) {
-    return this.http
-      .post<TokenResponse>('/api/auth/login', { username, password })
-      .pipe(tap((response) => this.applyTokenResponse(response)));
+    return this.http.post<TokenResponse>("/api/auth/login", { username, password }).pipe(tap((response) => this.applyTokenResponse(response)));
   }
 
   loginWithTokenResponse(response: TokenResponse): void {
@@ -55,7 +53,7 @@ export class AuthService {
   logout(): void {
     this._currentUser.set(null);
     sessionStorage.removeItem(STORAGE_KEY);
-    this.router.navigate(['/login']);
+    this.router.navigate(["/login"]);
   }
 
   /** Get the raw JWT token for use in HTTP interceptor. */
@@ -73,10 +71,10 @@ export class AuthService {
   }
 
   private applyTokenResponse(response: TokenResponse): void {
-    const isAdmin = response.user.roles?.some((r) => r.name === 'admin') ?? false;
+    const isAdmin = response.user.roles?.some((r) => r.name === "admin") ?? false;
     const user: CurrentUser = {
       username: response.user.username,
-      role: isAdmin ? 'admin' : 'user',
+      role: isAdmin ? "admin" : "user",
       token: response.access_token,
     };
     this._currentUser.set(user);

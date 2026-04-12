@@ -50,7 +50,7 @@ async def update_settings(
     return s
 
 
-@router.post("/reset", response_model=SettingsResponse, status_code=status.HTTP_200_OK)
+@router.delete("/reset", status_code=status.HTTP_204_NO_CONTENT)
 async def reset_settings(
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
@@ -65,4 +65,3 @@ async def reset_settings(
     db.add(s)
     await db.commit()
     await db.refresh(s)
-    return s

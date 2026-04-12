@@ -26,33 +26,9 @@ interface HealthResponse {
 export class HealthService {
   private readonly http = inject(HttpClient);
 
-  /**
-   * Internal mutable signal.
-   * Initialised from sessionStorage so that a page refresh does not
-   * display the loading screen when the API was healthy before.
-   */
-  private readonly _isApiAvailable = signal<boolean | null>(
-    this._loadFromStorage(),
-  );
-
-  /**
-   * Public readonly signal.
-   * - null  → initial check not yet completed (no prior session data)
-   * - true  → API is reachable and healthy
-   * - false → API is unreachable or returned an error
-   */
+  private readonly _isApiAvailable = signal<boolean | null>(this._loadFromStorage());
   readonly isApiAvailable = this._isApiAvailable.asReadonly();
-
-  /**
-   * Computed signal: true when the API is confirmed available.
-   * Used by the template to render the router outlet.
-   */
   readonly isReady = computed(() => this._isApiAvailable() === true);
-
-  /**
-   * Computed signal: true when the API is confirmed unavailable.
-   * Used by the template to render the error page.
-   */
   readonly isDown = computed(() => this._isApiAvailable() === false);
 
   constructor() {
@@ -73,11 +49,6 @@ export class HealthService {
       .subscribe();
   }
 
-  /**
-   * Trigger an immediate health check outside the regular polling cycle.
-   * Resets the signal to null (loading state) only when there is no
-   * previously cached value, so a "retry" does not cause a full-page flash.
-   */
   checkNow(): void {
     // Only show loading state if we have no prior knowledge
     if (this._isApiAvailable() === false) {
@@ -101,11 +72,6 @@ export class HealthService {
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  /**
-   * Updates both the signal and the sessionStorage cache.
-   *
-   * @param available - Whether the API is currently reachable.
-   */
   private _setAvailability(available: boolean): void {
     this._isApiAvailable.set(available);
     try {
@@ -115,10 +81,6 @@ export class HealthService {
     }
   }
 
-  /**
-   * Reads the last known health state from sessionStorage.
-   * Returns null if no prior value is stored (first visit or new tab).
-   */
   private _loadFromStorage(): boolean | null {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);

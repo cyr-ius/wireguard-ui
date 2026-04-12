@@ -8,9 +8,7 @@ const STORAGE_KEY = "wg_theme_mode";
 @Injectable({ providedIn: "root" })
 export class ThemeService {
   private readonly mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  private readonly _systemTheme = signal<ResolvedTheme>(
-    this.mediaQuery.matches ? "dark" : "light",
-  );
+  private readonly _systemTheme = signal<ResolvedTheme>(this.mediaQuery.matches ? "dark" : "light");
   private readonly _mode = signal<ThemeMode>(this.loadMode());
 
   readonly mode = this._mode.asReadonly();

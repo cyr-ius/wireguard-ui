@@ -1,8 +1,7 @@
 import { Component, OnInit, inject, signal } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { OidcService } from "../../../core/services/api.service";
 import { AuthService } from "../../../core/services/auth.service";
-import { OidcService } from "../../../core/services/oidc.service";
 
 @Component({
   selector: "app-oidc-callback",

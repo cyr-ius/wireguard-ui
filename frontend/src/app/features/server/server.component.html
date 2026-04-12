@@ -72,11 +72,7 @@
       <p>Loading configuration...</p>
     </div>
   } @else {
-    <form
-      [formGroup]="serverForm"
-      (ngSubmit)="saveServer()"
-      class="config-form"
-    >
+    <form [formRoot]="serverForm" class="config-form">
       <div class="config-card">
         <h2 class="section-title">
           <i class="bi bi-ethernet me-2"></i>Interface
@@ -87,28 +83,25 @@
             <label class="form-label">Network Address (CIDR) *</label>
             <input
               type="text"
-              formControlName="address"
               class="form-control"
-              [class.is-invalid]="isInvalid('address')"
+              [formField]="serverForm.address"
               placeholder="192.168.1.0/24"
             />
-            @if (isInvalid("address")) {
-              <div class="form-error">
-                Address is required (e.g. 192.168.1.0/24)
-              </div>
-            }
+            <form-extra-fields
+              [fieldRef]="serverForm.address"
+            ></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Listen Port *</label>
             <input
               type="number"
-              formControlName="listen_port"
               class="form-control"
-              [class.is-invalid]="isInvalid('listen_port')"
+              [formField]="serverForm.listen_port"
+              placeholder="51820"
             />
-            @if (isInvalid("listen_port")) {
-              <div class="form-error">Valid port (1-65535) is required</div>
-            }
+            <form-extra-fields
+              [fieldRef]="serverForm.listen_port"
+            ></form-extra-fields>
           </div>
         </div>
 
@@ -129,11 +122,13 @@
               <div class="input-group">
                 <input
                   [type]="showPrivateKey() ? 'text' : 'password'"
-                  formControlName="private_key"
                   class="form-control font-mono"
-                  [class.is-invalid]="isInvalid('private_key')"
+                  [formField]="serverForm.private_key"
                   placeholder="Server private key"
                 />
+                <form-extra-fields
+                  [fieldRef]="serverForm.private_key"
+                ></form-extra-fields>
                 <button
                   type="button"
                   class="btn btn-outline-secondary"
@@ -151,11 +146,9 @@
               <label class="form-label">Public Key *</label>
               <input
                 type="text"
-                formControlName="public_key"
                 class="form-control font-mono"
-                [class.is-invalid]="isInvalid('public_key')"
+                [formField]="serverForm.public_key"
                 placeholder="Server public key"
-                readonly
               />
             </div>
           </div>
@@ -169,19 +162,19 @@
         <div class="form-group">
           <label class="form-label">PostUp</label>
           <textarea
-            formControlName="postup"
             class="form-control font-mono"
             rows="3"
             placeholder="iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
+            [formField]="serverForm.postup"
           ></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">PostDown</label>
           <textarea
-            formControlName="postdown"
             class="form-control font-mono"
             rows="3"
             placeholder="iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE"
+            [formField]="serverForm.postdown"
           ></textarea>
         </div>
       </div>
@@ -190,9 +183,9 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="serverForm.invalid || saving()"
+          [disabled]="serverForm().invalid() || serverForm().submitting()"
         >
-          @if (saving()) {
+          @if (serverForm().submitting()) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           }
           <i class="bi bi-floppy me-1"></i>Save Configuration
@@ -200,7 +193,7 @@
         <button
           type="button"
           class="btn btn-outline-danger"
-          [disabled]="resetting()"
+          [disabled]="resetting() || serverForm().submitting()"
           (click)="resetServerConfig()"
         >
           @if (resetting()) {
@@ -211,7 +204,7 @@
         <button
           type="button"
           class="btn btn-warning"
-          [disabled]="applying()"
+          [disabled]="applying() || serverForm().submitting()"
           (click)="applyConfig()"
         >
           @if (applying()) {

@@ -1,15 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { ApiService, GithubRelease } from '../../core/services/api.service';
-import { APP_INFO } from '../../shared/constants/app-info';
+import { DatePipe } from "@angular/common";
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from "@angular/core";
+import { ApiService, GithubRelease } from "../../core/services/api.service";
+import { APP_INFO } from "../../shared/constants/app-info";
 
 @Component({
-  selector: 'app-about',
+  selector: "app-about",
   standalone: true,
   imports: [DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './about.component.html',
-  styleUrl: './about.component.css',
+  templateUrl: "./about.component.html",
+  styleUrl: "./about.component.css",
 })
 export class AboutComponent implements OnInit {
   private readonly api = inject(ApiService);
@@ -19,13 +19,13 @@ export class AboutComponent implements OnInit {
   readonly repoUrl = `https://github.com/${this.repository}`;
   readonly issueUrl = computed(
     () =>
-      `https://github.com/${this.repository}/issues/new?title=${encodeURIComponent('[Bug] ')}&body=${encodeURIComponent(
-        `Version: ${this.appVersion()}\n\nDescribe the issue:\n`
-      )}`
+      `https://github.com/${this.repository}/issues/new?title=${encodeURIComponent("[Bug] ")}&body=${encodeURIComponent(
+        `Version: ${this.appVersion()}\n\nDescribe the issue:\n`,
+      )}`,
   );
-  readonly apiUrl = '/api';
-  readonly apiDocsUrl = '/api/docs';
-  readonly apiStatusUrl = '/api/status';
+  readonly apiUrl = "/api";
+  readonly apiDocsUrl = "/api/docs";
+  readonly apiStatusUrl = "/api/status";
 
   readonly checkingUpdate = signal(false);
   readonly updateError = signal<string | null>(null);
@@ -51,7 +51,7 @@ export class AboutComponent implements OnInit {
         this.checkingUpdate.set(false);
       },
       error: () => {
-        this.updateError.set('Unable to check latest release on GitHub.');
+        this.updateError.set("Unable to check latest release on GitHub.");
         this.checkingUpdate.set(false);
       },
     });
@@ -74,9 +74,9 @@ export class AboutComponent implements OnInit {
 
   private normalizeVersion(version: string): number[] {
     return version
-      .replace(/^v/i, '')
-      .split('.')
-      .map((part) => Number.parseInt(part.replace(/\D.*/, ''), 10))
+      .replace(/^v/i, "")
+      .split(".")
+      .map((part) => Number.parseInt(part.replace(/\D.*/, ""), 10))
       .filter((part) => Number.isFinite(part));
   }
 }

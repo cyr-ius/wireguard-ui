@@ -10,7 +10,7 @@ import logging
 from typing import cast
 
 from email_validator import EmailNotValidError, validate_email
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi_mail import (
     ConnectionConfig,
     FastMail,
@@ -25,10 +25,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from ..auth import get_current_admin
 from ..database import get_db
 from ..models import GlobalSettings, User
-from ..schemas import SmtpSettingsResponse, SmtpSettingsUpdate, SmtpTestRequest
+from ..schemas import Lang, SmtpSettingsResponse, SmtpSettingsUpdate, SmtpTestRequest
 
 logger = logging.getLogger(__name__)
-
+default_lang: Lang = "en"
 router = APIRouter()
 
 SMTP_DEFAULTS = {
@@ -36,7 +36,7 @@ SMTP_DEFAULTS = {
     "smtp_port": None,
     "smtp_username": None,
     "smtp_password": None,
-    "smtp_from": None,
+    "smtp_from": "no-reply@wg.ui",
     "smtp_from_name": "WireGuard UI",
     "smtp_tls": True,
     "smtp_ssl": False,
@@ -65,7 +65,7 @@ def _build_smtp_response(settings: GlobalSettings) -> SmtpSettingsResponse:
         smtp_tls=settings.smtp_tls,
         smtp_ssl=settings.smtp_ssl,
         smtp_verify=settings.smtp_verify,
-        default_email_language=settings.default_email_language or "en",
+        default_email_language=settings.default_email_language or default_lang,
         smtp_configured=bool(settings.smtp_server and settings.smtp_port),
     )
 
@@ -160,18 +160,16 @@ async def update_smtp_settings(
     return _build_smtp_response(settings)
 
 
-@router.post("/reset", response_model=SmtpSettingsResponse)
+@router.delete("/reset", status_code=status.HTTP_204_NO_CONTENT)
 async def reset_smtp_settings(
-    _: User = Depends(get_current_admin),
-    db: AsyncSession = Depends(get_db),
-) -> SmtpSettingsResponse:
+    _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
+):
     """Reset all mail-related settings to their defaults."""
     settings = await _get_settings(db)
     settings.sqlmodel_update(SMTP_DEFAULTS)
     db.add(settings)
     await db.commit()
     await db.refresh(settings)
-    return _build_smtp_response(settings)
 
 
 @router.post("/test", status_code=204)

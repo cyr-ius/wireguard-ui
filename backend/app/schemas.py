@@ -11,6 +11,8 @@ from fastapi_mail import NameEmail
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
+Lang = Literal["en", "fr", "es"]
+
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 
@@ -86,6 +88,7 @@ class ServerResponse(SQLModel):
     id: int
     address: str
     listen_port: int
+    private_key: str
     public_key: str
     postup: str | None = None
     postdown: str | None = None
@@ -166,7 +169,7 @@ class SettingsUpdate(SQLModel):
     persistent_keepalive: int | None = Field(default=None, ge=0, le=65535)
     config_file_path: str | None = None
     maintenance_mode: bool | None = None
-    default_email_language: Literal["en", "fr", "es"] | None = None
+    default_email_language: Lang | None = None
 
 
 class SettingsResponse(SQLModel):
@@ -197,7 +200,7 @@ class SmtpSettingsUpdate(SQLModel):
     smtp_tls: bool = False
     smtp_ssl: bool = False
     smtp_verify: bool = False
-    default_email_language: Literal["en", "fr", "es"] = "en"
+    default_email_language: Lang = "en"
 
 
 class SmtpSettingsResponse(SQLModel):
@@ -211,7 +214,7 @@ class SmtpSettingsResponse(SQLModel):
     smtp_tls: bool = True
     smtp_ssl: bool = False
     smtp_verify: bool = True
-    default_email_language: Literal["en", "fr", "es"] = "en"
+    default_email_language: Lang = "en"
     smtp_configured: bool = False
     model_config = {"from_attributes": True}
 
@@ -227,11 +230,11 @@ class SmtpTestRequest(SQLModel):
 
 class OidcSettingsUpdate(SQLModel):
     enabled: bool = False
-    issuer: str = ""
-    client_id: str = ""
-    client_secret: str = ""
-    redirect_uri: str = ""
-    post_logout_redirect_uri: str = ""
+    issuer: str | None = None
+    client_id: str | None = None
+    client_secret: str | None = None
+    redirect_uri: str | None = None
+    post_logout_redirect_uri: str | None = None
     response_type: str = "code"
     scope: str = "openid profile email"
 

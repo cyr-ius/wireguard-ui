@@ -8,12 +8,22 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from sqlmodel import SQLModel
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import app_settings
 from .database import engine
-from .helpers import resolve_safe_path
+from .exceptions import (
+    ApiException,
+    api_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
+from .helpers import (
+    resolve_safe_path,
+)
 from .routers import auth, clients, oidc, server, settings, smtp, status, users
 from .security import SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
@@ -47,6 +57,11 @@ app = FastAPI(
 
 # ── Middleware ───────────────────────────────────────────────────────────────
 app.add_middleware(SecurityHeadersMiddleware)
+
+# ── Exception handlers ───────────────────────────────────────────────────────
+app.add_exception_handler(ApiException, api_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 
 # ── API routers ───────────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])

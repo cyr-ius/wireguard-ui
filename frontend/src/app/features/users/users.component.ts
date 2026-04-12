@@ -1,52 +1,68 @@
-import {
-  Component,
-  signal,
-  computed,
-  inject,
-  OnInit,
-  ChangeDetectionStrategy,
-} from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UsersService } from '../../core/services/api.service';
-import { AuthService } from '../../core/services/auth.service';
-import { User, Role, UserCreate, UserUpdate } from '../../shared/models/api.models';
+import { HttpErrorResponse } from "@angular/common/http";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
+import { email, form, FormField, FormRoot, minLength, readonly, required } from "@angular/forms/signals";
+import { firstValueFrom } from "rxjs";
+import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
+import { UsersService } from "../../core/services/api.service";
+import { AuthService } from "../../core/services/auth.service";
+import { Role, User, UserCreate, UserUpdate } from "../../shared/models/api.models";
 
-type ModalMode = 'create' | 'edit' | null;
+type ModalMode = "create" | "edit" | null;
 
 @Component({
-  selector: 'app-users',
+  selector: "app-users",
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [FormRoot, FormField, FormExtraFields],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './users.component.html',
-  styleUrls: ['./users.component.css'],
+  templateUrl: "./users.component.html",
+  styleUrls: ["./users.component.css"],
 })
 export class UsersComponent implements OnInit {
   private readonly usersService = inject(UsersService);
   private readonly authService = inject(AuthService);
-  private readonly fb = inject(FormBuilder);
 
   readonly users = signal<User[]>([]);
   readonly roles = signal<Role[]>([]);
   readonly loading = signal(true);
-  readonly saving = signal(false);
   readonly error = signal<string | null>(null);
-  readonly formError = signal<string | null>(null);
+  readonly errorEntries = computed(() => Object.entries(this.error() || {}));
+  readonly formError = signal<Record<string, string> | null>({});
+  readonly formErrorEntries = computed(() => Object.entries((this.formError() && this.formError()) || {}));
   readonly modalMode = signal<ModalMode>(null);
   readonly selectedUser = signal<User | null>(null);
   readonly deleteTarget = signal<User | null>(null);
 
-  readonly currentUsername = computed(() => this.authService.currentUser()?.username ?? '');
+  readonly currentUsername = computed(() => this.authService.currentUser()?.username ?? "");
 
-  readonly userForm = this.fb.group({
-    username: ['', [Validators.required, Validators.minLength(3)]],
-    email: ['', [Validators.required, Validators.email]],
-    first_name: [''],
-    last_name: [''],
-    password: ['', [Validators.minLength(8)]],
-    active: [true],
-    role_ids: [[] as number[]],
-  });
+  private readonly userInit = {
+    id: "",
+    username: "",
+    email: "",
+    first_name: "",
+    last_name: "",
+    password: "",
+    active: true,
+    role_ids: [] as number[],
+  };
+  readonly userModel = signal({ ...this.userInit });
+  readonly userForm = form(
+    this.userModel,
+    (p) => {
+      required(p.username, { message: "Username is required" });
+      required(p.password, { message: "Password is required", when: () => this.modalMode() === "create" });
+      required(p.email);
+      required(p.role_ids, { message: "At least one role is required" });
+      email(p.email, { message: "Invalid email format" });
+      minLength(p.username, 3, { message: "String should have at least 3 characters" });
+      minLength(p.password, 8, { message: "String should have at least 8 characters" });
+      readonly(p.username, () => this.modalMode() === "edit");
+    },
+    {
+      submission: {
+        action: async (f) => this.saveUser(f),
+      },
+    },
+  );
 
   ngOnInit(): void {
     this.loadData();
@@ -60,7 +76,7 @@ export class UsersComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.detail ?? 'Failed to load users');
+        this.error.set(err?.error?.detail ?? "Failed to load users");
         this.loading.set(false);
       },
     });
@@ -70,28 +86,16 @@ export class UsersComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    this.userForm.reset({ active: true, role_ids: [] });
-    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
-    this.userForm.get('password')?.updateValueAndValidity();
+    this.userForm().reset({ ...this.userInit });
     this.formError.set(null);
-    this.modalMode.set('create');
+    this.modalMode.set("create");
   }
 
   openEditModal(user: User): void {
     this.selectedUser.set(user);
-    this.userForm.get('password')?.clearValidators();
-    this.userForm.get('password')?.updateValueAndValidity();
-    this.userForm.patchValue({
-      username: user.username,
-      email: user.email,
-      first_name: user.first_name ?? '',
-      last_name: user.last_name ?? '',
-      active: user.active,
-      role_ids: user.roles.map((r) => r.id),
-      password: '',
-    });
+    this.userModel.set(<any>{ ...user, password: "", role_ids: user.roles.map((r) => r.id) });
     this.formError.set(null);
-    this.modalMode.set('edit');
+    this.modalMode.set("edit");
   }
 
   closeModal(): void {
@@ -100,32 +104,22 @@ export class UsersComponent implements OnInit {
     this.formError.set(null);
   }
 
-  saveUser(): void {
-    if (this.userForm.invalid || this.saving()) return;
-
-    this.saving.set(true);
+  async saveUser(f: any): Promise<void> {
     this.formError.set(null);
-    const value = this.userForm.value;
     const mode = this.modalMode();
-
-    if (mode === 'create') {
-      this.usersService.create(value as UserCreate).subscribe({
-        next: () => { this.saving.set(false); this.closeModal(); this.loadData(); },
-        error: (err) => { this.saving.set(false); this.formError.set(err?.error?.detail ?? 'Failed to create user'); },
-      });
-    } else {
-      const id = this.selectedUser()!.id;
-      const update: UserUpdate = {
-        email: value.email ?? undefined,
-        first_name: value.first_name ?? undefined,
-        last_name: value.last_name ?? undefined,
-        active: value.active ?? undefined,
-        role_ids: value.role_ids ?? undefined,
-      };
-      this.usersService.update(id, update).subscribe({
-        next: () => { this.saving.set(false); this.closeModal(); this.loadData(); },
-        error: (err) => { this.saving.set(false); this.formError.set(err?.error?.detail ?? 'Failed to update user'); },
-      });
+    try {
+      if (mode === "create") {
+        await firstValueFrom(this.usersService.create(f().value() as UserCreate));
+        this.closeModal();
+        this.loadData();
+      } else {
+        const id = this.selectedUser()!.id;
+        await firstValueFrom(this.usersService.update(id, f().value() as UserUpdate));
+        this.closeModal();
+        this.loadData();
+      }
+    } catch (err: unknown) {
+      this.formError.set((err instanceof HttpErrorResponse && err.error.detail) || `Failed to ${mode} user`);
     }
   }
 
@@ -133,25 +127,21 @@ export class UsersComponent implements OnInit {
     const target = this.deleteTarget();
     if (!target) return;
     this.usersService.delete(target.id).subscribe({
-      next: () => { this.deleteTarget.set(null); this.loadData(); },
-      error: (err) => this.error.set(err?.error?.detail ?? 'Failed to delete user'),
+      next: () => {
+        this.deleteTarget.set(null);
+        this.loadData();
+      },
+      error: (err: unknown) => this.error.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to delete user"),
     });
   }
 
   isRoleSelected(roleId: number): boolean {
-    return (this.userForm.get('role_ids')?.value as number[])?.includes(roleId) ?? false;
+    return this.userForm.role_ids().value()?.includes(roleId) ?? false;
   }
 
   toggleRole(roleId: number): void {
-    const current = (this.userForm.get('role_ids')?.value as number[]) ?? [];
-    const updated = current.includes(roleId)
-      ? current.filter((id) => id !== roleId)
-      : [...current, roleId];
-    this.userForm.get('role_ids')?.setValue(updated);
-  }
-
-  isInvalid(field: string): boolean {
-    const c = this.userForm.get(field);
-    return !!(c?.invalid && c?.touched);
+    const current = this.userForm.role_ids().value() ?? [];
+    const updated = current.includes(roleId) ? current.filter((id) => id !== roleId) : [...current, roleId];
+    this.userForm.role_ids().value.set(updated);
   }
 }

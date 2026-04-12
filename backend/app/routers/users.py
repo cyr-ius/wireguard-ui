@@ -15,7 +15,7 @@ router = APIRouter()
 
 async def _load_roles(db: AsyncSession, role_ids: list[int]) -> list[Role]:
     if not role_ids:
-        return []
+        raise HTTPException(status_code=400, detail="Role is required")
 
     result = await db.exec(select(Role).where(Role.id.in_(role_ids)))
     roles = result.all()

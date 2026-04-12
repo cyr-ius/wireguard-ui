@@ -4,9 +4,9 @@
  * Backend will still return 403 even if this guard is bypassed.
  */
 
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { inject } from "@angular/core";
+import { CanActivateFn, Router } from "@angular/router";
+import { AuthService } from "../services/auth.service";
 
 export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -16,5 +16,5 @@ export const adminGuard: CanActivateFn = () => {
     return true;
   }
   // Redirect non-admin users to status page
-  return router.createUrlTree(['/status']);
+  return router.createUrlTree(["/status"]);
 };

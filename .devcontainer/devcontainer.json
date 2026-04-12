@@ -71,7 +71,8 @@
         "editor.insertSpaces": true,
         "files.eol": "\n",
         "files.insertFinalNewline": true,
-        "files.trimTrailingWhitespace": true
+        "files.trimTrailingWhitespace": true,
+        "prettier.printWidth": 120
       }
     }
   },

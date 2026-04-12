@@ -35,7 +35,7 @@
       <p>Loading configuration...</p>
     </div>
   } @else {
-    <form (submit)="onSubmit($event)" class="config-form">
+    <form class="config-form" [formRoot]="smtpForm">
       <div class="config-card">
         <h2 class="section-title"><i class="bi bi-ethernet me-2"></i>Server</h2>
         <div class="form-row">
@@ -44,26 +44,26 @@
             <input
               type="text"
               class="form-control"
-              [class.is-invalid]="isFieldInvalid('smtp_server')"
               [formField]="smtpForm.smtp_server"
               placeholder="smtp.example.com"
             />
-            @if (isFieldInvalid("smtp_server")) {
-              <div class="form-error">{{ getFieldError("smtp_server") }}</div>
-            }
+            <form-extra-fields
+              [fieldRef]="smtpForm.smtp_server"
+              class="form-error"
+            ></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Port</label>
             <input
               type="number"
               class="form-control"
-              [class.is-invalid]="isFieldInvalid('smtp_port')"
               [formField]="smtpForm.smtp_port"
               placeholder="25"
             />
-            @if (isFieldInvalid("smtp_port")) {
-              <div class="form-error">{{ getFieldError("smtp_port") }}</div>
-            }
+            <form-extra-fields
+              [fieldRef]="smtpForm.smtp_port"
+              class="form-error"
+            ></form-extra-fields>
           </div>
         </div>
         <div class="form-row">
@@ -75,6 +75,10 @@
               [formField]="smtpForm.smtp_username"
               placeholder="Username"
             />
+            <form-extra-fields
+              [fieldRef]="smtpForm.smtp_username"
+              class="form-error"
+            ></form-extra-fields>
             <small class="text-muted"
               >Used as fallback sender if it is a valid email address.</small
             >
@@ -87,6 +91,10 @@
               [formField]="smtpForm.smtp_password"
               placeholder="Password"
             />
+            <form-extra-fields
+              [fieldRef]="smtpForm.smtp_password"
+              class="form-error"
+            ></form-extra-fields>
           </div>
         </div>
         <div class="form-row mb-3">
@@ -97,7 +105,7 @@
               [formField]="smtpForm.smtp_tls"
               (change)="onStartTlsToggle($event)"
             />
-            <label class="form-check-label" for="checkDefault">
+            <label class="form-check-label text-muted" for="checkDefault">
               STARTTLS
             </label>
           </div>
@@ -108,7 +116,9 @@
               [formField]="smtpForm.smtp_ssl"
               (change)="onSslToggle($event)"
             />
-            <label class="form-check-label" for="checkDefault"> SSL/TLS </label>
+            <label class="form-check-label text-muted" for="checkDefault">
+              SSL/TLS
+            </label>
           </div>
           <div class="form-check">
             <input
@@ -116,7 +126,7 @@
               type="checkbox"
               [formField]="smtpForm.smtp_verify"
             />
-            <label class="form-check-label" for="checkDefault">
+            <label class="form-check-label text-muted" for="checkDefault">
               Verify (SSL/TLS)
             </label>
           </div>
@@ -127,18 +137,17 @@
             <input
               type="text"
               class="form-control"
-              [class.is-invalid]="isFieldInvalid('smtp_from')"
               [formField]="smtpForm.smtp_from"
               placeholder="sender@yourdomain.com"
             />
-            @if (isFieldInvalid("smtp_from")) {
-              <div class="form-error">{{ getFieldError("smtp_from") }}</div>
-            } @else {
-              <small class="text-muted"
-                >Optional, but if filled it must be a valid email
-                address.</small
-              >
-            }
+            <form-extra-fields
+              [fieldRef]="smtpForm.smtp_from"
+              class="form-error"
+            ></form-extra-fields>
+            <small class="text-muted"
+              >Email address used as sender for outgoing emails. If empty, the
+              username will be used if it is a valid email address.</small
+            >
           </div>
           <div class="form-group">
             <label class="form-label">Mail Name</label>
@@ -148,6 +157,10 @@
               [formField]="smtpForm.smtp_from_name"
               placeholder="WireGuard UI"
             />
+            <form-extra-fields
+              [fieldRef]="smtpForm.smtp_from_name"
+              class="form-error"
+            ></form-extra-fields>
           </div>
         </div>
         <div class="form-row">
@@ -155,23 +168,12 @@
             <label class="form-label">Default Email Language</label>
             <select
               class="form-control"
-              [class.is-invalid]="isFieldInvalid('default_email_language')"
               [formField]="smtpForm.default_email_language"
             >
               <option value="en">English</option>
               <option value="fr">Français</option>
               <option value="es">Español</option>
             </select>
-            @if (isFieldInvalid("default_email_language")) {
-              <div class="form-error">
-                {{ getFieldError("default_email_language") }}
-              </div>
-            } @else {
-              <small class="text-muted"
-                >Used by default when sending WireGuard configuration
-                emails.</small
-              >
-            }
           </div>
         </div>
       </div>
@@ -179,10 +181,12 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="saving() || resetting()"
-          [aria-busy]="saving()"
+          [disabled]="
+            smtpForm().invalid() || smtpForm().submitting() || resetting()
+          "
+          [aria-busy]="smtpForm().submitting() || resetting()"
         >
-          @if (saving()) {
+          @if (smtpForm().submitting()) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           }
           <i class="bi bi-floppy me-1"></i>Save Mail Settings
@@ -191,7 +195,7 @@
           type="button"
           class="btn btn-outline-danger"
           (click)="resetConfig()"
-          [disabled]="saving() || resetting()"
+          [disabled]="smtpForm().submitting() || resetting()"
           [aria-busy]="resetting()"
         >
           @if (resetting()) {

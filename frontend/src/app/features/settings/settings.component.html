@@ -27,21 +27,20 @@
       <p>Loading...</p>
     </div>
   } @else {
-    <form [formGroup]="settingsForm" (ngSubmit)="save()" class="config-form">
+    <form [formRoot]="settingsForm" class="config-form">
       <div class="config-card">
         <h2 class="section-title"><i class="bi bi-globe me-2"></i>Network</h2>
         <div class="form-group">
           <label class="form-label">Endpoint Address *</label>
           <input
             type="text"
-            formControlName="endpoint_address"
             class="form-control"
-            [class.is-invalid]="isInvalid('endpoint_address')"
+            [formField]="settingsForm.endpoint_address"
             placeholder="vpn.yourdomain.com or public IP"
           />
-          @if (isInvalid("endpoint_address")) {
-            <div class="form-error">Endpoint address is required</div>
-          }
+          <form-extra-fields
+            [fieldRef]="settingsForm.endpoint_address"
+          ></form-extra-fields>
           <small class="text-muted"
             >Public hostname or IP used by clients to connect</small
           >
@@ -51,22 +50,26 @@
             <label class="form-label">DNS Servers</label>
             <input
               type="text"
-              formControlName="dns_servers"
               class="form-control font-mono"
+              [formField]="settingsForm.dns_servers"
               placeholder="1.1.1.1,8.8.8.8"
             />
+            <form-extra-fields
+              [fieldRef]="settingsForm.dns_servers"
+            ></form-extra-fields>
             <small class="text-muted">Comma-separated DNS addresses</small>
           </div>
           <div class="form-group">
             <label class="form-label">MTU (optional)</label>
             <input
               type="number"
-              formControlName="mtu"
               class="form-control"
+              [formField]="settingsForm.mtu"
               placeholder="1420"
-              min="576"
-              max="9000"
             />
+            <form-extra-fields
+              [fieldRef]="settingsForm.mtu"
+            ></form-extra-fields>
             <small class="text-muted"
               >Leave empty to use WireGuard default</small
             >
@@ -77,22 +80,25 @@
             <label class="form-label">Persistent Keepalive (seconds)</label>
             <input
               type="number"
-              formControlName="persistent_keepalive"
+              [formField]="settingsForm.persistent_keepalive"
               class="form-control"
-              placeholder="25"
-              min="0"
-              max="65535"
             />
+            <form-extra-fields
+              [fieldRef]="settingsForm.persistent_keepalive"
+            ></form-extra-fields>
             <small class="text-muted">Leave empty to disable keepalive</small>
           </div>
           <div class="form-group">
             <label class="form-label">Config File Path *</label>
             <input
               type="text"
-              formControlName="config_file_path"
+              [formField]="settingsForm.config_file_path"
               class="form-control font-mono"
               placeholder="/etc/wireguard/wg0.conf"
             />
+            <form-extra-fields
+              [fieldRef]="settingsForm.config_file_path"
+            ></form-extra-fields>
           </div>
         </div>
       </div>
@@ -104,7 +110,7 @@
         <div class="form-check">
           <input
             type="checkbox"
-            formControlName="maintenance_mode"
+            [formField]="settingsForm.maintenance_mode"
             class="form-check-input"
             id="maintenance"
           />
@@ -121,9 +127,9 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="settingsForm.invalid || saving()"
+          [disabled]="settingsForm().invalid() || settingsForm().submitting()"
         >
-          @if (saving()) {
+          @if (settingsForm().submitting()) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           }
           <i class="bi bi-floppy me-1"></i>Save Settings
@@ -131,7 +137,7 @@
         <button
           type="button"
           class="btn btn-outline-danger"
-          [disabled]="resetting()"
+          [disabled]="resetting() || settingsForm().submitting()"
           (click)="resetSettings()"
         >
           @if (resetting()) {

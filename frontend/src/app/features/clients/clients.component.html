@@ -159,11 +159,7 @@
           </button>
         </div>
 
-        <form
-          [formGroup]="clientForm"
-          (ngSubmit)="saveClient()"
-          class="modal-form"
-        >
+        <form [formRoot]="clientForm" class="modal-form">
           @if (formError()) {
             <div class="alert alert-danger mb-3">
               <i class="bi bi-exclamation-triangle-fill me-2"></i
@@ -176,27 +172,25 @@
               <label class="form-label">Name *</label>
               <input
                 type="text"
-                formControlName="name"
                 class="form-control"
-                [class.is-invalid]="isInvalid('name')"
+                [formField]="clientForm.name"
                 placeholder="Client name"
               />
-              @if (isInvalid("name")) {
-                <div class="form-error">Name is required</div>
-              }
+              <form-extra-fields
+                [fieldRef]="clientForm.name"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Email *</label>
               <input
                 type="email"
-                formControlName="email"
                 class="form-control"
-                [class.is-invalid]="isInvalid('email')"
+                [formField]="clientForm.email"
                 placeholder="client@example.com"
               />
-              @if (isInvalid("email")) {
-                <div class="form-error">Valid email is required</div>
-              }
+              <form-extra-fields
+                [fieldRef]="clientForm.email"
+              ></form-extra-fields>
             </div>
           </div>
 
@@ -212,14 +206,10 @@
               </label>
               <input
                 type="text"
-                formControlName="allocated_ips"
                 class="form-control"
-                [class.is-invalid]="isInvalid('allocated_ips')"
+                [formField]="clientForm.allocated_ips"
                 placeholder="10.0.0.2/32"
               />
-              @if (isInvalid("allocated_ips")) {
-                <div class="form-error">IP address is required</div>
-              }
               @if (suggestedIp() && modalMode() === "create") {
                 <small class="text-muted">
                   <i class="bi bi-info-circle me-1"></i>
@@ -231,11 +221,13 @@
               <label class="form-label">Allowed IPs *</label>
               <input
                 type="text"
-                formControlName="allowed_ips"
                 class="form-control"
-                [class.is-invalid]="isInvalid('allowed_ips')"
+                [formField]="clientForm.allowed_ips"
                 placeholder="0.0.0.0/0"
               />
+              <form-extra-fields
+                [fieldRef]="clientForm.allowed_ips"
+              ></form-extra-fields>
             </div>
           </div>
 
@@ -243,19 +235,21 @@
             <label class="form-label">Preshared Key (optional)</label>
             <input
               type="text"
-              formControlName="preshared_key"
               class="form-control"
+              [formField]="clientForm.preshared_key"
               placeholder="Leave empty to skip"
             />
+            <form-extra-fields
+              [fieldRef]="clientForm.preshared_key"
+            ></form-extra-fields>
           </div>
 
           <div class="form-checks">
             <div class="form-check">
               <input
                 type="checkbox"
-                formControlName="use_server_dns"
                 class="form-check-input"
-                id="useDns"
+                [formField]="clientForm.use_server_dns"
               />
               <label class="form-check-label" for="useDns"
                 >Use server DNS</label
@@ -264,8 +258,8 @@
             <div class="form-check">
               <input
                 type="checkbox"
-                formControlName="enabled"
                 class="form-check-input"
+                [formField]="clientForm.enabled"
                 id="enabled"
               />
               <label class="form-check-label" for="enabled"
@@ -280,9 +274,8 @@
               <div class="form-check mb-2">
                 <input
                   type="checkbox"
-                  formControlName="send_email"
                   class="form-check-input"
-                  id="sendEmail"
+                  [formField]="clientForm.send_email"
                 />
                 <label class="form-check-label fw-semibold" for="sendEmail">
                   <i class="bi bi-envelope me-1"></i>
@@ -290,13 +283,10 @@
                 </label>
               </div>
 
-              @if (clientForm.get("send_email")?.value) {
+              @if (clientForm.send_email().value()) {
                 <div class="email-lang-select">
                   <label class="form-label small">Email language</label>
-                  <select
-                    formControlName="email_language"
-                    class="form-select form-select-sm"
-                  >
+                  <select class="form-select form-select-sm">
                     @for (lang of emailLanguages; track lang.code) {
                       <option [value]="lang.code">{{ lang.label }}</option>
                     }
@@ -317,9 +307,9 @@
             <button
               type="submit"
               class="btn btn-primary"
-              [disabled]="clientForm.invalid || saving()"
+              [disabled]="clientForm().invalid() || clientForm().submitting()"
             >
-              @if (saving()) {
+              @if (clientForm().submitting()) {
                 <span class="spinner-border spinner-border-sm me-1"></span>
               }
               {{ modalMode() === "create" ? "Create Client" : "Save Changes" }}

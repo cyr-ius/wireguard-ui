@@ -20,7 +20,7 @@ export const FIELD_INFO = createMetadataKey<string>();
     }
   `,
 })
-export class FormExtraFieldsComponent<T> {
+export class FormExtraFields<T> {
   readonly fieldRef = input.required<FieldTree<T>>();
 
   helpMessage = computed(() => {

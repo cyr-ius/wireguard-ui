@@ -1,18 +1,11 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  OnInit,
-  signal,
-} from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { HttpErrorResponse } from "@angular/common/http";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
+import { FormBuilder } from "@angular/forms";
+import { email, form, FormField, FormRoot, required } from "@angular/forms/signals";
+import { firstValueFrom } from "rxjs";
+import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
 import { ClientsService, SmtpService } from "../../core/services/api.service";
-import {
-  ClientCreate,
-  ClientUpdate,
-  WireGuardClient,
-} from "../../shared/models/api.models";
+import { ClientCreate, ClientUpdate, WireGuardClient } from "../../shared/models/api.models";
 
 /** Modal display modes */
 type ModalMode = "create" | "edit" | null;
@@ -27,7 +20,7 @@ const EMAIL_LANGUAGES = [
 @Component({
   selector: "app-clients",
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [FormRoot, FormField, FormExtraFields],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./clients.component.html",
   styleUrls: ["./clients.component.css"],
@@ -44,7 +37,6 @@ export class ClientsComponent implements OnInit {
   readonly clients = signal<WireGuardClient[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly saving = signal(false);
   readonly formError = signal<string | null>(null);
 
   // ── Modal state signals ───────────────────────────────────────────────────
@@ -74,28 +66,42 @@ export class ClientsComponent implements OnInit {
 
   // ── Computed values ───────────────────────────────────────────────────────
   readonly filteredClients = computed(() => this.clients());
-  readonly enabledCount = computed(
-    () => this.clients().filter((c) => c.enabled).length,
-  );
+  readonly enabledCount = computed(() => this.clients().filter((c) => c.enabled).length);
 
   // ── Client creation form ──────────────────────────────────────────────────
-  readonly clientForm = this.fb.group({
-    name: ["", [Validators.required, Validators.minLength(1)]],
-    email: ["", [Validators.required, Validators.email]],
-    allocated_ips: ["", [Validators.required]],
-    allowed_ips: ["0.0.0.0/0", [Validators.required]],
-    use_server_dns: [true],
-    enabled: [true],
-    preshared_key: [""],
-    send_email: [false],
-    email_language: ["en"],
-  });
+  readonly clientInit = {
+    name: "",
+    email: "",
+    allocated_ips: "",
+    allowed_ips: "0.0.0.0/0",
+    use_server_dns: true,
+    enabled: true,
+    preshared_key: "",
+    send_email: false,
+    email_language: "en",
+  };
+  readonly clientModel = signal({ ...this.clientInit });
+  readonly clientForm = form(
+    this.clientModel,
+    (f) => {
+      required(f.name);
+      required(f.email);
+      required(f.allocated_ips);
+      required(f.allowed_ips);
+      required(f.email_language);
+      email(f.email, { message: "Invalid email address" });
+    },
+    {
+      submission: {
+        action: async (f) => this.saveClient(f),
+      },
+    },
+  );
 
   ngOnInit(): void {
     this.loadClients();
     this.loadDefaultEmailLanguage();
   }
-
 
   loadDefaultEmailLanguage(): void {
     this.smtpService.get().subscribe({
@@ -128,13 +134,7 @@ export class ClientsComponent implements OnInit {
 
   /** Open the creation modal and pre-fill the suggested IP */
   openCreateModal(): void {
-    this.clientForm.reset({
-      allowed_ips: "0.0.0.0/0",
-      use_server_dns: true,
-      enabled: true,
-      send_email: false,
-      email_language: this.defaultEmailLanguage(),
-    });
+    this.clientForm().reset({ ...this.clientInit });
     this.formError.set(null);
     this.modalMode.set("create");
 
@@ -143,7 +143,7 @@ export class ClientsComponent implements OnInit {
       next: (response) => {
         if (response.suggested_ip) {
           this.suggestedIp.set(response.suggested_ip);
-          this.clientForm.patchValue({ allocated_ips: response.suggested_ip });
+          this.clientForm.allocated_ips().value.set(response.suggested_ip);
         }
       },
       error: () => {
@@ -153,19 +153,10 @@ export class ClientsComponent implements OnInit {
     });
   }
 
-  openEditModal(client: WireGuardClient): void {
+  openEditModal(client: any): void {
     this.selectedClient.set(client);
-    this.clientForm.patchValue({
-      name: client.name,
-      email: client.email,
-      allocated_ips: client.allocated_ips,
-      allowed_ips: client.allowed_ips,
-      use_server_dns: client.use_server_dns,
-      enabled: client.enabled,
-      preshared_key: client.preshared_key ?? "",
-      send_email: false,
-      email_language: this.defaultEmailLanguage(),
-    });
+    client.email_language = client.email_language || this.defaultEmailLanguage();
+    this.clientModel.set({ ...client });
     this.formError.set(null);
     this.modalMode.set("edit");
   }
@@ -177,69 +168,37 @@ export class ClientsComponent implements OnInit {
     this.suggestedIp.set(null);
   }
 
-  saveClient(): void {
-    if (this.clientForm.invalid || this.saving()) return;
-
-    this.saving.set(true);
+  async saveClient(f: any): Promise<void> {
     this.formError.set(null);
 
-    const value = this.clientForm.value;
+    const formData = f().value();
     const mode = this.modalMode();
 
-    if (mode === "create") {
-      const createData: ClientCreate = {
-        name: value.name!,
-        email: value.email!,
-        allocated_ips: value.allocated_ips!,
-        allowed_ips: value.allowed_ips!,
-        use_server_dns: value.use_server_dns ?? true,
-        enabled: value.enabled ?? true,
-        preshared_key: value.preshared_key || "",
-        send_email: value.send_email ?? false,
-        email_language: value.email_language ?? this.defaultEmailLanguage(),
-      };
-
-      this.clientsService.create(createData).subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.closeModal();
-          this.loadClients();
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.formError.set(err?.error?.detail ?? "Failed to create client");
-        },
-      });
-    } else if (mode === "edit") {
-      const clientId = this.selectedClient()!.id;
-      const updateData: ClientUpdate = {
-        name: value.name ?? undefined,
-        email: value.email ?? undefined,
-        allocated_ips: value.allocated_ips ?? undefined,
-        allowed_ips: value.allowed_ips ?? undefined,
-        use_server_dns: value.use_server_dns ?? undefined,
-        enabled: value.enabled ?? undefined,
-        preshared_key: value.preshared_key ?? undefined,
-      };
-
-      this.clientsService.update(clientId, updateData).subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.closeModal();
-          this.loadClients();
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.formError.set(err?.error?.detail ?? "Failed to update client");
-        },
-      });
+    try {
+      if (mode === "create") {
+        const createData: ClientCreate = {
+          ...formData,
+          email_language: formData.email_language ?? this.defaultEmailLanguage(),
+        };
+        await firstValueFrom(this.clientsService.create(createData));
+        this.closeModal();
+        this.loadClients();
+      } else if (mode === "edit") {
+        const clientId = this.selectedClient()!.id;
+        await firstValueFrom(this.clientsService.update(clientId, formData as ClientUpdate));
+        this.closeModal();
+        this.loadClients();
+      } else {
+        this.formError.set("Invalid form state");
+      }
+    } catch (err: unknown) {
+      const errMsg = (err instanceof HttpErrorResponse && err.error.detail) || `Failed to ${mode} client`;
+      this.formError.set(errMsg);
     }
   }
 
   toggleEnabled(client: WireGuardClient): void {
-    this.clientsService
-      .update(client.id, { enabled: !client.enabled })
-      .subscribe({ next: () => this.loadClients() });
+    this.clientsService.update(client.id, { enabled: !client.enabled }).subscribe({ next: () => this.loadClients() });
   }
 
   openDeleteConfirm(client: WireGuardClient): void {
@@ -255,8 +214,7 @@ export class ClientsComponent implements OnInit {
         this.deleteTarget.set(null);
         this.loadClients();
       },
-      error: (err) =>
-        this.error.set(err?.error?.detail ?? "Failed to delete client"),
+      error: (err) => this.error.set(err?.error?.detail ?? "Failed to delete client"),
     });
   }
 
@@ -268,8 +226,7 @@ export class ClientsComponent implements OnInit {
         this.configContent.set(data.config);
         this.showConfig.set(true);
       },
-      error: (err) =>
-        this.error.set(err?.error?.detail ?? "Failed to load configuration"),
+      error: (err) => this.error.set(err?.error?.detail ?? "Failed to load configuration"),
     });
   }
 
@@ -353,26 +310,16 @@ export class ClientsComponent implements OnInit {
     this.emailSuccess.set(null);
     this.emailError.set(null);
 
-    this.clientsService
-      .sendEmail(client.id, this.selectedEmailLang())
-      .subscribe({
-        next: () => {
-          this.sendingEmail.set(false);
-          this.emailSuccess.set(`Email successfully sent to ${client.email}`);
-          setTimeout(() => this.closeEmailModal(), 2500);
-        },
-        error: (err) => {
-          this.sendingEmail.set(false);
-          this.emailError.set(
-            err?.error?.detail ??
-              "Failed to send email. Check SMTP configuration.",
-          );
-        },
-      });
-  }
-
-  isInvalid(field: string): boolean {
-    const control = this.clientForm.get(field);
-    return !!(control?.invalid && control?.touched);
+    this.clientsService.sendEmail(client.id, this.selectedEmailLang()).subscribe({
+      next: () => {
+        this.sendingEmail.set(false);
+        this.emailSuccess.set(`Email successfully sent to ${client.email}`);
+        setTimeout(() => this.closeEmailModal(), 2500);
+      },
+      error: (err) => {
+        this.sendingEmail.set(false);
+        this.emailError.set(err?.error?.detail ?? "Failed to send email. Check SMTP configuration.");
+      },
+    });
   }
 }

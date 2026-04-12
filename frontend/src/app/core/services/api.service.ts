@@ -40,6 +40,12 @@ export interface GithubRelease {
   published_at: string;
 }
 
+export interface ApiErrorResponse {
+  code: string;
+  detail: any;
+  status: number;
+}
+
 @Injectable({ providedIn: "root" })
 export class ApiService {
   private readonly http = inject(HttpClient);
@@ -133,8 +139,8 @@ export class ApiService {
     return this.http.patch<GlobalSettings>("/api/settings", data);
   }
 
-  resetSettings(): Observable<GlobalSettings> {
-    return this.http.post<GlobalSettings>("/api/settings/reset", {});
+  resetSettings(): Observable<void> {
+    return this.http.delete<void>("/api/settings/reset");
   }
 
   // ── SMTP ──────────────────────────────────────────────────────────────────
@@ -147,8 +153,8 @@ export class ApiService {
     return this.http.put<SmtpSettings>("/api/smtp", data);
   }
 
-  resetSmtpSettings(): Observable<SmtpSettings> {
-    return this.http.post<SmtpSettings>("/api/smtp/reset", {});
+  resetSmtpSettings(): Observable<void> {
+    return this.http.delete<void>("/api/smtp/reset");
   }
 
   testSmtpSettings(data: SmtpTestRequest): Observable<void> {
@@ -177,10 +183,7 @@ export class ApiService {
     return this.http.delete<void>("/api/users/" + id);
   }
 
-  changePassword(
-    current_password: string,
-    new_password: string,
-  ): Observable<void> {
+  changePassword(current_password: string, new_password: string): Observable<void> {
     return this.http.post<void>("/api/auth/change-password", {
       current_password,
       new_password,
@@ -190,9 +193,7 @@ export class ApiService {
   // ── GitHub releases ───────────────────────────────────────────────────────
 
   getLatestGithubRelease(repo: string): Observable<GithubRelease> {
-    return this.http.get<GithubRelease>(
-      `https://api.github.com/repos/${repo}/releases/latest`,
-    );
+    return this.http.get<GithubRelease>(`https://api.github.com/repos/${repo}/releases/latest`);
   }
 
   // ── OIDC ──────────────────────────────────────────────────────────────────
@@ -211,6 +212,10 @@ export class ApiService {
 
   oidcCallback(code: string): Observable<TokenResponse> {
     return this.http.post<TokenResponse>("/api/oidc/callback", { code });
+  }
+
+  resetOidcSettings(): Observable<void> {
+    return this.http.delete<void>("/api/oidc/reset");
   }
 }
 
@@ -290,7 +295,7 @@ export class SettingsService {
     return this.api.updateSettings(data);
   }
 
-  reset(): Observable<GlobalSettings> {
+  reset(): Observable<void> {
     return this.api.resetSettings();
   }
 }
@@ -307,7 +312,7 @@ export class SmtpService {
     return this.api.updateSmtpSettings(data);
   }
 
-  reset(): Observable<SmtpSettings> {
+  reset(): Observable<void> {
     return this.api.resetSmtpSettings();
   }
 
@@ -338,5 +343,30 @@ export class UsersService {
 
   delete(id: number): Observable<void> {
     return this.api.deleteUser(id);
+  }
+}
+
+@Injectable({ providedIn: "root" })
+export class OidcService {
+  private readonly api = inject(ApiService);
+
+  getAdminSettings(): Observable<OidcAdminSettings> {
+    return this.api.getOidcSettings();
+  }
+
+  saveAdminSettings(data: OidcAdminSettings): Observable<OidcAdminSettings> {
+    return this.api.updateOidcSettings(data);
+  }
+
+  getPublicConfig(): Observable<OidcPublicConfig> {
+    return this.api.getOidcPublicConfig();
+  }
+
+  callback(code: string): Observable<TokenResponse> {
+    return this.api.oidcCallback(code);
+  }
+
+  resetAdminSettings(): Observable<void> {
+    return this.api.resetOidcSettings();
   }
 }

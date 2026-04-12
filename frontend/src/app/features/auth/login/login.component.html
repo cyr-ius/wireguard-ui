@@ -54,30 +54,22 @@
           </div>
         }
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        <form [formRoot]="loginForm" novalidate>
           <div class="field-group">
             <label for="username" class="field-label">Username</label>
             <div class="field-wrapper">
               <i class="bi bi-person field-icon"></i>
               <input
-                id="username"
                 type="text"
-                formControlName="username"
                 class="field-input"
-                [class.invalid]="
-                  loginForm.get('username')?.invalid &&
-                  loginForm.get('username')?.touched
-                "
+                [formField]="loginForm.username"
                 placeholder="Enter your username"
                 autocomplete="username"
               />
+              <form-extra-fields
+                [fieldRef]="loginForm.username"
+              ></form-extra-fields>
             </div>
-            @if (
-              loginForm.get("username")?.invalid &&
-              loginForm.get("username")?.touched
-            ) {
-              <span class="field-error">Username is required</span>
-            }
           </div>
 
           <div class="field-group">
@@ -85,26 +77,24 @@
             <div class="field-wrapper">
               <i class="bi bi-lock field-icon"></i>
               <input
-                id="password"
                 type="password"
-                formControlName="password"
                 class="field-input"
-                [class.invalid]="
-                  loginForm.get('password')?.invalid &&
-                  loginForm.get('password')?.touched
-                "
+                [formField]="loginForm.password"
                 placeholder="Enter your password"
                 autocomplete="current-password"
               />
+              <form-extra-fields
+                [fieldRef]="loginForm.password"
+              ></form-extra-fields>
             </div>
           </div>
 
           <button
             type="submit"
             class="btn-login"
-            [disabled]="loginForm.invalid || isLoading()"
+            [disabled]="loginForm().invalid() || loginForm().submitting()"
           >
-            @if (isLoading()) {
+            @if (loginForm().submitting()) {
               <span class="spinner"></span>
               <span>Authenticating...</span>
             } @else {
