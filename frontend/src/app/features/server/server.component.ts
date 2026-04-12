@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { form, FormField, FormRoot, max, min, readonly, required } from "@angular/forms/signals";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom, tap } from "rxjs";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
-import { ServerService } from "../../core/services/api.service";
+import { ApiService, ServerService } from "../../core/services/api.service";
 
 @Component({
   selector: "app-server",
@@ -15,11 +15,13 @@ import { ServerService } from "../../core/services/api.service";
 })
 export class ServerComponent implements OnInit {
   private readonly serverService = inject(ServerService);
+  private readonly apiService = inject(ApiService);
 
   readonly loading = signal(true);
   readonly applying = signal(false);
   readonly resetting = signal(false);
   readonly serviceActionLoading = signal<"start" | "stop" | "restart" | null>(null);
+  readonly serviceStatus = signal(false);
   readonly error = signal<string | null>(null);
   readonly saveError = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
@@ -60,20 +62,23 @@ export class ServerComponent implements OnInit {
 
   loadServer(): void {
     this.loading.set(true);
-    this.serverService.get().subscribe({
-      next: (server: any) => {
-        this.serverModel.set(server);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        if (err.status !== 404) {
-          this.error.set(err?.error?.detail ?? "Failed to load server configuration");
-        } else {
-          this.serverForm().reset({ ...this.serverInit });
-        }
-        this.loading.set(false);
-      },
-    });
+    this.serverService
+      .get()
+      .pipe(tap(() => this.getStatus()))
+      .subscribe({
+        next: (server: any) => {
+          this.serverModel.set(server as any);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          if (err.status !== 404) {
+            this.error.set(err?.error?.detail ?? "Failed to load server configuration");
+          } else {
+            this.serverForm().reset({ ...this.serverInit });
+          }
+          this.loading.set(false);
+        },
+      });
   }
 
   generateKeypair(): void {
@@ -83,6 +88,12 @@ export class ServerComponent implements OnInit {
         this.serverForm.public_key().value.set(keys.public_key);
       },
       error: (err) => this.saveError.set(err?.error?.detail ?? "Failed to generate keys"),
+    });
+  }
+
+  getStatus() {
+    this.apiService.getStatus().subscribe((status) => {
+      this.serviceStatus.set(status.is_running === true);
     });
   }
 
@@ -112,6 +123,7 @@ export class ServerComponent implements OnInit {
 
     try {
       await firstValueFrom(this.serverService.applyConfig());
+      this.getStatus();
       this.applying.set(false);
       this.successMessage.set("Configuration applied and WireGuard restarted");
       setTimeout(() => this.successMessage.set(null), 4000);
