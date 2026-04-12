@@ -178,6 +178,7 @@
               />
               <form-extra-fields
                 [fieldRef]="clientForm.name"
+                class="form-error"
               ></form-extra-fields>
             </div>
             <div class="form-group">
@@ -190,6 +191,7 @@
               />
               <form-extra-fields
                 [fieldRef]="clientForm.email"
+                class="form-error"
               ></form-extra-fields>
             </div>
           </div>
@@ -199,7 +201,11 @@
               <label class="form-label">
                 Allocated IP *
                 @if (suggestedIp()) {
-                  <span class="ip-suggestion-badge">
+                  <span
+                    class="ip-suggestion-badge"
+                    style="cursor: pointer"
+                    (click)="getSuggestIp()"
+                  >
                     <i class="bi bi-magic me-1"></i>Suggested
                   </span>
                 }
@@ -216,6 +222,10 @@
                   Next available IP in the server network
                 </small>
               }
+              <form-extra-fields
+                [fieldRef]="clientForm.allocated_ips"
+                class="form-error"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Allowed IPs *</label>
@@ -227,6 +237,7 @@
               />
               <form-extra-fields
                 [fieldRef]="clientForm.allowed_ips"
+                class="form-error"
               ></form-extra-fields>
             </div>
           </div>
@@ -241,6 +252,7 @@
             />
             <form-extra-fields
               [fieldRef]="clientForm.preshared_key"
+              class="form-error"
             ></form-extra-fields>
           </div>
 

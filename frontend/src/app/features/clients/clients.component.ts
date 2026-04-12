@@ -84,10 +84,10 @@ export class ClientsComponent implements OnInit {
   readonly clientForm = form(
     this.clientModel,
     (f) => {
-      required(f.name);
-      required(f.email);
-      required(f.allocated_ips);
-      required(f.allowed_ips);
+      required(f.name, { message: "The name is required" });
+      required(f.email, { message: "The email is required" });
+      required(f.allocated_ips, { message: "Allocated ips are required" });
+      required(f.allowed_ips, { message: "Allowed ips are required" });
       required(f.email_language);
       email(f.email, { message: "Invalid email address" });
     },
@@ -139,6 +139,10 @@ export class ClientsComponent implements OnInit {
     this.modalMode.set("create");
 
     // Fetch the suggested IP from the server
+    this.getSuggestIp();
+  }
+
+  getSuggestIp(): void {
     this.clientsService.suggestIp().subscribe({
       next: (response) => {
         if (response.suggested_ip) {
@@ -147,7 +151,6 @@ export class ClientsComponent implements OnInit {
         }
       },
       error: () => {
-        // Non-critical: just skip IP suggestion if it fails
         this.suggestedIp.set(null);
       },
     });
