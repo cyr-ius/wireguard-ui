@@ -1,24 +1,11 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-info-circle-fill me-2"></i>About
-      </h1>
-      <p class="page-subtitle">
-        Product details, API access, and update status
-      </p>
+      <h1 class="page-title"><i class="bi bi-info-circle-fill me-2"></i>About</h1>
+      <p class="page-subtitle">Product details, API access, and update status</p>
     </div>
-    <button
-      class="btn-action"
-      type="button"
-      (click)="checkForUpdate()"
-      [disabled]="checkingUpdate()"
-    >
-      <i
-        class="bi"
-        [class.bi-arrow-clockwise]="!checkingUpdate()"
-        [class.spin]="checkingUpdate()"
-      ></i>
+    <button class="btn-action" type="button" (click)="checkForUpdate()" [disabled]="checkingUpdate()">
+      <i class="bi" [class.bi-arrow-clockwise]="!checkingUpdate()" [class.spin]="checkingUpdate()"></i>
       Check updates
     </button>
   </div>
@@ -30,33 +17,17 @@
       </div>
       <div class="section-body">
         <p>
-          WireGuard UI is a web administration panel used to manage WireGuard
-          server configuration, peers, users, and global settings from a
-          centralized interface.
+          WireGuard UI is a web administration panel used to manage WireGuard server configuration, peers, users, and
+          global settings from a centralized interface.
         </p>
         <div class="actions">
-          <a
-            class="btn btn-outline-primary"
-            [href]="apiDocsUrl"
-            target="_blank"
-            rel="noopener"
-          >
+          <a class="btn btn-outline-primary" [href]="apiDocsUrl" target="_blank" rel="noopener">
             <i class="bi bi-journal-code me-1"></i>API docs
           </a>
-          <a
-            class="btn btn-outline-primary"
-            [href]="apiUrl"
-            target="_blank"
-            rel="noopener"
-          >
+          <a class="btn btn-outline-primary" [href]="apiUrl" target="_blank" rel="noopener">
             <i class="bi bi-code-slash me-1"></i>Access API
           </a>
-          <a
-            class="btn btn-outline-primary"
-            [href]="apiStatusUrl"
-            target="_blank"
-            rel="noopener"
-          >
+          <a class="btn btn-outline-primary" [href]="apiStatusUrl" target="_blank" rel="noopener">
             <i class="bi bi-heart-pulse me-1"></i>API status endpoint
           </a>
         </div>
@@ -87,9 +58,7 @@
             <div class="alert alert-warning mt-3 mb-0">
               <i class="bi bi-exclamation-triangle-fill me-2"></i>
               A newer package is available.
-              <a [href]="release.html_url" target="_blank" rel="noopener"
-                >View release</a
-              >
+              <a [href]="release.html_url" target="_blank" rel="noopener">View release</a>
             </div>
           } @else {
             <div class="alert alert-success mt-3 mb-0">
@@ -110,25 +79,12 @@
         <h2><i class="bi bi-github me-2"></i>Community</h2>
       </div>
       <div class="section-body">
-        <p>
-          Report bugs, request features, or follow project updates directly on
-          GitHub.
-        </p>
+        <p>Report bugs, request features, or follow project updates directly on GitHub.</p>
         <div class="actions">
-          <a
-            class="btn btn-primary"
-            [href]="issueUrl()"
-            target="_blank"
-            rel="noopener"
-          >
+          <a class="btn btn-primary" [href]="issueUrl()" target="_blank" rel="noopener">
             <i class="bi bi-bug-fill me-1"></i>Open an issue
           </a>
-          <a
-            class="btn btn-outline-primary"
-            [href]="repoUrl"
-            target="_blank"
-            rel="noopener"
-          >
+          <a class="btn btn-outline-primary" [href]="repoUrl" target="_blank" rel="noopener">
             <i class="bi bi-github me-1"></i>Open repository
           </a>
         </div>

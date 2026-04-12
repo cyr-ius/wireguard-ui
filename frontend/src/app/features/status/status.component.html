@@ -2,17 +2,11 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-activity me-2"></i>Interface Status
-      </h1>
+      <h1 class="page-title"><i class="bi bi-activity me-2"></i>Interface Status</h1>
       <p class="page-subtitle">Live WireGuard tunnel overview</p>
     </div>
     <button class="btn-action" (click)="refresh()" [disabled]="isRefreshing()">
-      <i
-        class="bi"
-        [class.bi-arrow-clockwise]="!isRefreshing()"
-        [class.spin]="isRefreshing()"
-      ></i>
+      <i class="bi" [class.bi-arrow-clockwise]="!isRefreshing()" [class.spin]="isRefreshing()"></i>
       Refresh
     </button>
   </div>
@@ -26,11 +20,7 @@
           <span>Interface</span>
         </div>
         <div class="status-value">{{ s.interface }}</div>
-        <div
-          class="status-badge"
-          [class.badge-green]="s.is_running"
-          [class.badge-red]="!s.is_running"
-        >
+        <div class="status-badge" [class.badge-green]="s.is_running" [class.badge-red]="!s.is_running">
           <span class="badge-dot"></span>
           {{ s.is_running ? "Running" : "Stopped" }}
         </div>

@@ -1,12 +1,8 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-shield-lock me-2"></i>OIDC Connector
-      </h1>
-      <p class="page-subtitle">
-        Configure OpenID Connect SSO parameters for your identity provider
-      </p>
+      <h1 class="page-title"><i class="bi bi-shield-lock me-2"></i>OIDC Connector</h1>
+      <p class="page-subtitle">Configure OpenID Connect SSO parameters for your identity provider</p>
     </div>
   </div>
 
@@ -14,9 +10,7 @@
     <div class="alert alert-danger">{{ error() }}</div>
   }
   @if (successMessage()) {
-    <div class="alert alert-success">
-      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
-    </div>
+    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
   }
 
   @if (loading()) {
@@ -27,19 +21,10 @@
   } @else {
     <form [formRoot]="oidcForm" class="config-form">
       <div class="config-card">
-        <h2 class="section-title">
-          <i class="bi bi-sliders me-2"></i>Connector
-        </h2>
+        <h2 class="section-title"><i class="bi bi-sliders me-2"></i>Connector</h2>
         <div class="form-check mb-3">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            id="oidcEnabled"
-            [formField]="oidcForm.enabled"
-          />
-          <label class="form-check-label" for="oidcEnabled">
-            Enable OIDC authentication
-          </label>
+          <input class="form-check-input" type="checkbox" id="oidcEnabled" [formField]="oidcForm.enabled" />
+          <label class="form-check-label" for="oidcEnabled"> Enable OIDC authentication </label>
         </div>
 
         <div class="form-group">
@@ -56,38 +41,19 @@
             <code>/.well-known/openid-configuration</code>
           </small>
 
-          <form-extra-fields
-            [fieldRef]="oidcForm.issuer"
-            class="form-error"
-          ></form-extra-fields>
+          <form-extra-fields [fieldRef]="oidcForm.issuer" class="form-error"></form-extra-fields>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Client ID</label>
-            <input
-              type="text"
-              class="form-control"
-              [formField]="oidcForm.client_id"
-              placeholder="wireguard-ui"
-            />
-            <form-extra-fields
-              [fieldRef]="oidcForm.client_id"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="text" class="form-control" [formField]="oidcForm.client_id" placeholder="wireguard-ui" />
+            <form-extra-fields [fieldRef]="oidcForm.client_id" class="form-error"></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Client Secret</label>
-            <input
-              type="password"
-              class="form-control"
-              [formField]="oidcForm.client_secret"
-              placeholder="••••••••"
-            />
-            <form-extra-fields
-              [fieldRef]="oidcForm.client_secret"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="password" class="form-control" [formField]="oidcForm.client_secret" placeholder="••••••••" />
+            <form-extra-fields [fieldRef]="oidcForm.client_secret" class="form-error"></form-extra-fields>
           </div>
         </div>
 
@@ -100,10 +66,7 @@
               [formField]="oidcForm.redirect_uri"
               placeholder="https://your-ui/auth/callback"
             />
-            <form-extra-fields
-              [fieldRef]="oidcForm.redirect_uri"
-              class="form-error"
-            ></form-extra-fields>
+            <form-extra-fields [fieldRef]="oidcForm.redirect_uri" class="form-error"></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Post Logout Redirect URI</label>
@@ -113,39 +76,20 @@
               [formField]="oidcForm.post_logout_redirect_uri"
               placeholder="https://your-ui/login"
             />
-            <form-extra-fields
-              [fieldRef]="oidcForm.post_logout_redirect_uri"
-              class="form-error"
-            ></form-extra-fields>
+            <form-extra-fields [fieldRef]="oidcForm.post_logout_redirect_uri" class="form-error"></form-extra-fields>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Response Type</label>
-            <input
-              type="text"
-              class="form-control"
-              [formField]="oidcForm.response_type"
-              placeholder="code"
-            />
-            <form-extra-fields
-              [fieldRef]="oidcForm.response_type"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="text" class="form-control" [formField]="oidcForm.response_type" placeholder="code" />
+            <form-extra-fields [fieldRef]="oidcForm.response_type" class="form-error"></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Scope</label>
-            <input
-              type="text"
-              class="form-control"
-              [formField]="oidcForm.scope"
-              placeholder="openid profile email"
-            />
-            <form-extra-fields
-              [fieldRef]="oidcForm.scope"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="text" class="form-control" [formField]="oidcForm.scope" placeholder="openid profile email" />
+            <form-extra-fields [fieldRef]="oidcForm.scope" class="form-error"></form-extra-fields>
           </div>
         </div>
       </div>

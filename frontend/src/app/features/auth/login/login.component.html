@@ -2,11 +2,7 @@
 <div class="login-page">
   <div class="login-theme-switcher">
     <label for="login-theme-mode">Theme</label>
-    <select
-      id="login-theme-mode"
-      [value]="theme.mode()"
-      (change)="changeThemeMode($any($event.target).value)"
-    >
+    <select id="login-theme-mode" [value]="theme.mode()" (change)="changeThemeMode($any($event.target).value)">
       <option value="auto">Auto</option>
       <option value="dark">Dark</option>
       <option value="light">Light</option>
@@ -66,9 +62,7 @@
                 placeholder="Enter your username"
                 autocomplete="username"
               />
-              <form-extra-fields
-                [fieldRef]="loginForm.username"
-              ></form-extra-fields>
+              <form-extra-fields [fieldRef]="loginForm.username"></form-extra-fields>
             </div>
           </div>
 
@@ -83,17 +77,11 @@
                 placeholder="Enter your password"
                 autocomplete="current-password"
               />
-              <form-extra-fields
-                [fieldRef]="loginForm.password"
-              ></form-extra-fields>
+              <form-extra-fields [fieldRef]="loginForm.password"></form-extra-fields>
             </div>
           </div>
 
-          <button
-            type="submit"
-            class="btn-login"
-            [disabled]="loginForm().invalid() || loginForm().submitting()"
-          >
+          <button type="submit" class="btn-login" [disabled]="loginForm().invalid() || loginForm().submitting()">
             @if (loginForm().submitting()) {
               <span class="spinner"></span>
               <span>Authenticating...</span>
@@ -105,12 +93,7 @@
 
           @if (oidcConfig()?.enabled) {
             <div class="login-divider"><span>or</span></div>
-            <button
-              type="button"
-              class="btn-oidc"
-              (click)="startOidcLogin()"
-              [disabled]="isOidcLoading()"
-            >
+            <button type="button" class="btn-oidc" (click)="startOidcLogin()" [disabled]="isOidcLoading()">
               @if (isOidcLoading()) {
                 <span class="spinner"></span>
                 <span>Redirecting...</span>

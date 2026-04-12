@@ -2,9 +2,7 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-hdd-stack-fill me-2"></i>Smtp Configuration
-      </h1>
+      <h1 class="page-title"><i class="bi bi-hdd-stack-fill me-2"></i>Smtp Configuration</h1>
       <p class="page-subtitle">SMTP interface settings</p>
     </div>
     <div class="service-controls">
@@ -15,19 +13,13 @@
   </div>
 
   @if (error()) {
-    <div class="alert alert-danger">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
-    </div>
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}</div>
   }
   @if (saveError()) {
-    <div class="alert alert-danger">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}
-    </div>
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
   }
   @if (successMessage()) {
-    <div class="alert alert-success">
-      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
-    </div>
+    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
   }
   @if (loading()) {
     <div class="loading-state">
@@ -41,60 +33,26 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Server</label>
-            <input
-              type="text"
-              class="form-control"
-              [formField]="smtpForm.smtp_server"
-              placeholder="smtp.example.com"
-            />
-            <form-extra-fields
-              [fieldRef]="smtpForm.smtp_server"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="text" class="form-control" [formField]="smtpForm.smtp_server" placeholder="smtp.example.com" />
+            <form-extra-fields [fieldRef]="smtpForm.smtp_server" class="form-error"></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Port</label>
-            <input
-              type="number"
-              class="form-control"
-              [formField]="smtpForm.smtp_port"
-              placeholder="25"
-            />
-            <form-extra-fields
-              [fieldRef]="smtpForm.smtp_port"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="number" class="form-control" [formField]="smtpForm.smtp_port" placeholder="25" />
+            <form-extra-fields [fieldRef]="smtpForm.smtp_port" class="form-error"></form-extra-fields>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Username</label>
-            <input
-              type="text"
-              class="form-control"
-              [formField]="smtpForm.smtp_username"
-              placeholder="Username"
-            />
-            <form-extra-fields
-              [fieldRef]="smtpForm.smtp_username"
-              class="form-error"
-            ></form-extra-fields>
-            <small class="text-muted"
-              >Used as fallback sender if it is a valid email address.</small
-            >
+            <input type="text" class="form-control" [formField]="smtpForm.smtp_username" placeholder="Username" />
+            <form-extra-fields [fieldRef]="smtpForm.smtp_username" class="form-error"></form-extra-fields>
+            <small class="text-muted">Used as fallback sender if it is a valid email address.</small>
           </div>
           <div class="form-group">
             <label class="form-label">Password</label>
-            <input
-              type="password"
-              class="form-control"
-              [formField]="smtpForm.smtp_password"
-              placeholder="Password"
-            />
-            <form-extra-fields
-              [fieldRef]="smtpForm.smtp_password"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="password" class="form-control" [formField]="smtpForm.smtp_password" placeholder="Password" />
+            <form-extra-fields [fieldRef]="smtpForm.smtp_password" class="form-error"></form-extra-fields>
           </div>
         </div>
         <div class="form-row mb-3">
@@ -105,9 +63,7 @@
               [formField]="smtpForm.smtp_tls"
               (change)="onStartTlsToggle($event)"
             />
-            <label class="form-check-label text-muted" for="checkDefault">
-              STARTTLS
-            </label>
+            <label class="form-check-label text-muted" for="checkDefault"> STARTTLS </label>
           </div>
           <div class="form-check">
             <input
@@ -116,19 +72,11 @@
               [formField]="smtpForm.smtp_ssl"
               (change)="onSslToggle($event)"
             />
-            <label class="form-check-label text-muted" for="checkDefault">
-              SSL/TLS
-            </label>
+            <label class="form-check-label text-muted" for="checkDefault"> SSL/TLS </label>
           </div>
           <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              [formField]="smtpForm.smtp_verify"
-            />
-            <label class="form-check-label text-muted" for="checkDefault">
-              Verify (SSL/TLS)
-            </label>
+            <input class="form-check-input" type="checkbox" [formField]="smtpForm.smtp_verify" />
+            <label class="form-check-label text-muted" for="checkDefault"> Verify (SSL/TLS) </label>
           </div>
         </div>
         <div class="form-row">
@@ -140,36 +88,22 @@
               [formField]="smtpForm.smtp_from"
               placeholder="sender@yourdomain.com"
             />
-            <form-extra-fields
-              [fieldRef]="smtpForm.smtp_from"
-              class="form-error"
-            ></form-extra-fields>
+            <form-extra-fields [fieldRef]="smtpForm.smtp_from" class="form-error"></form-extra-fields>
             <small class="text-muted"
-              >Email address used as sender for outgoing emails. If empty, the
-              username will be used if it is a valid email address.</small
+              >Email address used as sender for outgoing emails. If empty, the username will be used if it is a valid
+              email address.</small
             >
           </div>
           <div class="form-group">
             <label class="form-label">Mail Name</label>
-            <input
-              type="text"
-              class="form-control"
-              [formField]="smtpForm.smtp_from_name"
-              placeholder="WireGuard UI"
-            />
-            <form-extra-fields
-              [fieldRef]="smtpForm.smtp_from_name"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="text" class="form-control" [formField]="smtpForm.smtp_from_name" placeholder="WireGuard UI" />
+            <form-extra-fields [fieldRef]="smtpForm.smtp_from_name" class="form-error"></form-extra-fields>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Default Email Language</label>
-            <select
-              class="form-control"
-              [formField]="smtpForm.default_email_language"
-            >
+            <select class="form-control" [formField]="smtpForm.default_email_language">
               <option value="en">English</option>
               <option value="fr">Français</option>
               <option value="es">Español</option>
@@ -181,9 +115,7 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="
-            smtpForm().invalid() || smtpForm().submitting() || resetting()
-          "
+          [disabled]="smtpForm().invalid() || smtpForm().submitting() || resetting()"
           [aria-busy]="smtpForm().submitting() || resetting()"
         >
           @if (smtpForm().submitting()) {
@@ -209,35 +141,20 @@
 
   @if (showTestModal()) {
     <div class="modal-backdrop fade show" (click)="closeTestModal()"></div>
-    <div
-      class="test-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="smtp-test-title"
-    >
+    <div class="test-modal" role="dialog" aria-modal="true" aria-labelledby="smtp-test-title">
       <div class="test-modal__card" (click)="$event.stopPropagation()">
         <div class="test-modal__header">
           <div>
-            <h2 id="smtp-test-title" class="test-modal__title">
-              Send Test Email
-            </h2>
-            <p class="test-modal__subtitle">
-              Review the fake message preview and choose the recipient.
-            </p>
+            <h2 id="smtp-test-title" class="test-modal__title">Send Test Email</h2>
+            <p class="test-modal__subtitle">Review the fake message preview and choose the recipient.</p>
           </div>
-          <button
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            (click)="closeTestModal()"
-          ></button>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeTestModal()"></button>
         </div>
 
         <div class="test-modal__body">
           @if (testError()) {
             <div class="alert alert-danger mb-3">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i
-              >{{ testError() }}
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ testError() }}
             </div>
           }
 
@@ -255,11 +172,7 @@
           }
 
           <div class="mail-preview">
-            <div>
-              <strong>From:</strong> {{ previewFromName() }} &lt;{{
-                previewFrom()
-              }}&gt;
-            </div>
+            <div><strong>From:</strong> {{ previewFromName() }} &lt;{{ previewFrom() }}&gt;</div>
             <div>
               <strong>To:</strong>
               {{ testRecipient() || "recipient@example.com" }}
@@ -267,32 +180,19 @@
             <div><strong>Subject:</strong> {{ testSubject() }}</div>
             <hr />
             <p>Hello,</p>
+            <p>This is a fake preview of the SMTP test email sent from the setup configuration screen.</p>
             <p>
-              This is a fake preview of the SMTP test email sent from the setup
-              configuration screen.
-            </p>
-            <p>
-              If the SMTP settings are valid, the real test email will contain a
-              delivery confirmation for this environment.
+              If the SMTP settings are valid, the real test email will contain a delivery confirmation for this
+              environment.
             </p>
           </div>
         </div>
 
         <div class="test-modal__actions">
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            [disabled]="testing()"
-            (click)="closeTestModal()"
-          >
+          <button type="button" class="btn btn-outline-secondary" [disabled]="testing()" (click)="closeTestModal()">
             Cancel
           </button>
-          <button
-            type="button"
-            class="btn btn-success"
-            [disabled]="testing()"
-            (click)="sendTestEmail()"
-          >
+          <button type="button" class="btn btn-success" [disabled]="testing()" (click)="sendTestEmail()">
             @if (testing()) {
               <span class="spinner-border spinner-border-sm me-1"></span>
             }

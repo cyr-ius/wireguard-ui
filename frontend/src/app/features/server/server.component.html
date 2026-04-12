@@ -2,12 +2,8 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-hdd-stack-fill me-2"></i>Server Configuration
-      </h1>
-      <p class="page-subtitle">
-        WireGuard interface settings and service control
-      </p>
+      <h1 class="page-title"><i class="bi bi-hdd-stack-fill me-2"></i>Server Configuration</h1>
+      <p class="page-subtitle">WireGuard interface settings and service control</p>
     </div>
     <!-- Service controls -->
     <div class="service-controls">
@@ -54,19 +50,13 @@
   </div>
 
   @if (error()) {
-    <div class="alert alert-danger">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
-    </div>
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}</div>
   }
   @if (saveError()) {
-    <div class="alert alert-danger">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}
-    </div>
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
   }
   @if (successMessage()) {
-    <div class="alert alert-success">
-      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
-    </div>
+    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
   }
 
   @if (loading()) {
@@ -77,45 +67,25 @@
   } @else {
     <form [formRoot]="serverForm" class="config-form">
       <div class="config-card">
-        <h2 class="section-title">
-          <i class="bi bi-ethernet me-2"></i>Interface
-        </h2>
+        <h2 class="section-title"><i class="bi bi-ethernet me-2"></i>Interface</h2>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Network Address (CIDR) *</label>
-            <input
-              type="text"
-              class="form-control"
-              [formField]="serverForm.address"
-              placeholder="192.168.1.0/24"
-            />
-            <form-extra-fields
-              [fieldRef]="serverForm.address"
-            ></form-extra-fields>
+            <input type="text" class="form-control" [formField]="serverForm.address" placeholder="192.168.1.0/24" />
+            <form-extra-fields [fieldRef]="serverForm.address"></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Listen Port *</label>
-            <input
-              type="number"
-              class="form-control"
-              [formField]="serverForm.listen_port"
-              placeholder="51820"
-            />
-            <form-extra-fields
-              [fieldRef]="serverForm.listen_port"
-            ></form-extra-fields>
+            <input type="number" class="form-control" [formField]="serverForm.listen_port" placeholder="51820" />
+            <form-extra-fields [fieldRef]="serverForm.listen_port"></form-extra-fields>
           </div>
         </div>
 
         <div class="form-group">
           <div class="d-flex align-items-center justify-content-between mb-1">
             <label class="form-label mb-0">Key Pair</label>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-primary"
-              (click)="generateKeypair()"
-            >
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="generateKeypair()">
               <i class="bi bi-key-fill me-1"></i>Generate Key Pair
             </button>
           </div>
@@ -129,19 +99,9 @@
                   [formField]="serverForm.private_key"
                   placeholder="Server private key"
                 />
-                <form-extra-fields
-                  [fieldRef]="serverForm.private_key"
-                ></form-extra-fields>
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary"
-                  (click)="showPrivateKey.update(v => !v)"
-                >
-                  <i
-                    class="bi"
-                    [class.bi-eye]="!showPrivateKey()"
-                    [class.bi-eye-slash]="showPrivateKey()"
-                  ></i>
+                <form-extra-fields [fieldRef]="serverForm.private_key"></form-extra-fields>
+                <button type="button" class="btn btn-outline-secondary" (click)="showPrivateKey.update(v => !v)">
+                  <i class="bi" [class.bi-eye]="!showPrivateKey()" [class.bi-eye-slash]="showPrivateKey()"></i>
                 </button>
               </div>
             </div>
@@ -159,9 +119,7 @@
       </div>
 
       <div class="config-card">
-        <h2 class="section-title">
-          <i class="bi bi-terminal me-2"></i>Post-Up / Post-Down Scripts
-        </h2>
+        <h2 class="section-title"><i class="bi bi-terminal me-2"></i>Post-Up / Post-Down Scripts</h2>
         <div class="form-group">
           <label class="form-label">PostUp</label>
           <textarea
@@ -183,11 +141,7 @@
       </div>
 
       <div class="form-actions">
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="serverForm().invalid() || serverForm().submitting()"
-        >
+        <button type="submit" class="btn btn-primary" [disabled]="serverForm().invalid() || serverForm().submitting()">
           @if (serverForm().submitting()) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           }

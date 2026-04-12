@@ -7,15 +7,9 @@
       type="button"
       (click)="toggleSidebar()"
       [title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-      [attr.aria-label]="
-        sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'
-      "
+      [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
     >
-      <i
-        class="bi"
-        [class.bi-chevron-right]="sidebarCollapsed()"
-        [class.bi-chevron-left]="!sidebarCollapsed()"
-      ></i>
+      <i class="bi" [class.bi-chevron-right]="sidebarCollapsed()" [class.bi-chevron-left]="!sidebarCollapsed()"></i>
     </button>
 
     <div class="sidebar-header">

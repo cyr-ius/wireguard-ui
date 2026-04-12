@@ -2,9 +2,7 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-people-fill me-2"></i>WireGuard Clients
-      </h1>
+      <h1 class="page-title"><i class="bi bi-people-fill me-2"></i>WireGuard Clients</h1>
       <p class="page-subtitle">Manage VPN peer configurations</p>
     </div>
     <div class="d-flex gap-2 align-items-center">
@@ -12,16 +10,12 @@
         <i class="bi bi-check-circle-fill text-success me-1"></i>
         {{ enabledCount() }} / {{ clients().length }} active
       </span>
-      <button class="btn btn-primary" (click)="openCreateModal()">
-        <i class="bi bi-plus-lg me-1"></i> New Client
-      </button>
+      <button class="btn btn-primary" (click)="openCreateModal()"><i class="bi bi-plus-lg me-1"></i> New Client</button>
     </div>
   </div>
 
   @if (error()) {
-    <div class="alert alert-danger">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
-    </div>
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}</div>
   }
 
   @if (loading()) {
@@ -36,9 +30,7 @@
       <div class="empty-state">
         <i class="bi bi-people empty-icon"></i>
         <p>No clients configured yet</p>
-        <button class="btn btn-primary mt-2" (click)="openCreateModal()">
-          Add your first client
-        </button>
+        <button class="btn btn-primary mt-2" (click)="openCreateModal()">Add your first client</button>
       </div>
     } @else {
       <div class="clients-grid">
@@ -52,11 +44,7 @@
                 <h3 class="client-name">{{ client.name }}</h3>
                 <span class="client-email">{{ client.email }}</span>
               </div>
-              <span
-                class="status-pill"
-                [class.active]="client.enabled"
-                [class.inactive]="!client.enabled"
-              >
+              <span class="status-pill" [class.active]="client.enabled" [class.inactive]="!client.enabled">
                 {{ client.enabled ? "Enabled" : "Disabled" }}
               </span>
             </div>
@@ -72,51 +60,29 @@
               </div>
               <div class="detail-row">
                 <span class="detail-label">DNS</span>
-                <span class="detail-value">{{
-                  client.use_server_dns ? "Server DNS" : "Custom"
-                }}</span>
+                <span class="detail-value">{{ client.use_server_dns ? "Server DNS" : "Custom" }}</span>
               </div>
             </div>
 
             <div class="client-actions">
               <!-- View config -->
-              <button
-                class="action-btn"
-                title="View config"
-                (click)="viewConfig(client)"
-              >
+              <button class="action-btn" title="View config" (click)="viewConfig(client)">
                 <i class="bi bi-file-code"></i>
               </button>
               <!-- Download config -->
-              <button
-                class="action-btn"
-                title="Download config"
-                (click)="downloadConfig(client)"
-              >
+              <button class="action-btn" title="Download config" (click)="downloadConfig(client)">
                 <i class="bi bi-download"></i>
               </button>
               <!-- Show QR code -->
-              <button
-                class="action-btn"
-                title="Show QR Code"
-                (click)="openQrModal(client)"
-              >
+              <button class="action-btn" title="Show QR Code" (click)="openQrModal(client)">
                 <i class="bi bi-qr-code"></i>
               </button>
               <!-- Send email -->
-              <button
-                class="action-btn"
-                title="Send by email"
-                (click)="openEmailModal(client)"
-              >
+              <button class="action-btn" title="Send by email" (click)="openEmailModal(client)">
                 <i class="bi bi-envelope"></i>
               </button>
               <!-- Edit -->
-              <button
-                class="action-btn"
-                title="Edit"
-                (click)="openEditModal(client)"
-              >
+              <button class="action-btn" title="Edit" (click)="openEditModal(client)">
                 <i class="bi bi-pencil"></i>
               </button>
               <!-- Toggle enabled -->
@@ -125,18 +91,10 @@
                 [title]="client.enabled ? 'Disable' : 'Enable'"
                 (click)="toggleEnabled(client)"
               >
-                <i
-                  class="bi"
-                  [class.bi-pause-circle]="client.enabled"
-                  [class.bi-play-circle]="!client.enabled"
-                ></i>
+                <i class="bi" [class.bi-pause-circle]="client.enabled" [class.bi-play-circle]="!client.enabled"></i>
               </button>
               <!-- Delete -->
-              <button
-                class="action-btn danger"
-                title="Delete"
-                (click)="openDeleteConfirm(client)"
-              >
+              <button class="action-btn danger" title="Delete" (click)="openDeleteConfirm(client)">
                 <i class="bi bi-trash3"></i>
               </button>
             </div>
@@ -162,24 +120,15 @@
         <form [formRoot]="clientForm" class="modal-form">
           @if (formError()) {
             <div class="alert alert-danger mb-3">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i
-              >{{ formError() }}
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ formError() }}
             </div>
           }
 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Name *</label>
-              <input
-                type="text"
-                class="form-control"
-                [formField]="clientForm.name"
-                placeholder="Client name"
-              />
-              <form-extra-fields
-                [fieldRef]="clientForm.name"
-                class="form-error"
-              ></form-extra-fields>
+              <input type="text" class="form-control" [formField]="clientForm.name" placeholder="Client name" />
+              <form-extra-fields [fieldRef]="clientForm.name" class="form-error"></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Email *</label>
@@ -189,10 +138,7 @@
                 [formField]="clientForm.email"
                 placeholder="client@example.com"
               />
-              <form-extra-fields
-                [fieldRef]="clientForm.email"
-                class="form-error"
-              ></form-extra-fields>
+              <form-extra-fields [fieldRef]="clientForm.email" class="form-error"></form-extra-fields>
             </div>
           </div>
 
@@ -201,11 +147,7 @@
               <label class="form-label">
                 Allocated IP *
                 @if (suggestedIp()) {
-                  <span
-                    class="ip-suggestion-badge"
-                    style="cursor: pointer"
-                    (click)="getSuggestIp()"
-                  >
+                  <span class="ip-suggestion-badge" style="cursor: pointer" (click)="getSuggestIp()">
                     <i class="bi bi-magic me-1"></i>Suggested
                   </span>
                 }
@@ -222,23 +164,12 @@
                   Next available IP in the server network
                 </small>
               }
-              <form-extra-fields
-                [fieldRef]="clientForm.allocated_ips"
-                class="form-error"
-              ></form-extra-fields>
+              <form-extra-fields [fieldRef]="clientForm.allocated_ips" class="form-error"></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Allowed IPs *</label>
-              <input
-                type="text"
-                class="form-control"
-                [formField]="clientForm.allowed_ips"
-                placeholder="0.0.0.0/0"
-              />
-              <form-extra-fields
-                [fieldRef]="clientForm.allowed_ips"
-                class="form-error"
-              ></form-extra-fields>
+              <input type="text" class="form-control" [formField]="clientForm.allowed_ips" placeholder="0.0.0.0/0" />
+              <form-extra-fields [fieldRef]="clientForm.allowed_ips" class="form-error"></form-extra-fields>
             </div>
           </div>
 
@@ -250,33 +181,17 @@
               [formField]="clientForm.preshared_key"
               placeholder="Leave empty to skip"
             />
-            <form-extra-fields
-              [fieldRef]="clientForm.preshared_key"
-              class="form-error"
-            ></form-extra-fields>
+            <form-extra-fields [fieldRef]="clientForm.preshared_key" class="form-error"></form-extra-fields>
           </div>
 
           <div class="form-checks">
             <div class="form-check">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                [formField]="clientForm.use_server_dns"
-              />
-              <label class="form-check-label" for="useDns"
-                >Use server DNS</label
-              >
+              <input type="checkbox" class="form-check-input" [formField]="clientForm.use_server_dns" />
+              <label class="form-check-label" for="useDns">Use server DNS</label>
             </div>
             <div class="form-check">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                [formField]="clientForm.enabled"
-                id="enabled"
-              />
-              <label class="form-check-label" for="enabled"
-                >Enable client</label
-              >
+              <input type="checkbox" class="form-check-input" [formField]="clientForm.enabled" id="enabled" />
+              <label class="form-check-label" for="enabled">Enable client</label>
             </div>
           </div>
 
@@ -284,11 +199,7 @@
           @if (modalMode() === "create") {
             <div class="email-option-card">
               <div class="form-check mb-2">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  [formField]="clientForm.send_email"
-                />
+                <input type="checkbox" class="form-check-input" [formField]="clientForm.send_email" />
                 <label class="form-check-label fw-semibold" for="sendEmail">
                   <i class="bi bi-envelope me-1"></i>
                   Send configuration by email after creation
@@ -309,13 +220,7 @@
           }
 
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              (click)="closeModal()"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
             <button
               type="submit"
               class="btn btn-primary"
@@ -337,9 +242,7 @@
     <div class="modal-overlay" (click)="closeConfig()">
       <div class="modal-panel config-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title">
-            <i class="bi bi-file-code me-2"></i>Configuration File
-          </h2>
+          <h2 class="modal-title"><i class="bi bi-file-code me-2"></i>Configuration File</h2>
           <button class="modal-close" (click)="closeConfig()">
             <i class="bi bi-x-lg"></i>
           </button>
@@ -354,9 +257,7 @@
     <div class="modal-overlay" (click)="closeQrModal()">
       <div class="modal-panel qr-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title">
-            <i class="bi bi-qr-code me-2"></i>QR Code — {{ qrClient()!.name }}
-          </h2>
+          <h2 class="modal-title"><i class="bi bi-qr-code me-2"></i>QR Code — {{ qrClient()!.name }}</h2>
           <button class="modal-close" (click)="closeQrModal()">
             <i class="bi bi-x-lg"></i>
           </button>
@@ -369,11 +270,7 @@
             </div>
           } @else if (qrCodeBase64()) {
             <div class="qr-image-wrap">
-              <img
-                [src]="'data:image/png;base64,' + qrCodeBase64()"
-                alt="WireGuard QR Code"
-                class="qr-image"
-              />
+              <img [src]="'data:image/png;base64,' + qrCodeBase64()" alt="WireGuard QR Code" class="qr-image" />
             </div>
             <p class="qr-hint">
               <i class="bi bi-phone me-1"></i>
@@ -384,18 +281,10 @@
               <span><strong>Email:</strong> {{ qrClient()!.email }}</span>
             </div>
             <div class="qr-actions">
-              <button
-                class="btn btn-outline-primary btn-sm"
-                (click)="downloadQrCode()"
-              >
+              <button class="btn btn-outline-primary btn-sm" (click)="downloadQrCode()">
                 <i class="bi bi-download me-1"></i>Download QR
               </button>
-              <button
-                class="btn btn-outline-secondary btn-sm"
-                (click)="closeQrModal()"
-              >
-                Close
-              </button>
+              <button class="btn btn-outline-secondary btn-sm" (click)="closeQrModal()">Close</button>
             </div>
           }
         </div>
@@ -408,29 +297,24 @@
     <div class="modal-overlay" (click)="closeEmailModal()">
       <div class="modal-panel email-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title">
-            <i class="bi bi-envelope me-2"></i>Send Configuration by Email
-          </h2>
+          <h2 class="modal-title"><i class="bi bi-envelope me-2"></i>Send Configuration by Email</h2>
           <button class="modal-close" (click)="closeEmailModal()">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
         <div class="email-modal-body">
           @if (emailSuccess()) {
-            <div class="alert alert-success">
-              <i class="bi bi-check-circle-fill me-2"></i>{{ emailSuccess() }}
-            </div>
+            <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ emailSuccess() }}</div>
           } @else {
             <p class="email-description">
-              An email with the WireGuard configuration file and QR code will be
-              sent to <strong>{{ emailTarget()!.email }}</strong
+              An email with the WireGuard configuration file and QR code will be sent to
+              <strong>{{ emailTarget()!.email }}</strong
               >.
             </p>
 
             @if (emailError()) {
               <div class="alert alert-danger mb-3">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i
-                >{{ emailError() }}
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ emailError() }}
               </div>
             }
 
@@ -438,10 +322,7 @@
               <label class="form-label">Email language</label>
               <div class="lang-options">
                 @for (lang of emailLanguages; track lang.code) {
-                  <label
-                    class="lang-option"
-                    [class.selected]="selectedEmailLang() === lang.code"
-                  >
+                  <label class="lang-option" [class.selected]="selectedEmailLang() === lang.code">
                     <input
                       type="radio"
                       name="emailLang"
@@ -457,14 +338,8 @@
             </div>
 
             <div class="email-modal-footer">
-              <button class="btn btn-secondary" (click)="closeEmailModal()">
-                Cancel
-              </button>
-              <button
-                class="btn btn-primary"
-                (click)="sendEmail()"
-                [disabled]="sendingEmail()"
-              >
+              <button class="btn btn-secondary" (click)="closeEmailModal()">Cancel</button>
+              <button class="btn btn-primary" (click)="sendEmail()" [disabled]="sendingEmail()">
                 @if (sendingEmail()) {
                   <span class="spinner-border spinner-border-sm me-1"></span>
                 }
@@ -491,12 +366,8 @@
           >? This cannot be undone.
         </p>
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="deleteTarget.set(null)">
-            Cancel
-          </button>
-          <button class="btn btn-danger" (click)="confirmDelete()">
-            Delete
-          </button>
+          <button class="btn btn-secondary" (click)="deleteTarget.set(null)">Cancel</button>
+          <button class="btn btn-danger" (click)="confirmDelete()">Delete</button>
         </div>
       </div>
     </div>

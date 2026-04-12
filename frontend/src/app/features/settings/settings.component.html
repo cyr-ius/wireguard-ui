@@ -2,9 +2,7 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-gear-fill me-2"></i>Global Settings
-      </h1>
+      <h1 class="page-title"><i class="bi bi-gear-fill me-2"></i>Global Settings</h1>
       <p class="page-subtitle">Application and VPN network configuration</p>
     </div>
   </div>
@@ -16,9 +14,7 @@
     <div class="alert alert-danger">{{ saveError() }}</div>
   }
   @if (successMessage()) {
-    <div class="alert alert-success">
-      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
-    </div>
+    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
   }
 
   @if (loading()) {
@@ -38,12 +34,8 @@
             [formField]="settingsForm.endpoint_address"
             placeholder="vpn.yourdomain.com or public IP"
           />
-          <form-extra-fields
-            [fieldRef]="settingsForm.endpoint_address"
-          ></form-extra-fields>
-          <small class="text-muted"
-            >Public hostname or IP used by clients to connect</small
-          >
+          <form-extra-fields [fieldRef]="settingsForm.endpoint_address"></form-extra-fields>
+          <small class="text-muted">Public hostname or IP used by clients to connect</small>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -54,38 +46,21 @@
               [formField]="settingsForm.dns_servers"
               placeholder="1.1.1.1,8.8.8.8"
             />
-            <form-extra-fields
-              [fieldRef]="settingsForm.dns_servers"
-            ></form-extra-fields>
+            <form-extra-fields [fieldRef]="settingsForm.dns_servers"></form-extra-fields>
             <small class="text-muted">Comma-separated DNS addresses</small>
           </div>
           <div class="form-group">
             <label class="form-label">MTU (optional)</label>
-            <input
-              type="number"
-              class="form-control"
-              [formField]="settingsForm.mtu"
-              placeholder="1420"
-            />
-            <form-extra-fields
-              [fieldRef]="settingsForm.mtu"
-            ></form-extra-fields>
-            <small class="text-muted"
-              >Leave empty to use WireGuard default</small
-            >
+            <input type="number" class="form-control" [formField]="settingsForm.mtu" placeholder="1420" />
+            <form-extra-fields [fieldRef]="settingsForm.mtu"></form-extra-fields>
+            <small class="text-muted">Leave empty to use WireGuard default</small>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Persistent Keepalive (seconds)</label>
-            <input
-              type="number"
-              [formField]="settingsForm.persistent_keepalive"
-              class="form-control"
-            />
-            <form-extra-fields
-              [fieldRef]="settingsForm.persistent_keepalive"
-            ></form-extra-fields>
+            <input type="number" [formField]="settingsForm.persistent_keepalive" class="form-control" />
+            <form-extra-fields [fieldRef]="settingsForm.persistent_keepalive"></form-extra-fields>
             <small class="text-muted">Leave empty to disable keepalive</small>
           </div>
           <div class="form-group">
@@ -96,17 +71,13 @@
               class="form-control font-mono"
               placeholder="/etc/wireguard/wg0.conf"
             />
-            <form-extra-fields
-              [fieldRef]="settingsForm.config_file_path"
-            ></form-extra-fields>
+            <form-extra-fields [fieldRef]="settingsForm.config_file_path"></form-extra-fields>
           </div>
         </div>
       </div>
 
       <div class="config-card">
-        <h2 class="section-title">
-          <i class="bi bi-tools me-2"></i>Maintenance
-        </h2>
+        <h2 class="section-title"><i class="bi bi-tools me-2"></i>Maintenance</h2>
         <div class="form-check">
           <input
             type="checkbox"
@@ -116,9 +87,7 @@
           />
           <label class="form-check-label" for="maintenance">
             Enable maintenance mode
-            <small class="d-block text-muted"
-              >Non-admin users will see a maintenance page</small
-            >
+            <small class="d-block text-muted">Non-admin users will see a maintenance page</small>
           </label>
         </div>
       </div>

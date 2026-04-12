@@ -2,9 +2,7 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">
-        <i class="bi bi-person-badge-fill me-2"></i>User Management
-      </h1>
+      <h1 class="page-title"><i class="bi bi-person-badge-fill me-2"></i>User Management</h1>
       <p class="page-subtitle">Manage system users and role assignments</p>
     </div>
     <button class="btn btn-primary" (click)="openCreateModal()">
@@ -50,14 +48,10 @@
                 <td>
                   <div class="user-cell">
                     <div class="user-avatar-sm">
-                      {{
-                        (user.first_name?.[0] ?? user.username[0]).toUpperCase()
-                      }}
+                      {{ (user.first_name?.[0] ?? user.username[0]).toUpperCase() }}
                     </div>
                     <div>
-                      <div class="user-fullname">
-                        {{ user.first_name }} {{ user.last_name }}
-                      </div>
+                      <div class="user-fullname">{{ user.first_name }} {{ user.last_name }}</div>
                       <div class="user-username">&#64;{{ user.username }}</div>
                     </div>
                   </div>
@@ -66,38 +60,22 @@
                 <td>
                   <div class="role-tags">
                     @for (role of user.roles; track role.id) {
-                      <span
-                        class="role-tag"
-                        [class.role-admin]="role.name === 'admin'"
-                        >{{ role.name }}</span
-                      >
+                      <span class="role-tag" [class.role-admin]="role.name === 'admin'">{{ role.name }}</span>
                     }
                   </div>
                 </td>
                 <td>
-                  <span
-                    class="status-pill"
-                    [class.active]="user.active"
-                    [class.inactive]="!user.active"
-                  >
+                  <span class="status-pill" [class.active]="user.active" [class.inactive]="!user.active">
                     {{ user.active ? "Active" : "Inactive" }}
                   </span>
                 </td>
                 <td>
                   <div class="table-actions">
-                    <button
-                      class="action-btn"
-                      (click)="openEditModal(user)"
-                      title="Edit"
-                    >
+                    <button class="action-btn" (click)="openEditModal(user)" title="Edit">
                       <i class="bi bi-pencil"></i>
                     </button>
                     @if (user.username !== currentUsername()) {
-                      <button
-                        class="action-btn danger"
-                        (click)="deleteTarget.set(user)"
-                        title="Delete"
-                      >
+                      <button class="action-btn danger" (click)="deleteTarget.set(user)" title="Delete">
                         <i class="bi bi-trash3"></i>
                       </button>
                     }
@@ -141,80 +119,39 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Username *</label>
-              <input
-                type="text"
-                class="form-control"
-                [formField]="userForm.username"
-              />
-              <form-extra-fields
-                [fieldRef]="userForm.username"
-                class="form-error"
-              ></form-extra-fields>
+              <input type="text" class="form-control" [formField]="userForm.username" />
+              <form-extra-fields [fieldRef]="userForm.username" class="form-error"></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Email *</label>
-              <input
-                type="email"
-                class="form-control"
-                [formField]="userForm.email"
-              />
-              <form-extra-fields
-                [fieldRef]="userForm.email"
-                class="form-error"
-              ></form-extra-fields>
+              <input type="email" class="form-control" [formField]="userForm.email" />
+              <form-extra-fields [fieldRef]="userForm.email" class="form-error"></form-extra-fields>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">First Name</label>
-              <input
-                type="text"
-                class="form-control"
-                [formField]="userForm.first_name"
-              />
-              <form-extra-fields
-                [fieldRef]="userForm.first_name"
-                class="form-error"
-              ></form-extra-fields>
+              <input type="text" class="form-control" [formField]="userForm.first_name" />
+              <form-extra-fields [fieldRef]="userForm.first_name" class="form-error"></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Last Name</label>
-              <input
-                type="text"
-                class="form-control"
-                [formField]="userForm.last_name"
-              />
-              <form-extra-fields
-                [fieldRef]="userForm.last_name"
-                class="form-error"
-              ></form-extra-fields>
+              <input type="text" class="form-control" [formField]="userForm.last_name" />
+              <form-extra-fields [fieldRef]="userForm.last_name" class="form-error"></form-extra-fields>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">{{
-              modalMode() === "create"
-                ? "Password *"
-                : "New Password (leave empty to keep current)"
+              modalMode() === "create" ? "Password *" : "New Password (leave empty to keep current)"
             }}</label>
-            <input
-              type="password"
-              class="form-control"
-              [formField]="userForm.password"
-            />
-            <form-extra-fields
-              [fieldRef]="userForm.password"
-              class="form-error"
-            ></form-extra-fields>
+            <input type="password" class="form-control" [formField]="userForm.password" />
+            <form-extra-fields [fieldRef]="userForm.password" class="form-error"></form-extra-fields>
           </div>
           <div class="form-group">
             <label class="form-label">Roles</label>
             <div class="role-checkboxes">
               @for (role of roles(); track role.id) {
-                <label
-                  class="role-checkbox"
-                  [class.selected]="isRoleSelected(role.id)"
-                  (click)="toggleRole(role.id)"
-                >
+                <label class="role-checkbox" [class.selected]="isRoleSelected(role.id)" (click)="toggleRole(role.id)">
                   <i
                     class="bi"
                     [class.bi-check-square-fill]="isRoleSelected(role.id)"
@@ -227,34 +164,15 @@
                 </label>
               }
             </div>
-            <form-extra-fields
-              [fieldRef]="userForm.role_ids"
-              class="form-error"
-            ></form-extra-fields>
+            <form-extra-fields [fieldRef]="userForm.role_ids" class="form-error"></form-extra-fields>
           </div>
           <div class="form-check mb-3">
-            <input
-              type="checkbox"
-              class="form-check-input"
-              [formField]="userForm.active"
-            />
-            <label class="form-check-label" for="userActive"
-              >Account active</label
-            >
+            <input type="checkbox" class="form-check-input" [formField]="userForm.active" />
+            <label class="form-check-label" for="userActive">Account active</label>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              (click)="closeModal()"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="userForm().invalid() || userForm().submitting()"
-            >
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="userForm().invalid() || userForm().submitting()">
               @if (userForm().submitting()) {
                 <span class="spinner-border spinner-border-sm me-1"></span>
               }
@@ -279,12 +197,8 @@
           >? This cannot be undone.
         </p>
         <div class="modal-footer justify-content-center">
-          <button class="btn btn-secondary" (click)="deleteTarget.set(null)">
-            Cancel
-          </button>
-          <button class="btn btn-danger" (click)="confirmDelete()">
-            Delete
-          </button>
+          <button class="btn btn-secondary" (click)="deleteTarget.set(null)">Cancel</button>
+          <button class="btn btn-danger" (click)="confirmDelete()">Delete</button>
         </div>
       </div>
     </div>
