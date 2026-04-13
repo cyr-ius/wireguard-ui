@@ -57,11 +57,7 @@
 
 /* Sidebar */
 .sidebar {
-  background: linear-gradient(
-    180deg,
-    var(--sidebar-bg-start) 0%,
-    var(--sidebar-bg-end) 100%
-  );
+  background: linear-gradient(180deg, var(--sidebar-bg-start) 0%, var(--sidebar-bg-end) 100%);
   border-right: 1px solid var(--border-muted);
   display: flex;
   flex-direction: column;
@@ -75,12 +71,7 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(0, 212, 170, 0.2) 50%,
-    transparent
-  );
+  background: linear-gradient(180deg, transparent, rgba(0, 212, 170, 0.2) 50%, transparent);
 }
 
 .sidebar-header {
@@ -140,11 +131,7 @@
     box-shadow 0.2s;
 }
 .sidebar-toggle:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(0, 212, 170, 0.16),
-    rgba(18, 26, 43, 0.96)
-  );
+  background: linear-gradient(180deg, rgba(0, 212, 170, 0.16), rgba(18, 26, 43, 0.96));
   color: #00d4aa;
   border-color: rgba(0, 212, 170, 0.4);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);

@@ -97,13 +97,7 @@ app/features/user/
 import { Component, input, output, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { signal, computed, effect } from "@angular/core";
-import {
-  email,
-  form,
-  FormField,
-  required,
-  submit,
-} from "@angular/forms/signals";
+import { email, form, FormField, required, submit } from "@angular/forms/signals";
 
 // Standalone component - no module needed
 @Component({
@@ -255,13 +249,9 @@ export class ShoppingCartComponent {
   discountPercent = signal(0);
 
   // Computed signal (derived state)
-  subtotal = computed(() =>
-    this.cartItems().reduce((sum, item) => sum + item.price * item.qty, 0),
-  );
+  subtotal = computed(() => this.cartItems().reduce((sum, item) => sum + item.price * item.qty, 0));
 
-  discountAmount = computed(
-    () => this.subtotal() * (this.discountPercent() / 100),
-  );
+  discountAmount = computed(() => this.subtotal() * (this.discountPercent() / 100));
 
   total = computed(() => this.subtotal() - this.discountAmount());
 
@@ -303,13 +293,7 @@ Le template doit être dans un fichier dédié, exception dans ce chaitre pour d
 
 ```typescript
 import { Component } from "@angular/core";
-import {
-  form,
-  email,
-  FormField,
-  required,
-  submit,
-} from "@angular/forms/signals";
+import { form, email, FormField, required, submit } from "@angular/forms/signals";
 
 @Component({
   selector: "app-registration-form",
@@ -318,10 +302,7 @@ import {
   template: `
     <form [formRoot]="registrationForm">
       <input [formField]="registrationForm.username" />
-      @if (
-        registrationForm.username().invalid() &&
-        registrationForm.username().errors().length
-      ) {
+      @if (registrationForm.username().invalid() && registrationForm.username().errors().length) {
         <ul>
           @for (error of registrationForm.username().errors(); track error) {
             <li>{{ error.message }}</li>
@@ -477,12 +458,7 @@ export class UserService {
   <!-- Search and filter -->
   <div class="row mb-3">
     <div class="col-md-6">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Search users..."
-        (input)="filterUsers($event)"
-      />
+      <input type="text" class="form-control" placeholder="Search users..." (input)="filterUsers($event)" />
     </div>
   </div>
 
@@ -522,18 +498,10 @@ export class UserService {
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
           <td>
-            <button
-              class="btn btn-sm btn-info"
-              (click)="editUser(user)"
-              title="Edit"
-            >
+            <button class="btn btn-sm btn-info" (click)="editUser(user)" title="Edit">
               <i class="bi bi-pencil"></i>
             </button>
-            <button
-              class="btn btn-sm btn-danger"
-              (click)="deleteUser(user.id)"
-              title="Delete"
-            >
+            <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)" title="Delete">
               <i class="bi bi-trash"></i>
             </button>
           </td>
@@ -713,25 +681,16 @@ export const routes: Routes = [
   },
   {
     path: "login",
-    loadComponent: () =>
-      import("./features/auth/login/login.component").then(
-        (m) => m.LoginComponent,
-      ),
+    loadComponent: () => import("./features/auth/login/login.component").then((m) => m.LoginComponent),
   },
   {
     path: "dashboard",
-    loadComponent: () =>
-      import("./features/dashboard/dashboard.component").then(
-        (m) => m.DashboardComponent,
-      ),
+    loadComponent: () => import("./features/dashboard/dashboard.component").then((m) => m.DashboardComponent),
     canActivate: [AuthGuard],
   },
   {
     path: "users",
-    loadComponent: () =>
-      import("./features/users/user-list/user-list.component").then(
-        (m) => m.UserListComponent,
-      ),
+    loadComponent: () => import("./features/users/user-list/user-list.component").then((m) => m.UserListComponent),
     canActivate: [AuthGuard],
   },
   {
@@ -1872,11 +1831,9 @@ export class MyComponent {
   private destroyRef = inject(DestroyRef);
 
   constructor(private service: Service) {
-    this.service.data$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((data) => {
-        this.items = data;
-      });
+    this.service.data$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
+      this.items = data;
+    });
   }
 }
 ```
