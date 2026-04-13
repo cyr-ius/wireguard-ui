@@ -6,11 +6,7 @@
     </div>
   </div>
 
-  <div-error [errorRef]="error()"></div-error>
-
-  @if (successMessage()) {
-    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
-  }
+  <div-error [errorRef]="error()" [successRef]="successMessage()"></div-error>
 
   @if (loading()) {
     <div class="loading-state">

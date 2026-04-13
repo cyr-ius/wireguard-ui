@@ -27,8 +27,15 @@ import { ApiError } from "../../shared/models/api-error.model";
         </div>
       }
     }
+    @if (successRef(); as string) {
+      <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        {{ successRef() }}
+      </div>
+    }
   `,
 })
 export class ErrorField {
   readonly errorRef = input<ApiError | null>(null);
+  readonly successRef = input<string | null>(null);
 }

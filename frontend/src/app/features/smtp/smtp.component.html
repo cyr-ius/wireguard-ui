@@ -12,11 +12,8 @@
     </div>
   </div>
 
-  <div-error [errorRef]="error()"></div-error>
+  <div-error [errorRef]="error()" [successRef]="successMessage()"></div-error>
 
-  @if (successMessage()) {
-    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
-  }
   @if (loading()) {
     <div class="loading-state">
       <div class="spinner-border text-primary" role="status"></div>
