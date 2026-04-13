@@ -11,17 +11,11 @@ GITHUB_REPOSITORY = "cyr-ius/wireguard-ui"
 
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
-    database_url: str = Field(
-        default=DEFAULT_DATABASE_URL, validation_alias="DATABASE_URL"
-    )
+    db_path: str = Field(default=DEFAULT_DATABASE_URL, validation_alias="DB_PATH")
     db_echo: bool = Field(default=False, validation_alias="DB_ECHO")
-
     secret_key: str = Field(
         default="CHANGE_ME_use_a_long_random_secret_in_production",
         validation_alias="SECRET_KEY",
@@ -31,36 +25,18 @@ class AppSettings(BaseSettings):
         default=60, ge=1, validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES"
     )
     bcrypt_rounds: int = Field(default=12, ge=4, validation_alias="BCRYPT_ROUNDS")
-
     admin_username: str = Field(default="admin", validation_alias="ADMIN_USERNAME")
-    admin_email: str = Field(
-        default="admin@wireguard.local", validation_alias="ADMIN_EMAIL"
-    )
+    admin_email: str = Field(default="admin@wg.ui", validation_alias="ADMIN_EMAIL")
     admin_password: str = Field(default="admin", validation_alias="ADMIN_PASSWORD")
-
-    allowed_origins: str = Field(
-        default="http://localhost:4200,http://localhost:8000",
-        validation_alias="ALLOWED_ORIGINS",
-    )
-    log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
-    frontend_dist: str | None = Field(default=None, validation_alias="FRONTEND_DIST")
-    app_version: str = Field(default="Development", validation_alias="APP_VERSION")
-
     mail_from: str = Field(default="no-reply@wg.ui", validation_alias="MAIL_FROM")
     mail_name: str = Field(default="WireGuardUI", validation_alias="MAIL_NAME")
-
     wg_autostart: bool = Field(default=True, validation_alias="WIREGUARD_AUTOSTART")
+    log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
+    app_version: str = Field(default="Development", validation_alias="APP_VERSION")
 
-    def cors_origins(self) -> list[str]:
-        return [
-            origin.strip()
-            for origin in self.allowed_origins.split(",")
-            if origin.strip()
-        ]
-
-    @field_validator("database_url", mode="before")
+    @field_validator("db_path", mode="before")
     @classmethod
-    def normalize_database_url(cls, value: object) -> str:
+    def normalize_db_path(cls, value: object) -> str:
         if value is None:
             return DEFAULT_DATABASE_URL
 

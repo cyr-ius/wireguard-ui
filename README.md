@@ -69,7 +69,7 @@ docker compose up -d --build
 
 ### Base de données
 
-- `DATABASE_URL` : URL de connexion SQLAlchemy.
+- `DB_PATH` : URL de connexion SQLAlchemy.
   - Par défaut : `sqlite+aiosqlite:////data/wireguard_ui.db`
 
 ### WireGuard
