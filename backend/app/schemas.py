@@ -290,4 +290,5 @@ class IPAddressInfo(SQLModel):
 
 
 class AppVersionResponse(SQLModel):
+    repository: str
     version: str

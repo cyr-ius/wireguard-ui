@@ -1,10 +1,7 @@
 <div class="oidc-callback-page">
   <div class="callback-card">
     @if (error()) {
-      <div class="alert-error">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        {{ error() }}
-      </div>
+      <div-error [errorRef]="error()"></div-error>
       <a class="btn-back" routerLink="/login">Back to login</a>
     } @else {
       <div class="spinner"></div>

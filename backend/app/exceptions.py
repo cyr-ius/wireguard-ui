@@ -1,69 +1,54 @@
 from fastapi import HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 
-class ApiException(HTTPException):
-    def __init__(
-        self,
-        code: str,
-        status_code: int = 400,
-        detail: dict | None = None,
-    ):
-        super().__init__(status_code=status_code)
-        self.code = code
-        self.detail = detail or {}
+class ErrorDetail(BaseModel):
+    """Single error detail."""
+
+    kind: str | None = None
+    message: str
 
 
-async def api_exception_handler(request: Request, exc):
+class ErrorResponse(BaseModel):
+    code: str
+    message: str
+    details: list[ErrorDetail] | None = None
+
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    details = [
+        ErrorDetail(
+            kind=".".join(str(loc) for loc in err["loc"][1:]) or None,
+            message=err["msg"],
+        )
+        for err in exc.errors()
+    ]
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=ErrorResponse(
+            code="VALIDATION_ERROR",
+            message="Request validation failed",
+            details=details,
+        ).model_dump(),
+    )
+
+
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """Handle all HTTPExceptions with standard format."""
+    code_map = {
+        400: "BAD_REQUEST",
+        401: "UNAUTHORIZED",
+        403: "FORBIDDEN",
+        404: "NOT_FOUND",
+        409: "CONFLICT",
+        500: "INTERNAL_SERVER_ERROR",
+    }
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "code": exc.code,
-            "detail": exc.detail,
-            "status": exc.status_code,
-        },
-    )
-
-
-async def validation_exception_handler(request: Request, exc):
-    def map_fastapi_errors(details: list[dict]) -> dict[str, str]:
-        errors: dict[str, str] = {}
-
-        for err in details:
-            path = [p for p in err.get("loc", []) if p != "body"]
-            field = ".".join(str(p) for p in path)
-
-            errors[field] = err.get("msg", "")
-
-        return errors
-
-    return JSONResponse(
-        status_code=422,
-        content={
-            "code": "VALIDATION_ERROR",
-            "detail": map_fastapi_errors(exc.errors()),
-            "status": 422,
-        },
-    )
-
-
-async def http_exception_handler(request: Request, exc):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "code": "HTTP_ERROR",
-            "detail": exc.detail,
-            "status": exc.status_code,
-        },
-    )
-
-
-async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={
-            "code": "INTERNAL_ERROR",
-            "detail": {},
-            "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-        },
+        content=ErrorResponse(
+            code=code_map.get(exc.status_code, "HTTP_ERROR"), message=exc.detail
+        ).model_dump(),
     )

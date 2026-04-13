@@ -10,19 +10,7 @@
     </button>
   </div>
 
-  @if (error()) {
-    <div class="alert alert-danger mb-3">
-      @if (errorEntries().length > 0) {
-        @for (err of errorEntries(); track err[0]) {
-          <div>
-            <strong>{{ err[0] }}</strong> : {{ err[1] }}
-          </div>
-        }
-      } @else {
-        {{ error() }}
-      }
-    </div>
-  }
+  <div-error [errorRef]="error()"></div-error>
 
   @if (loading()) {
     <div class="loading-state">
@@ -102,19 +90,7 @@
           </button>
         </div>
         <form [formRoot]="userForm" class="modal-form">
-          @if (formError()) {
-            <div class="alert alert-danger mb-3">
-              @if (formErrorEntries().length > 0) {
-                @for (err of formErrorEntries(); track err[0]) {
-                  <div>
-                    <strong>{{ err[0] }}</strong> : {{ err[1] }}
-                  </div>
-                }
-              } @else {
-                {{ formError() }}
-              }
-            </div>
-          }
+          <div-error [errorRef]="formError()"></div-error>
 
           <div class="form-row">
             <div class="form-group">

@@ -12,12 +12,8 @@
     </div>
   </div>
 
-  @if (error()) {
-    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}</div>
-  }
-  @if (saveError()) {
-    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
-  }
+  <div-error [errorRef]="error()"></div-error>
+
   @if (successMessage()) {
     <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
   }
@@ -152,12 +148,6 @@
         </div>
 
         <div class="test-modal__body">
-          @if (testError()) {
-            <div class="alert alert-danger mb-3">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ testError() }}
-            </div>
-          }
-
           <label class="form-label">Recipient Email</label>
           <input
             type="email"

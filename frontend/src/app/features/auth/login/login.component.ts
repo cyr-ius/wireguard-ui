@@ -3,21 +3,22 @@
  * Uses Angular signal-based forms (FormGroup from @angular/forms with signals).
  */
 
-import { HttpErrorResponse } from "@angular/common/http";
 import { Component, inject, OnInit, signal } from "@angular/core";
 import { form, FormField, FormRoot, min, required } from "@angular/forms/signals";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
+import { ErrorField } from "../../../core/applets/error-field.component";
 import { FormExtraFields } from "../../../core/applets/form-extra-fields.component";
 import { OidcService } from "../../../core/services/api.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { ThemeMode, ThemeService } from "../../../core/services/theme.service";
+import { ApiError } from "../../../shared/models/api-error.model";
 import { OidcPublicConfig } from "../../../shared/models/api.models";
 
 @Component({
   selector: "app-login",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
   templateUrl: "./login.component.html",
   styleUrl: "./login.component.css",
 })
@@ -29,7 +30,7 @@ export class LoginComponent implements OnInit {
 
   readonly isLoading = signal(false);
   readonly isOidcLoading = signal(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly error = signal<ApiError | null>(null);
   readonly oidcConfig = signal<OidcPublicConfig | null>(null);
 
   private readonly loginInit = {
@@ -61,7 +62,7 @@ export class LoginComponent implements OnInit {
 
   async onSubmit(loginForm: any): Promise<void> {
     this.isLoading.set(true);
-    this.errorMessage.set(null);
+    this.error.set(null);
 
     const formData = loginForm().value();
 
@@ -69,7 +70,13 @@ export class LoginComponent implements OnInit {
       await firstValueFrom(this.auth.login(formData.username, formData.password));
       this.router.navigate(["/"]);
     } catch (err: unknown) {
-      this.errorMessage.set(err instanceof HttpErrorResponse && err.status === 401 ? "Invalid username or password" : "Connection error. Please try again.");
+      this.error.set({
+        code: "login",
+        message:
+          (err as ApiError).code === "UNAUTHORIZED"
+            ? "Invalid username or password"
+            : "Connection error. Please try again.",
+      } as ApiError);
       this.isLoading.set(false);
     }
   }

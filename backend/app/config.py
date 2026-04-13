@@ -6,6 +6,7 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_DATABASE_URL = "sqlite+aiosqlite:////data/wireguard_ui.db"
+GITHUB_REPOSITORY = "cyr-ius/wireguard-ui"
 
 
 class AppSettings(BaseSettings):
@@ -43,7 +44,7 @@ class AppSettings(BaseSettings):
     )
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     frontend_dist: str | None = Field(default=None, validation_alias="FRONTEND_DIST")
-    app_version: str = Field(default="1.0.0", validation_alias="APP_VERSION")
+    app_version: str = Field(default="Development", validation_alias="APP_VERSION")
 
     mail_from: str = Field(default="no-reply@wg.ui", validation_alias="MAIL_FROM")
     mail_name: str = Field(default="WireGuardUI", validation_alias="MAIL_NAME")

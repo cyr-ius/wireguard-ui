@@ -1,12 +1,13 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from "@angular/core";
+import { ErrorField } from "../../core/applets/error-field.component";
 import { ApiService, GithubRelease } from "../../core/services/api.service";
-import { APP_INFO } from "../../shared/constants/app-info";
+import { ApiError } from "../../shared/models/api-error.model";
 
 @Component({
   selector: "app-about",
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, ErrorField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./about.component.html",
   styleUrl: "./about.component.css",
@@ -14,44 +15,52 @@ import { APP_INFO } from "../../shared/constants/app-info";
 export class AboutComponent implements OnInit {
   private readonly api = inject(ApiService);
 
-  readonly appVersion = signal(APP_INFO.fallbackVersion);
-  readonly repository = APP_INFO.repository;
-  readonly repoUrl = `https://github.com/${this.repository}`;
+  readonly appVersion = signal("Development");
+  readonly repository = signal("");
+  readonly repoUrl = computed(() => `https://github.com/${this.repository()}`);
   readonly issueUrl = computed(
     () =>
-      `https://github.com/${this.repository}/issues/new?title=${encodeURIComponent("[Bug] ")}&body=${encodeURIComponent(
+      `https://github.com/${this.repository()}/issues/new?title=${encodeURIComponent("[Bug] ")}&body=${encodeURIComponent(
         `Version: ${this.appVersion()}\n\nDescribe the issue:\n`,
       )}`,
   );
   readonly apiUrl = "/api";
   readonly apiDocsUrl = "/api/docs";
-  readonly apiStatusUrl = "/api/status";
+  readonly apiStatusUrl = "/api/health";
 
   readonly checkingUpdate = signal(false);
-  readonly updateError = signal<string | null>(null);
+  readonly error = signal<ApiError | null>(null);
   readonly latestRelease = signal<GithubRelease | null>(null);
   readonly updateAvailable = signal(false);
 
+  constructor() {
+    effect(() => {
+      if (this.repoUrl()) this.checkForUpdate();
+    });
+  }
+
   ngOnInit(): void {
     this.api.getAppVersion().subscribe({
-      next: (data) => this.appVersion.set(data.version || APP_INFO.fallbackVersion),
-      error: () => this.appVersion.set(APP_INFO.fallbackVersion),
+      next: (data) => {
+        this.appVersion.set(data.version || "Development");
+        this.repository.set(data.repository);
+      },
+      error: () => this.appVersion.set("Development"),
     });
-    this.checkForUpdate();
   }
 
   checkForUpdate(): void {
     this.checkingUpdate.set(true);
-    this.updateError.set(null);
+    this.error.set(null);
 
-    this.api.getLatestGithubRelease(this.repository).subscribe({
+    this.api.getLatestGithubRelease(this.repository()).subscribe({
       next: (release) => {
         this.latestRelease.set(release);
         this.updateAvailable.set(this.isNewerVersion(release.tag_name, this.appVersion()));
         this.checkingUpdate.set(false);
       },
       error: () => {
-        this.updateError.set("Unable to check latest release on GitHub.");
+        this.error.set({ code: "about", message: "Unable to check latest release on GitHub." } as ApiError);
         this.checkingUpdate.set(false);
       },
     });

@@ -15,12 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import app_settings
 from .database import engine
-from .exceptions import (
-    ApiException,
-    api_exception_handler,
-    http_exception_handler,
-    validation_exception_handler,
-)
+from .exceptions import http_exception_handler, validation_exception_handler
 from .helpers import (
     resolve_safe_path,
 )
@@ -59,9 +54,8 @@ app = FastAPI(
 app.add_middleware(SecurityHeadersMiddleware)
 
 # ── Exception handlers ───────────────────────────────────────────────────────
-app.add_exception_handler(ApiException, api_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)  # pyright: ignore[reportArgumentType]
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)  # pyright: ignore[reportArgumentType]
 
 # ── API routers ───────────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])

@@ -1,10 +1,11 @@
-import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
 import { email, form, FormField, FormRoot, minLength, readonly, required } from "@angular/forms/signals";
 import { firstValueFrom } from "rxjs";
+import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
 import { UsersService } from "../../core/services/api.service";
 import { AuthService } from "../../core/services/auth.service";
+import { ApiError } from "../../shared/models/api-error.model";
 import { Role, User, UserCreate, UserUpdate } from "../../shared/models/api.models";
 
 type ModalMode = "create" | "edit" | null;
@@ -12,7 +13,7 @@ type ModalMode = "create" | "edit" | null;
 @Component({
   selector: "app-users",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./users.component.html",
   styleUrls: ["./users.component.css"],
@@ -24,10 +25,8 @@ export class UsersComponent implements OnInit {
   readonly users = signal<User[]>([]);
   readonly roles = signal<Role[]>([]);
   readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly errorEntries = computed(() => Object.entries(this.error() || {}));
-  readonly formError = signal<Record<string, string> | null>({});
-  readonly formErrorEntries = computed(() => Object.entries((this.formError() && this.formError()) || {}));
+  readonly error = signal<ApiError | null>(null);
+  readonly formError = signal<ApiError | null>(null);
   readonly modalMode = signal<ModalMode>(null);
   readonly selectedUser = signal<User | null>(null);
   readonly deleteTarget = signal<User | null>(null);
@@ -76,7 +75,7 @@ export class UsersComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.detail ?? "Failed to load users");
+        this.error.set((err as ApiError) ?? "Failed to load users");
         this.loading.set(false);
       },
     });
@@ -119,7 +118,7 @@ export class UsersComponent implements OnInit {
         this.loadData();
       }
     } catch (err: unknown) {
-      this.formError.set((err instanceof HttpErrorResponse && err.error.detail) || `Failed to ${mode} user`);
+      this.formError.set((err as ApiError) ?? `Failed to ${mode} user`);
     }
   }
 
@@ -131,7 +130,7 @@ export class UsersComponent implements OnInit {
         this.deleteTarget.set(null);
         this.loadData();
       },
-      error: (err: unknown) => this.error.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to delete user"),
+      error: (err: unknown) => this.error.set((err as ApiError) ?? "Failed to delete user"),
     });
   }
 

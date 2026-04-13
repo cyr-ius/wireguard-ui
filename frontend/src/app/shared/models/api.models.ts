@@ -237,11 +237,6 @@ export interface IPAddressInfo {
 }
 
 export interface AppVersionResponse {
+  repository: string;
   version: string;
-}
-
-// ─── API Error ────────────────────────────────────────────────────────────────
-
-export interface ApiError {
-  detail: string;
 }

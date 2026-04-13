@@ -21,13 +21,10 @@
           global settings from a centralized interface.
         </p>
         <div class="actions">
-          <a class="btn btn-outline-primary" [href]="apiDocsUrl" target="_blank" rel="noopener">
+          <a class="btn btn-sm btn-outline-primary" [href]="apiDocsUrl" target="_blank" rel="noopener">
             <i class="bi bi-journal-code me-1"></i>API docs
           </a>
-          <a class="btn btn-outline-primary" [href]="apiUrl" target="_blank" rel="noopener">
-            <i class="bi bi-code-slash me-1"></i>Access API
-          </a>
-          <a class="btn btn-outline-primary" [href]="apiStatusUrl" target="_blank" rel="noopener">
+          <a class="btn btn-sm btn-outline-primary" [href]="apiStatusUrl" target="_blank" rel="noopener">
             <i class="bi bi-heart-pulse me-1"></i>API status endpoint
           </a>
         </div>
@@ -66,8 +63,8 @@
               Installed version is up to date.
             </div>
           }
-        } @else if (updateError()) {
-          <div class="alert alert-danger mt-3 mb-0">{{ updateError() }}</div>
+        } @else if (error()) {
+          <div-error [errorRef]="error()"></div-error>
         } @else {
           <div class="text-muted">No release information loaded yet.</div>
         }
@@ -81,10 +78,10 @@
       <div class="section-body">
         <p>Report bugs, request features, or follow project updates directly on GitHub.</p>
         <div class="actions">
-          <a class="btn btn-primary" [href]="issueUrl()" target="_blank" rel="noopener">
+          <a class="btn btn-sm btn-primary" [href]="issueUrl()" target="_blank" rel="noopener">
             <i class="bi bi-bug-fill me-1"></i>Open an issue
           </a>
-          <a class="btn btn-outline-primary" [href]="repoUrl" target="_blank" rel="noopener">
+          <a class="btn btn-sm btn-outline-primary" [href]="repoUrl()" target="_blank" rel="noopener">
             <i class="bi bi-github me-1"></i>Open repository
           </a>
         </div>

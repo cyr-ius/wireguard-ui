@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
-import { FormBuilder } from "@angular/forms";
 import { email, form, FormField, FormRoot, required } from "@angular/forms/signals";
 import { firstValueFrom } from "rxjs";
+import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
 import { ClientsService, SmtpService } from "../../core/services/api.service";
+import { ApiError } from "../../shared/models/api-error.model";
 import { ClientCreate, ClientUpdate, WireGuardClient } from "../../shared/models/api.models";
 
 /** Modal display modes */
@@ -20,7 +21,7 @@ const EMAIL_LANGUAGES = [
 @Component({
   selector: "app-clients",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./clients.component.html",
   styleUrls: ["./clients.component.css"],
@@ -28,7 +29,6 @@ const EMAIL_LANGUAGES = [
 export class ClientsComponent implements OnInit {
   private readonly clientsService = inject(ClientsService);
   private readonly smtpService = inject(SmtpService);
-  private readonly fb = inject(FormBuilder);
 
   // ── Available language options for email ──────────────────────────────────
   readonly emailLanguages = EMAIL_LANGUAGES;
@@ -36,8 +36,8 @@ export class ClientsComponent implements OnInit {
   // ── Data signals ──────────────────────────────────────────────────────────
   readonly clients = signal<WireGuardClient[]>([]);
   readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly formError = signal<string | null>(null);
+  readonly error = signal<ApiError | null>(null);
+  readonly formError = signal<ApiError | null>(null);
 
   // ── Modal state signals ───────────────────────────────────────────────────
   readonly modalMode = signal<ModalMode>(null);
@@ -57,7 +57,7 @@ export class ClientsComponent implements OnInit {
   readonly emailTarget = signal<WireGuardClient | null>(null);
   readonly sendingEmail = signal(false);
   readonly emailSuccess = signal<string | null>(null);
-  readonly emailError = signal<string | null>(null);
+  readonly emailError = signal<ApiError | null>(null);
   readonly selectedEmailLang = signal<string>("en");
   readonly defaultEmailLanguage = signal<string>("en");
 
@@ -126,7 +126,7 @@ export class ClientsComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.detail ?? "Failed to load clients");
+        this.error.set((err as ApiError) ?? "Failed to load clients");
         this.loading.set(false);
       },
     });
@@ -192,7 +192,7 @@ export class ClientsComponent implements OnInit {
         this.closeModal();
         this.loadClients();
       } else {
-        this.formError.set("Invalid form state");
+        this.formError.set({ code: "state", message: "Invalid form state" } as ApiError);
       }
     } catch (err: unknown) {
       const errMsg = (err instanceof HttpErrorResponse && err.error.detail) || `Failed to ${mode} client`;
@@ -217,7 +217,7 @@ export class ClientsComponent implements OnInit {
         this.deleteTarget.set(null);
         this.loadClients();
       },
-      error: (err) => this.error.set(err?.error?.detail ?? "Failed to delete client"),
+      error: (err) => this.error.set((err as ApiError) ?? "Failed to delete client"),
     });
   }
 
@@ -229,7 +229,7 @@ export class ClientsComponent implements OnInit {
         this.configContent.set(data.config);
         this.showConfig.set(true);
       },
-      error: (err) => this.error.set(err?.error?.detail ?? "Failed to load configuration"),
+      error: (err) => this.error.set((err as ApiError) ?? "Failed to load configuration"),
     });
   }
 
@@ -265,7 +265,7 @@ export class ClientsComponent implements OnInit {
         this.qrLoading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.detail ?? "Failed to generate QR code");
+        this.error.set((err as ApiError) ?? "Failed to generate QR code");
         this.qrLoading.set(false);
         this.qrClient.set(null);
       },
@@ -321,7 +321,7 @@ export class ClientsComponent implements OnInit {
       },
       error: (err) => {
         this.sendingEmail.set(false);
-        this.emailError.set(err?.error?.detail ?? "Failed to send email. Check SMTP configuration.");
+        this.emailError.set((err as ApiError) ?? "Failed to send email. Check SMTP configuration.");
       },
     });
   }

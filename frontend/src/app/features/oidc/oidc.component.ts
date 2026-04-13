@@ -1,15 +1,16 @@
-import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { form, FormField, FormRoot, maxLength, required } from "@angular/forms/signals";
 import { firstValueFrom } from "rxjs";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
-import { ApiErrorResponse, OidcService } from "../../core/services/api.service";
+import { OidcService } from "../../core/services/api.service";
+import { ApiError } from "../../shared/models/api-error.model";
 import { OidcAdminSettings } from "../../shared/models/api.models";
+import { ErrorField } from "../../core/applets/error-field.component";
 
 @Component({
   selector: "app-oidc",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./oidc.component.html",
   styleUrl: "./oidc.component.css",
@@ -19,7 +20,7 @@ export class OidcComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly resetting = signal(false);
-  readonly error = signal<ApiErrorResponse | null>(null);
+  readonly error = signal<ApiError | null>(null);
   readonly successMessage = signal<string | null>(null);
 
   private readonly oidcInit: OidcAdminSettings = {
@@ -69,7 +70,7 @@ export class OidcComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err: any) => {
-        this.error.set(err?.error?.detail ?? "Failed to load OIDC settings");
+        this.error.set((err as ApiError) ?? "Failed to load OIDC settings");
         this.loading.set(false);
       },
     });
@@ -84,7 +85,7 @@ export class OidcComponent implements OnInit {
       this.successMessage.set("OIDC settings saved successfully");
       setTimeout(() => this.successMessage.set(null), 4000);
     } catch (err: unknown) {
-      this.error.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to save OIDC settings");
+      this.error.set((err as ApiError) ?? "Failed to save OIDC settings");
     }
   }
 
@@ -96,7 +97,7 @@ export class OidcComponent implements OnInit {
       setTimeout(() => this.successMessage.set(null), 4000);
       this.loadData();
     } catch (err: unknown) {
-      this.error.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to reset OIDC settings");
+      this.error.set((err as ApiError) ?? "Failed to reset OIDC settings");
     } finally {
       this.resetting.set(false);
     }

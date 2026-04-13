@@ -43,12 +43,7 @@
           <p>Access your WireGuard dashboard</p>
         </div>
 
-        @if (errorMessage()) {
-          <div class="alert-error">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            {{ errorMessage() }}
-          </div>
-        }
+        <div-error [errorRef]="error()"></div-error>
 
         <form [formRoot]="loginForm" novalidate>
           <div class="field-group">

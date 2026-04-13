@@ -6,9 +6,8 @@
     </div>
   </div>
 
-  @if (error()) {
-    <div class="alert alert-danger">{{ error() }}</div>
-  }
+  <div-error [errorRef]="error()"></div-error>
+
   @if (successMessage()) {
     <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}</div>
   }

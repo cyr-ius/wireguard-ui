@@ -1,14 +1,15 @@
-import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { form, FormField, FormRoot, max, min, readonly, required } from "@angular/forms/signals";
 import { firstValueFrom, tap } from "rxjs";
+import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
 import { ApiService, ServerService } from "../../core/services/api.service";
+import { ApiError } from "../../shared/models/api-error.model";
 
 @Component({
   selector: "app-server",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./server.component.html",
   styleUrls: ["./server.component.css"],
@@ -22,8 +23,7 @@ export class ServerComponent implements OnInit {
   readonly resetting = signal(false);
   readonly serviceActionLoading = signal<"start" | "stop" | "restart" | null>(null);
   readonly serviceStatus = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly saveError = signal<string | null>(null);
+  readonly error = signal<ApiError | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly showPrivateKey = signal(false);
 
@@ -72,7 +72,7 @@ export class ServerComponent implements OnInit {
         },
         error: (err) => {
           if (err.status !== 404) {
-            this.error.set(err?.error?.detail ?? "Failed to load server configuration");
+            this.error.set((err as ApiError) ?? "Failed to load server configuration");
           } else {
             this.serverForm().reset({ ...this.serverInit });
           }
@@ -87,7 +87,7 @@ export class ServerComponent implements OnInit {
         this.serverForm.private_key().value.set(keys.private_key);
         this.serverForm.public_key().value.set(keys.public_key);
       },
-      error: (err) => this.saveError.set(err?.error?.detail ?? "Failed to generate keys"),
+      error: (err) => this.error.set((err as ApiError) ?? "Failed to generate keys"),
     });
   }
 
@@ -101,7 +101,7 @@ export class ServerComponent implements OnInit {
     if (this.resetting()) return;
 
     this.resetting.set(true);
-    this.saveError.set(null);
+    this.error.set(null);
     this.successMessage.set(null);
 
     this.serverForm().reset({ ...this.serverInit });
@@ -113,13 +113,13 @@ export class ServerComponent implements OnInit {
       setTimeout(() => this.successMessage.set(null), 4000);
     } catch (err: unknown) {
       this.resetting.set(false);
-      this.saveError.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to reset configuration");
+      this.error.set((err as ApiError) ?? "Failed to reset configuration");
     }
   }
 
   async applyConfig(): Promise<void> {
     this.applying.set(true);
-    this.saveError.set(null);
+    this.error.set(null);
 
     try {
       await firstValueFrom(this.serverService.applyConfig());
@@ -129,7 +129,7 @@ export class ServerComponent implements OnInit {
       setTimeout(() => this.successMessage.set(null), 4000);
     } catch (err: unknown) {
       this.applying.set(false);
-      this.saveError.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to apply configuration");
+      this.error.set((err as ApiError) ?? "Failed to apply configuration");
     }
   }
 
@@ -137,7 +137,7 @@ export class ServerComponent implements OnInit {
     if (this.serviceActionLoading()) return;
 
     this.serviceActionLoading.set(action);
-    this.saveError.set(null);
+    this.error.set(null);
     this.successMessage.set(null);
 
     this.serverService.controlService(action).subscribe({
@@ -150,7 +150,7 @@ export class ServerComponent implements OnInit {
         this.successMessage.set(`Service ${pastTense[action]} successfully`);
       },
       error: (err: unknown) => {
-        this.saveError.set((err instanceof HttpErrorResponse && err.error.detail) || `Failed to ${action} service`);
+        this.error.set((err as ApiError) ?? `Failed to ${action} service`);
         this.serviceActionLoading.set(null);
       },
       complete: () => this.serviceActionLoading.set(null),
@@ -158,7 +158,7 @@ export class ServerComponent implements OnInit {
   }
 
   async submitToServer(f: any): Promise<void> {
-    this.saveError.set(null);
+    this.error.set(null);
     this.successMessage.set(null);
 
     try {
@@ -166,7 +166,7 @@ export class ServerComponent implements OnInit {
       this.successMessage.set("Server configuration saved successfully");
       setTimeout(() => this.successMessage.set(null), 4000);
     } catch (err: unknown) {
-      this.saveError.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to save configuration");
+      this.error.set((err as ApiError) ?? "Failed to save configuration");
     }
   }
 }

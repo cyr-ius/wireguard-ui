@@ -1,14 +1,15 @@
-import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { form, FormField, FormRoot, max, min, required } from "@angular/forms/signals";
 import { firstValueFrom } from "rxjs";
+import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
 import { SettingsService } from "../../core/services/api.service";
+import { ApiError } from "../../shared/models/api-error.model";
 
 @Component({
   selector: "app-settings",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./settings.component.html",
   styleUrls: ["./settings.component.css"],
@@ -18,8 +19,7 @@ export class SettingsComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly resetting = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly saveError = signal<string | null>(null);
+  readonly error = signal<ApiError | null>(null);
   readonly successMessage = signal<string | null>(null);
 
   private readonly settingsInit = {
@@ -68,7 +68,7 @@ export class SettingsComponent implements OnInit {
       },
       error: (err: any) => {
         if (err.status !== 404) {
-          this.error.set(err?.error?.detail ?? "Failed to load settings");
+          this.error.set((err as ApiError) ?? "Failed to load settings");
         } else {
           this.settingsForm().reset({ ...this.settingsInit });
         }
@@ -78,13 +78,13 @@ export class SettingsComponent implements OnInit {
   }
 
   async save(f: any): Promise<void> {
-    this.saveError.set(null);
+    this.error.set(null);
     try {
       await firstValueFrom(this.settingsService.update(f().value()));
       this.successMessage.set("Settings saved successfully");
       setTimeout(() => this.successMessage.set(null), 4000);
     } catch (err: unknown) {
-      this.saveError.set((err instanceof HttpErrorResponse && err.error.detail) || "Failed to save settings");
+      this.error.set((err as ApiError) ?? "Failed to save settings");
     }
   }
 
@@ -92,7 +92,7 @@ export class SettingsComponent implements OnInit {
     if (this.resetting()) return;
 
     this.resetting.set(true);
-    this.saveError.set(null);
+    this.error.set(null);
     this.successMessage.set(null);
 
     this.settingsService.reset().subscribe({
@@ -104,7 +104,7 @@ export class SettingsComponent implements OnInit {
       },
       error: (err) => {
         this.resetting.set(false);
-        this.saveError.set(err?.error?.detail ?? "Failed to reset settings");
+        this.error.set((err as ApiError) ?? "Failed to reset settings");
       },
     });
   }

@@ -1,12 +1,14 @@
 import { Component, OnInit, inject, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { ErrorField } from "../../../core/applets/error-field.component";
 import { OidcService } from "../../../core/services/api.service";
 import { AuthService } from "../../../core/services/auth.service";
+import { ApiError } from "../../../shared/models/api-error.model";
 
 @Component({
   selector: "app-oidc-callback",
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ErrorField],
   templateUrl: "./oidc-callback.component.html",
   styleUrl: "./oidc-callback.component.css",
 })
@@ -16,7 +18,7 @@ export class OidcCallbackComponent implements OnInit {
   private readonly oidc = inject(OidcService);
   private readonly auth = inject(AuthService);
 
-  readonly error = signal<string | null>(null);
+  readonly error = signal<ApiError | null>(null);
 
   ngOnInit(): void {
     const code = this.route.snapshot.queryParamMap.get("code");
@@ -25,11 +27,11 @@ export class OidcCallbackComponent implements OnInit {
     sessionStorage.removeItem("oidc_state");
 
     if (!code) {
-      this.error.set("Missing authorization code.");
+      this.error.set({ code: "oidc", message: "Missing authorization code." } as ApiError);
       return;
     }
     if (!state || !expectedState || state !== expectedState) {
-      this.error.set("Invalid OIDC state.");
+      this.error.set({ code: "oidc", message: "Invalid OIDC state." } as ApiError);
       return;
     }
 
@@ -39,7 +41,7 @@ export class OidcCallbackComponent implements OnInit {
         this.router.navigate(["/"]);
       },
       error: (err) => {
-        this.error.set(err?.error?.detail ?? "OIDC authentication failed.");
+        this.error.set((err as ApiError) ?? "OIDC authentication failed.");
       },
     });
   }
