@@ -45,12 +45,7 @@
 /* Brand panel - left side */
 .login-brand {
   position: relative;
-  background: linear-gradient(
-    145deg,
-    var(--panel-bg) 0%,
-    #0a1628 50%,
-    #061020 100%
-  );
+  background: linear-gradient(145deg, var(--panel-bg) 0%, #0a1628 50%, #061020 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,10 +61,7 @@
 .brand-bg-grid {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(
-      rgba(0, 212, 170, 0.04) 1px,
-      transparent 1px
-    ),
+  background-image: linear-gradient(rgba(0, 212, 170, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 212, 170, 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
@@ -346,10 +338,7 @@
 }
 
 [data-theme="light"] .brand-bg-grid {
-  background-image: linear-gradient(
-      rgba(0, 180, 216, 0.08) 1px,
-      transparent 1px
-    ),
+  background-image: linear-gradient(rgba(0, 180, 216, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 180, 216, 0.08) 1px, transparent 1px);
 }
 
