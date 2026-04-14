@@ -20,7 +20,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "fastapi-mail>=1.6.2",
     "qrcode>=8.2",
-    "pillow>=12.1.1",
+    "pillow>=12.2.0",
 ]
 
 [project.optional-dependencies]
