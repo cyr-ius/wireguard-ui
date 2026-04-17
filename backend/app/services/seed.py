@@ -8,7 +8,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import hash_password
-from ..config import app_settings
+from ..config import CONFIG_FILE, app_settings
 from ..database import AsyncSessionLocal
 from ..models import GlobalSettings, Role, User
 
@@ -67,8 +67,8 @@ async def _seed_settings(db: AsyncSession) -> None:
         db.add(
             GlobalSettings.model_validate(
                 {
-                    "dns_servers": "1.1.1.1,8.8.8.8",
-                    "config_file_path": "/etc/wireguard/wg0.conf",
+                    "dns_servers": ["1.1.1.1", "8.8.8.8"],
+                    "config_file_path": CONFIG_FILE,
                     "maintenance_mode": False,
                     "oidc_enabled": False,
                     "oidc_response_type": "code",

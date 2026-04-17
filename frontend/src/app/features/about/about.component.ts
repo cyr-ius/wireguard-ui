@@ -1,8 +1,8 @@
 import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from "@angular/core";
 import { ErrorField } from "../../core/applets/error-field.component";
+import { ApiError } from "../../core/models/api-error.model";
 import { ApiService, GithubRelease } from "../../core/services/api.service";
-import { ApiError } from "../../shared/models/api-error.model";
 
 @Component({
   selector: "app-about",

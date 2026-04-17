@@ -6,6 +6,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Add security headers to every HTTP response."""
 
     JSDELIVR = "https://cdn.jsdelivr.net/npm/"
+    FONT_GOOGLE = "https://fonts.gstatic.com"
 
     # Build CSP once at class level — one directive per list entry, auditable.
     _CSP_DIRECTIVES: list[str] = [
@@ -13,7 +14,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         f"script-src 'self' 'unsafe-inline' {JSDELIVR}",  # Angular requires unsafe-inline
         f"style-src 'self' 'unsafe-inline' {JSDELIVR}",  # Bootstrap inline styles
         "img-src 'self' data: https:",  # logos, QR codes base64
-        "font-src 'self' data:",  # Bootstrap Icons embedded font
+        f"font-src 'self' data: {FONT_GOOGLE}",  # Bootstrap Icons embedded font
         "connect-src 'self'",  # API calls + Azure endpoints
         "worker-src 'self'",  # Angular Service Worker (PWA)
         "frame-ancestors 'none'",  # replaces X-Frame-Options

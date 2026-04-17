@@ -22,7 +22,7 @@ from .helpers import (
 from .routers import auth, clients, oidc, server, settings, smtp, status, users
 from .security import SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
-from .services.wireguard import WireGuardError, start_service
+from .services.wireguard import WireGuardError, start_service, write_server_config
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -39,6 +39,7 @@ async def lifespan(app: FastAPI):
     await seed_initial_data()
     if app_settings.wg_autostart:
         try:
+            await write_server_config()
             await start_service()
         except WireGuardError as e:
             logger.warning("Autostart failed (%s)", e)

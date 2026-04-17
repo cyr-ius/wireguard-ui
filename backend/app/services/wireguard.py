@@ -2,17 +2,22 @@
 WireGuard helpers: key generation, config building, service management.
 """
 
-from __future__ import annotations
-
 import asyncio
 import ipaddress
 import json
+import logging
 import re
 import socket
 import subprocess
 from typing import Any
 
+from sqlmodel import select
+
+from ..config import CONFIG_FILE
+from ..database import AsyncSessionLocal
 from ..models import GlobalSettings, WireGuardClient, WireGuardServer
+
+logger = logging.getLogger(__name__)
 
 
 class WireGuardError(Exception):
@@ -57,6 +62,7 @@ async def get_service_state(interface: str = "wg0") -> str:
 async def start_service(interface: str = "wg0") -> None:
     try:
         await _run(f"wg-quick up {interface}")
+        logger.info("Wireguard started.")
     except WireGuardError as exc:
         raise WireGuardError(f"Start failed: {exc}") from exc
 
@@ -64,6 +70,7 @@ async def start_service(interface: str = "wg0") -> None:
 async def stop_service(interface: str = "wg0") -> None:
     try:
         await _run(f"wg-quick down {interface}")
+        logger.info("Wireguard stopped.")
     except WireGuardError as exc:
         raise WireGuardError(f"Stop failed: {exc}") from exc
 
@@ -138,7 +145,7 @@ def build_client_config(
         f"PrivateKey = {client.private_key}",
     ]
     if client.use_server_dns and settings.dns_servers:
-        lines.append(f"DNS = {settings.dns_servers}")
+        lines.append(f"DNS = {','.join(settings.dns_servers)}")
     if settings.mtu is not None:
         lines.append(f"MTU = {settings.mtu}")
 
@@ -147,7 +154,7 @@ def build_client_config(
         "[Peer]",
         f"PublicKey  = {server.public_key}",
         f"Endpoint   = {settings.endpoint_address}:{server.listen_port}",
-        f"AllowedIPs = {client.allowed_ips}",
+        f"AllowedIPs = {','.join(client.allowed_ips)}",
     ]
     if settings.persistent_keepalive:
         lines.append(f"PersistentKeepalive = {settings.persistent_keepalive}")
@@ -193,10 +200,15 @@ def build_server_config(server: WireGuardServer, clients: list[WireGuardClient])
     return "\n".join(lines)
 
 
-async def write_server_config(
-    server: WireGuardServer, clients: list[WireGuardClient], settings: GlobalSettings
-) -> None:
+async def write_server_config() -> None:
     """Write the server config file to disk (async executor to avoid blocking)."""
+
+    async with AsyncSessionLocal() as db:
+        server = (await db.exec(select(WireGuardServer))).one_or_none()
+        clients = list((await db.exec(select(WireGuardClient))).all())
+
+    if not server:
+        raise WireGuardError("Server not configured")
 
     def _write_config_file(path: str, data: str) -> None:
         with open(path, "w", encoding="utf-8") as config_file:
@@ -204,12 +216,7 @@ async def write_server_config(
 
     content = build_server_config(server, clients)
     loop = asyncio.get_event_loop()
-    await loop.run_in_executor(
-        None,
-        _write_config_file,
-        settings.config_file_path,
-        content,
-    )
+    await loop.run_in_executor(None, _write_config_file, CONFIG_FILE, content)
 
 
 # ── Network utils ─────────────────────────────────────────────────────────────

@@ -9,11 +9,11 @@ import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
 import { ErrorField } from "../../../core/applets/error-field.component";
 import { FormExtraFields } from "../../../core/applets/form-extra-fields.component";
+import { ApiError } from "../../../core/models/api-error.model";
+import { OidcPublicConfig } from "../../../core/models/api.models";
 import { OidcService } from "../../../core/services/api.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { ThemeMode, ThemeService } from "../../../core/services/theme.service";
-import { ApiError } from "../../../shared/models/api-error.model";
-import { OidcPublicConfig } from "../../../shared/models/api.models";
 
 @Component({
   selector: "app-login",

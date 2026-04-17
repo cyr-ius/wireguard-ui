@@ -13,10 +13,9 @@ router = APIRouter()
 
 SETTINGS_DEFAULTS = {
     "endpoint_address": None,
-    "dns_servers": "1.1.1.1",
+    "dns_servers": ["1.1.1.1"],
     "mtu": None,
     "persistent_keepalive": None,
-    "config_file_path": "/etc/wireguard/wg0.conf",
     "maintenance_mode": False,
     "default_email_language": "en",
 }

@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Column, Text
+from sqlalchemy import JSON, Column, Text
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -118,7 +118,9 @@ class WireGuardClient(SQLModel, table=True):
     private_key: str = Field(max_length=255)
     preshared_key: str | None = Field(default="")
     allocated_ips: str = Field(max_length=255)
-    allowed_ips: str = Field(default="0.0.0.0/0", max_length=255)
+    allowed_ips: list[str] = Field(
+        default=["0.0.0.0/0"], max_length=255, sa_column=Column(JSON)
+    )
     use_server_dns: bool = Field(default=True)
     enabled: bool = Field(default=True)
     created_at: datetime = Field(default_factory=utc_now)
@@ -138,10 +140,11 @@ class GlobalSettings(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     endpoint_address: str | None = Field(default=None, max_length=255)
-    dns_servers: str | None = Field(default="1.1.1.1", max_length=255)
+    dns_servers: list[str] | None = Field(
+        default=["1.1.1.1"], max_length=255, sa_column=Column(JSON)
+    )
     mtu: int | None = Field(default=None)
     persistent_keepalive: int | None = Field(default=None)
-    config_file_path: str = Field(default="/etc/wireguard/wg0.conf", max_length=512)
     maintenance_mode: bool = Field(default=False)
     default_email_language: str = Field(default="en", max_length=5)
 

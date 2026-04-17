@@ -3,9 +3,9 @@ import { email, form, FormField, FormRoot, max, min, required } from "@angular/f
 import { firstValueFrom } from "rxjs";
 import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
+import { ApiError } from "../../core/models/api-error.model";
+import { SmtpSettings, SmtpSettingsUpdate } from "../../core/models/api.models";
 import { SmtpService } from "../../core/services/api.service";
-import { ApiError } from "../../shared/models/api-error.model";
-import { SmtpSettings, SmtpSettingsUpdate } from "../../shared/models/api.models";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

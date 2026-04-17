@@ -78,7 +78,7 @@ def _render_email_template(
         client_name=client.name,
         allocated_ips=client.allocated_ips,
         allowed_ips=client.allowed_ips,
-        dns_servers=settings.dns_servers if client.use_server_dns else None,
+        dns_servers=",".join(settings.dns_servers) if client.use_server_dns else None,
         qr_code_base64=qr_code_base64,
     )
 

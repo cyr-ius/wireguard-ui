@@ -7,7 +7,7 @@
     </div>
     <!-- Service controls -->
     <div class="service-controls">
-      @if (!serviceStatus()) {
+      @if (status() === false) {
         <button
           class="btn btn-sm btn-outline-success"
           [disabled]="serviceActionLoading() !== null"
@@ -88,6 +88,7 @@
                 <input
                   [type]="showPrivateKey() ? 'text' : 'password'"
                   class="form-control font-mono"
+                  [class.is-warning]="!serverForm.private_key().value()?.trim()"
                   [formField]="serverForm.private_key"
                   placeholder="Server private key"
                 />
@@ -102,6 +103,7 @@
               <input
                 type="text"
                 class="form-control font-mono"
+                [class.is-warning]="!serverForm.public_key().value()?.trim()"
                 [formField]="serverForm.public_key"
                 placeholder="Server public key"
               />

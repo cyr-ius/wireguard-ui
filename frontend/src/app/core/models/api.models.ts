@@ -88,7 +88,7 @@ export interface WireGuardClient {
   public_key: string;
   preshared_key?: string;
   allocated_ips: string;
-  allowed_ips: string;
+  allowed_ips: string[];
   use_server_dns: boolean;
   enabled: boolean;
   created_at?: string;
@@ -140,7 +140,7 @@ export interface SuggestIpResponse {
 export interface GlobalSettings {
   id: number;
   endpoint_address?: string;
-  dns_servers?: string;
+  dns_servers?: string[];
   mtu?: number;
   persistent_keepalive?: number;
   config_file_path: string;
@@ -150,7 +150,7 @@ export interface GlobalSettings {
 
 export interface SettingsUpdate {
   endpoint_address?: string;
-  dns_servers?: string;
+  dns_servers?: string[];
   mtu?: number;
   persistent_keepalive?: number;
   config_file_path?: string;

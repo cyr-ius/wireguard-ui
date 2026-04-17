@@ -10,11 +10,31 @@
         <i class="bi bi-check-circle-fill text-success me-1"></i>
         {{ enabledCount() }} / {{ clients().length }} active
       </span>
-      <button class="btn btn-primary" (click)="openCreateModal()"><i class="bi bi-plus-lg me-1"></i> New Client</button>
+      <button
+        class="btn btn-primary"
+        (click)="openCreateModal()"
+        [disabled]="setupLoading() || !canCreateClients()"
+        [title]="!canCreateClients() ? 'Complete WireGuard setup before creating clients' : 'Create a new client'"
+      >
+        <i class="bi bi-plus-lg me-1"></i> New Client
+      </button>
     </div>
   </div>
 
   <div-error [errorRef]="error()"></div-error>
+
+  @if (!setupLoading() && !canCreateClients()) {
+    <div class="alert alert-warning d-flex flex-column gap-3" role="alert">
+      <div>
+        <strong>Complete the WireGuard setup before creating clients.</strong>
+        Missing: {{ missingSetupItems().join(" and ") }}.
+        <a routerLink="/settings" class="alert-link ms-2"> <i class="bi bi-gear me-1"></i>Open Global Settings </a>
+        <a routerLink="/server" class="alert-link ms-2">
+          <i class="bi bi-hdd-network me-1"></i>Open Interface Settings
+        </a>
+      </div>
+    </div>
+  }
 
   @if (loading()) {
     <div class="loading-state">
@@ -28,7 +48,13 @@
       <div class="empty-state">
         <i class="bi bi-people empty-icon"></i>
         <p>No clients configured yet</p>
-        <button class="btn btn-primary mt-2" (click)="openCreateModal()">Add your first client</button>
+        <button
+          class="btn btn-primary mt-2"
+          (click)="openCreateModal()"
+          [disabled]="setupLoading() || !canCreateClients()"
+        >
+          Add your first client
+        </button>
       </div>
     } @else {
       <div class="clients-grid">
@@ -161,7 +187,12 @@
             </div>
             <div class="form-group">
               <label class="form-label">Allowed IPs *</label>
-              <input type="text" class="form-control" [formField]="clientForm.allowed_ips" placeholder="0.0.0.0/0" />
+              <!-- <input type="text" class="form-control" [formField]="clientForm.allowed_ips" placeholder="0.0.0.0/0" /> -->
+              <form-tags-field
+                label="Allowed IPs *"
+                [formField]="clientForm.allowed_ips"
+                [selectOptions]="clientForm.allowed_ips().value()"
+              ></form-tags-field>
               <form-extra-fields [fieldRef]="clientForm.allowed_ips" class="form-error"></form-extra-fields>
             </div>
           </div>

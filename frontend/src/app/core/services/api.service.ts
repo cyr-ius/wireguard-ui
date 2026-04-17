@@ -25,7 +25,7 @@ import {
   WireGuardClient,
   WireGuardServer,
   WireGuardStatus,
-} from "../../shared/models/api.models";
+} from "../models/api.models";
 
 export interface WgStatus extends WireGuardStatus {
   is_running: boolean;

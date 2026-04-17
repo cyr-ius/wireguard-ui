@@ -5,7 +5,9 @@ from functools import lru_cache
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DEFAULT_DATABASE_URL = "sqlite+aiosqlite:////data/wireguard_ui.db"
+DATA_DIR = "/data"
+DEFAULT_DATABASE_URL = f"sqlite+aiosqlite:///{DATA_DIR}/wireguard_ui.db"
+CONFIG_FILE = "/etc/wireguard/wg0.conf"
 GITHUB_REPOSITORY = "cyr-ius/wireguard-ui"
 
 

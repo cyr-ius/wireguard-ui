@@ -8,7 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import get_current_admin
 from ..database import get_db
-from ..models import GlobalSettings, User, WireGuardClient, WireGuardServer
+from ..models import User, WireGuardServer
 from ..schemas import KeyPairResponse, ServerCreate, ServerResponse
 from ..services.wireguard import (
     WireGuardError,
@@ -40,8 +40,6 @@ async def upsert_server(
     db: AsyncSession = Depends(get_db),
 ):
     server = (await db.exec(select(WireGuardServer))).one_or_none()
-    settings = (await db.exec(select(GlobalSettings))).one_or_none()
-    clients = (await db.exec(select(WireGuardClient))).all()
 
     if server is None:
         server = WireGuardServer.model_validate(data)
@@ -53,7 +51,7 @@ async def upsert_server(
     await db.refresh(server)
 
     try:
-        await write_server_config(server, clients, settings)
+        await write_server_config()
     except WireGuardError as exc:
         logger.exception("WireGuard apply config failed: %s", exc)
         raise HTTPException(
@@ -87,21 +85,10 @@ async def gen_keypair(_: User = Depends(get_current_admin)):
 
 
 @router.post("/apply", status_code=status.HTTP_204_NO_CONTENT)
-async def apply_config(
-    _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
-):
+async def apply_config(_: User = Depends(get_current_admin)):
     """Write config to disk and restart WireGuard."""
-    server = (await db.exec(select(WireGuardServer))).one_or_none()
-    settings = (await db.exec(select(GlobalSettings))).one_or_none()
-    clients = (await db.exec(select(WireGuardClient))).all()
-
-    if not server:
-        raise HTTPException(400, detail="Server not configured")
-    if not settings:
-        raise HTTPException(400, detail="Settings not configured")
-
     try:
-        await write_server_config(server, clients, settings)
+        await write_server_config()
         await restart_service()
     except WireGuardError as exc:
         logger.exception("WireGuard apply config failed: %s", exc)

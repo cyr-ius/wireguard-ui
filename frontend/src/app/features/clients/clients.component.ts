@@ -1,15 +1,21 @@
-import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
+import { RouterLink } from "@angular/router";
 import { email, form, FormField, FormRoot, required } from "@angular/forms/signals";
-import { firstValueFrom } from "rxjs";
+import { catchError, firstValueFrom, forkJoin, of } from "rxjs";
 import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
-import { ClientsService, SmtpService } from "../../core/services/api.service";
-import { ApiError } from "../../shared/models/api-error.model";
-import { ClientCreate, ClientUpdate, WireGuardClient } from "../../shared/models/api.models";
+import { FormTagsField } from "../../core/applets/form-field-tags.component";
+import { ApiError } from "../../core/models/api-error.model";
+import { ClientCreate, ClientUpdate, GlobalSettings, WireGuardClient, WireGuardServer } from "../../core/models/api.models";
+import { ClientsService, ServerService, SettingsService, SmtpService } from "../../core/services/api.service";
 
 /** Modal display modes */
 type ModalMode = "create" | "edit" | null;
+
+interface SetupChecklist {
+  endpointAddress: boolean;
+  serverInterface: boolean;
+}
 
 /** Email language options */
 const EMAIL_LANGUAGES = [
@@ -21,7 +27,7 @@ const EMAIL_LANGUAGES = [
 @Component({
   selector: "app-clients",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField, FormTagsField, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./clients.component.html",
   styleUrls: ["./clients.component.css"],
@@ -29,6 +35,8 @@ const EMAIL_LANGUAGES = [
 export class ClientsComponent implements OnInit {
   private readonly clientsService = inject(ClientsService);
   private readonly smtpService = inject(SmtpService);
+  private readonly settingsService = inject(SettingsService);
+  private readonly serverService = inject(ServerService);
 
   // ── Available language options for email ──────────────────────────────────
   readonly emailLanguages = EMAIL_LANGUAGES;
@@ -36,8 +44,13 @@ export class ClientsComponent implements OnInit {
   // ── Data signals ──────────────────────────────────────────────────────────
   readonly clients = signal<WireGuardClient[]>([]);
   readonly loading = signal(true);
+  readonly setupLoading = signal(true);
   readonly error = signal<ApiError | null>(null);
   readonly formError = signal<ApiError | null>(null);
+  readonly setupChecklist = signal<SetupChecklist>({
+    endpointAddress: false,
+    serverInterface: false,
+  });
 
   // ── Modal state signals ───────────────────────────────────────────────────
   readonly modalMode = signal<ModalMode>(null);
@@ -67,13 +80,31 @@ export class ClientsComponent implements OnInit {
   // ── Computed values ───────────────────────────────────────────────────────
   readonly filteredClients = computed(() => this.clients());
   readonly enabledCount = computed(() => this.clients().filter((c) => c.enabled).length);
+  readonly canCreateClients = computed(() => {
+    const checklist = this.setupChecklist();
+    return checklist.endpointAddress && checklist.serverInterface;
+  });
+  readonly missingSetupItems = computed(() => {
+    const checklist = this.setupChecklist();
+    const items: string[] = [];
+
+    if (!checklist.endpointAddress) {
+      items.push("Endpoint Address");
+    }
+
+    if (!checklist.serverInterface) {
+      items.push("WireGuard interface configuration");
+    }
+
+    return items;
+  });
 
   // ── Client creation form ──────────────────────────────────────────────────
   readonly clientInit = {
     name: "",
     email: "",
     allocated_ips: "",
-    allowed_ips: "0.0.0.0/0",
+    allowed_ips: ["0.0.0.0/0","::0"],
     use_server_dns: true,
     enabled: true,
     preshared_key: "",
@@ -101,6 +132,7 @@ export class ClientsComponent implements OnInit {
   ngOnInit(): void {
     this.loadClients();
     this.loadDefaultEmailLanguage();
+    this.loadSetupChecklist();
   }
 
   loadDefaultEmailLanguage(): void {
@@ -114,6 +146,38 @@ export class ClientsComponent implements OnInit {
         this.defaultEmailLanguage.set("en");
       },
     });
+  }
+
+  loadSetupChecklist(): void {
+    this.setupLoading.set(true);
+
+    forkJoin({
+      settings: this.settingsService.get().pipe(catchError((err) => of(err?.status === 404 ? null : null))),
+      server: this.serverService.get().pipe(catchError((err) => of(err?.status === 404 ? null : null))),
+    }).subscribe({
+      next: ({ settings, server }) => {
+        this.setupChecklist.set({
+          endpointAddress: this.hasEndpointAddress(settings),
+          serverInterface: this.hasServerInterface(server),
+        });
+        this.setupLoading.set(false);
+      },
+      error: () => {
+        this.setupChecklist.set({
+          endpointAddress: false,
+          serverInterface: false,
+        });
+        this.setupLoading.set(false);
+      },
+    });
+  }
+
+  private hasEndpointAddress(settings: GlobalSettings | null): boolean {
+    return Boolean(settings?.endpoint_address?.trim());
+  }
+
+  private hasServerInterface(server: WireGuardServer | null): boolean {
+    return Boolean(server?.address?.trim() && server?.public_key?.trim() && server?.listen_port);
   }
 
   loadClients(): void {
@@ -134,6 +198,8 @@ export class ClientsComponent implements OnInit {
 
   /** Open the creation modal and pre-fill the suggested IP */
   openCreateModal(): void {
+    if (!this.canCreateClients()) return;
+
     this.clientForm().reset({ ...this.clientInit });
     this.formError.set(null);
     this.modalMode.set("create");
@@ -195,8 +261,7 @@ export class ClientsComponent implements OnInit {
         this.formError.set({ code: "state", message: "Invalid form state" } as ApiError);
       }
     } catch (err: unknown) {
-      const errMsg = (err instanceof HttpErrorResponse && err.error.detail) || `Failed to ${mode} client`;
-      this.formError.set(errMsg);
+      this.formError.set(err as ApiError ?? `Failed to ${mode} client`);
     }
   }
 

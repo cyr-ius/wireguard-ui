@@ -3,10 +3,10 @@ import { email, form, FormField, FormRoot, minLength, readonly, required } from 
 import { firstValueFrom } from "rxjs";
 import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
+import { ApiError } from "../../core/models/api-error.model";
+import { Role, User, UserCreate, UserUpdate } from "../../core/models/api.models";
 import { UsersService } from "../../core/services/api.service";
 import { AuthService } from "../../core/services/auth.service";
-import { ApiError } from "../../shared/models/api-error.model";
-import { Role, User, UserCreate, UserUpdate } from "../../shared/models/api.models";
 
 type ModalMode = "create" | "edit" | null;
 

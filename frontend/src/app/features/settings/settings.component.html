@@ -14,36 +14,37 @@
       <p>Loading...</p>
     </div>
   } @else {
+    {{ !settingsForm.endpoint_address().value()?.trim() }}
     <form [formRoot]="settingsForm" class="config-form">
       <div class="config-card">
-        <h2 class="section-title"><i class="bi bi-globe me-2"></i>Network</h2>
+        <h2 class="section-title"><i class="bi bi-globe me-2" class="form-error"></i>Network</h2>
         <div class="form-group">
           <label class="form-label">Endpoint Address *</label>
           <input
             type="text"
             class="form-control"
+            [class.is-warning]="!settingsForm.endpoint_address().value()?.trim()"
             [formField]="settingsForm.endpoint_address"
             placeholder="vpn.yourdomain.com or public IP"
           />
-          <form-extra-fields [fieldRef]="settingsForm.endpoint_address"></form-extra-fields>
+          <form-extra-fields [fieldRef]="settingsForm.endpoint_address" class="form-error"></form-extra-fields>
           <small class="text-muted">Public hostname or IP used by clients to connect</small>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">DNS Servers</label>
-            <input
-              type="text"
-              class="form-control font-mono"
+            <label class="form-label">DNS Servers *</label>
+            <form-tags-field
               [formField]="settingsForm.dns_servers"
-              placeholder="1.1.1.1,8.8.8.8"
-            />
-            <form-extra-fields [fieldRef]="settingsForm.dns_servers"></form-extra-fields>
+              label="DNS Servers"
+              [selectOptions]="settingsForm.dns_servers().value()"
+            ></form-tags-field>
+            <form-extra-fields [fieldRef]="settingsForm.dns_servers" class="form-error"></form-extra-fields>
             <small class="text-muted">Comma-separated DNS addresses</small>
           </div>
           <div class="form-group">
             <label class="form-label">MTU (optional)</label>
             <input type="number" class="form-control" [formField]="settingsForm.mtu" placeholder="1420" />
-            <form-extra-fields [fieldRef]="settingsForm.mtu"></form-extra-fields>
+            <form-extra-fields [fieldRef]="settingsForm.mtu" class="form-error"></form-extra-fields>
             <small class="text-muted">Leave empty to use WireGuard default</small>
           </div>
         </div>
@@ -51,18 +52,8 @@
           <div class="form-group">
             <label class="form-label">Persistent Keepalive (seconds)</label>
             <input type="number" [formField]="settingsForm.persistent_keepalive" class="form-control" />
-            <form-extra-fields [fieldRef]="settingsForm.persistent_keepalive"></form-extra-fields>
+            <form-extra-fields [fieldRef]="settingsForm.persistent_keepalive" class="form-error"></form-extra-fields>
             <small class="text-muted">Leave empty to disable keepalive</small>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Config File Path *</label>
-            <input
-              type="text"
-              [formField]="settingsForm.config_file_path"
-              class="form-control font-mono"
-              placeholder="/etc/wireguard/wg0.conf"
-            />
-            <form-extra-fields [fieldRef]="settingsForm.config_file_path"></form-extra-fields>
           </div>
         </div>
       </div>

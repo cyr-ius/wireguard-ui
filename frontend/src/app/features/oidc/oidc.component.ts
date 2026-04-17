@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { form, FormField, FormRoot, maxLength, required } from "@angular/forms/signals";
 import { firstValueFrom } from "rxjs";
-import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
-import { OidcService } from "../../core/services/api.service";
-import { ApiError } from "../../shared/models/api-error.model";
-import { OidcAdminSettings } from "../../shared/models/api.models";
 import { ErrorField } from "../../core/applets/error-field.component";
+import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
+import { ApiError } from "../../core/models/api-error.model";
+import { OidcAdminSettings } from "../../core/models/api.models";
+import { OidcService } from "../../core/services/api.service";
 
 @Component({
   selector: "app-oidc",

@@ -64,7 +64,7 @@ body {
     "Segoe UI",
     Roboto,
     sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -242,7 +242,7 @@ input:-webkit-autofill:focus {
 }
 
 .config-form .form-control.is-invalid {
-  border-color: #ef4444;
+  border-color: #ef4444 !important;
 }
 
 .config-form .font-mono {
@@ -259,6 +259,10 @@ input:-webkit-autofill:focus {
 .config-form .form-actions {
   display: flex;
   gap: 1rem;
+}
+
+.config-form .form-control.is-warning {
+  border-color: #ef4444 !important;
 }
 
 @media (max-width: 600px) {

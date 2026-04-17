@@ -354,7 +354,7 @@ code.detail-value {
 }
 
 .form-control.is-invalid {
-  border-color: #ef4444;
+  border-color: #ef4444 !important;
 }
 
 .form-error {

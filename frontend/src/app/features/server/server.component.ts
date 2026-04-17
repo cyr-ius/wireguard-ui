@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { form, FormField, FormRoot, max, min, readonly, required } from "@angular/forms/signals";
-import { firstValueFrom, tap } from "rxjs";
+import { firstValueFrom } from "rxjs";
 import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
+import { ApiError } from "../../core/models/api-error.model";
 import { ApiService, ServerService } from "../../core/services/api.service";
-import { ApiError } from "../../shared/models/api-error.model";
 
 @Component({
   selector: "app-server",
@@ -22,10 +22,10 @@ export class ServerComponent implements OnInit {
   readonly applying = signal(false);
   readonly resetting = signal(false);
   readonly serviceActionLoading = signal<"start" | "stop" | "restart" | null>(null);
-  readonly serviceStatus = signal(false);
   readonly error = signal<ApiError | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly showPrivateKey = signal(false);
+  readonly status = signal(false);
 
   private readonly serverInit = {
     address: "192.168.1.0/24",
@@ -58,13 +58,20 @@ export class ServerComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadServer();
+    this.getStatus();
+  }
+
+  getStatus(): void {
+    this.apiService.getStatus().subscribe({
+      next: (status) => this.status.set(status.is_running === true),
+      error: (err) => this.error.set((err as ApiError) ?? "Failed to get service status"),
+    });
   }
 
   loadServer(): void {
     this.loading.set(true);
     this.serverService
       .get()
-      .pipe(tap(() => this.getStatus()))
       .subscribe({
         next: (server: any) => {
           this.serverModel.set(server as any);
@@ -88,12 +95,6 @@ export class ServerComponent implements OnInit {
         this.serverForm.public_key().value.set(keys.public_key);
       },
       error: (err) => this.error.set((err as ApiError) ?? "Failed to generate keys"),
-    });
-  }
-
-  getStatus() {
-    this.apiService.getStatus().subscribe((status) => {
-      this.serviceStatus.set(status.is_running === true);
     });
   }
 
@@ -123,13 +124,14 @@ export class ServerComponent implements OnInit {
 
     try {
       await firstValueFrom(this.serverService.applyConfig());
-      this.getStatus();
       this.applying.set(false);
       this.successMessage.set("Configuration applied and WireGuard restarted");
       setTimeout(() => this.successMessage.set(null), 4000);
     } catch (err: unknown) {
       this.applying.set(false);
       this.error.set((err as ApiError) ?? "Failed to apply configuration");
+    } finally {
+      this.getStatus();
     }
   }
 
@@ -153,7 +155,10 @@ export class ServerComponent implements OnInit {
         this.error.set((err as ApiError) ?? `Failed to ${action} service`);
         this.serviceActionLoading.set(null);
       },
-      complete: () => this.serviceActionLoading.set(null),
+      complete: () => {
+        this.serviceActionLoading.set(null),
+        this.getStatus();
+      }
     });
   }
 

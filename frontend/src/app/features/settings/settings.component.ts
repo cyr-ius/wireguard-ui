@@ -3,13 +3,14 @@ import { form, FormField, FormRoot, max, min, required } from "@angular/forms/si
 import { firstValueFrom } from "rxjs";
 import { ErrorField } from "../../core/applets/error-field.component";
 import { FormExtraFields } from "../../core/applets/form-extra-fields.component";
+import { FormTagsField } from "../../core/applets/form-field-tags.component";
+import { ApiError } from "../../core/models/api-error.model";
 import { SettingsService } from "../../core/services/api.service";
-import { ApiError } from "../../shared/models/api-error.model";
 
 @Component({
   selector: "app-settings",
   standalone: true,
-  imports: [FormRoot, FormField, FormExtraFields, ErrorField],
+  imports: [FormRoot, FormField, FormExtraFields, ErrorField, FormTagsField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./settings.component.html",
   styleUrls: ["./settings.component.css"],
@@ -24,18 +25,16 @@ export class SettingsComponent implements OnInit {
 
   private readonly settingsInit = {
     endpoint_address: "",
-    dns_servers: "1.1.1.1,8.8.8.8",
+    dns_servers: ["1.1.1.1", "8.8.8.8"],
     mtu: null,
     persistent_keepalive: null,
-    config_file_path: "/etc/wireguard/wg0.conf",
     maintenance_mode: false,
   };
   readonly settingsModel = signal({ ...this.settingsInit });
   readonly settingsForm = form(
     this.settingsModel,
     (s) => {
-      required(s.endpoint_address);
-      required(s.config_file_path);
+      required(s.endpoint_address, { message: "Your endpoind address is required" });
       min(s.mtu, 576, { message: "MTU must be at least 576" });
       min(s.persistent_keepalive, 0, {
         message: "Keepalive must be a positive number",
@@ -47,7 +46,6 @@ export class SettingsComponent implements OnInit {
       required(s.dns_servers, {
         message: "At least one DNS server is required",
       });
-      required(s.config_file_path, { message: "Config file path is required" });
     },
     {
       submission: {

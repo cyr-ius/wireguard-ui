@@ -108,7 +108,7 @@ class ClientCreate(SQLModel):
     name: str = Field(..., min_length=1)
     email: EmailStr
     allocated_ips: str
-    allowed_ips: str = "0.0.0.0/0"
+    allowed_ips: list[str] = ["0.0.0.0/0"]
     use_server_dns: bool = True
     enabled: bool = True
     preshared_key: str | None = ""
@@ -120,7 +120,7 @@ class ClientUpdate(SQLModel):
     name: str | None = None
     email: EmailStr | None = None
     allocated_ips: str | None = None
-    allowed_ips: str | None = None
+    allowed_ips: list[str] | None = None
     use_server_dns: bool | None = None
     enabled: bool | None = None
     preshared_key: str | None = None
@@ -133,7 +133,7 @@ class ClientResponse(SQLModel):
     public_key: str
     preshared_key: str | None = None
     allocated_ips: str
-    allowed_ips: str
+    allowed_ips: list[str]
     use_server_dns: bool
     enabled: bool
     created_at: datetime | None = None
@@ -164,10 +164,9 @@ class SuggestIpResponse(SQLModel):
 
 class SettingsUpdate(SQLModel):
     endpoint_address: str | None = None
-    dns_servers: str | None = None
+    dns_servers: list[str] | None = None
     mtu: int | None = Field(default=None, ge=576, le=9000)
     persistent_keepalive: int | None = Field(default=None, ge=0, le=65535)
-    config_file_path: str | None = None
     maintenance_mode: bool | None = None
     default_email_language: Lang | None = None
 
@@ -175,10 +174,9 @@ class SettingsUpdate(SQLModel):
 class SettingsResponse(SQLModel):
     id: int
     endpoint_address: str | None = None
-    dns_servers: str | None = None
+    dns_servers: list[str] | None = None
     mtu: int | None = None
     persistent_keepalive: int | None = None
-    config_file_path: str
     maintenance_mode: bool
     default_email_language: str = "en"
     updated_at: datetime | None = None

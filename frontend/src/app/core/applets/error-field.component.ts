@@ -1,5 +1,5 @@
 import { Component, input } from "@angular/core";
-import { ApiError } from "../../shared/models/api-error.model";
+import { ApiError } from "../models/api-error.model";
 
 @Component({
   selector: "div-error",
@@ -9,11 +9,10 @@ import { ApiError } from "../../shared/models/api-error.model";
       @if (error.details && error.details.length > 0) {
         <div class="alert alert-danger">
           <ul class="mb-0">
-            @for (detail of error.details; track detail.field) {
+            @for (detail of error.details; track detail.kind) {
               <li>
-                @if (detail.field) {
-                  <strong>{{ detail.field }}</strong
-                  >:
+                @if (detail.kind) {
+                  <strong>{{ detail.kind }}</strong>:
                 }
                 {{ detail.message }}
               </li>
@@ -22,15 +21,13 @@ import { ApiError } from "../../shared/models/api-error.model";
         </div>
       } @else {
         <div class="alert alert-danger">
-          <i class="bi bi-exclamation-triangle"></i>
-          {{ error.message }}
+          <i class="bi bi-exclamation-triangle"></i>{{ error.message }}
         </div>
       }
     }
     @if (successRef(); as string) {
       <div class="alert alert-success">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        {{ successRef() }}
+        <i class="bi bi-check-circle-fill me-2"></i>{{ successRef() }}
       </div>
     }
   `,

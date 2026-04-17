@@ -1,9 +1,9 @@
 import { Component, OnInit, inject, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { ErrorField } from "../../../core/applets/error-field.component";
+import { ApiError } from "../../../core/models/api-error.model";
 import { OidcService } from "../../../core/services/api.service";
 import { AuthService } from "../../../core/services/auth.service";
-import { ApiError } from "../../../shared/models/api-error.model";
 
 @Component({
   selector: "app-oidc-callback",
