@@ -22,11 +22,7 @@ LABEL org.opencontainers.image.url="https://github.com/cyr-ius/wireguard-ui"
 LABEL org.opencontainers.image.licenses="MIT"
 
 RUN apk add --no-cache \
-    gcc \
-    g++ \
-    musl-dev \
-    linux-headers \
-    libffi-dev \
+    curl \
     wireguard-tools \
     iptables \
     supervisor \

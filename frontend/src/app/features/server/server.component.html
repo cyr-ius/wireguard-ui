@@ -88,7 +88,7 @@
                 <input
                   [type]="showPrivateKey() ? 'text' : 'password'"
                   class="form-control font-mono"
-                  [class.is-warning]="!serverForm.private_key().value().trim()"
+                  [class.is-warning]="!serverForm.private_key().value()"
                   [formField]="serverForm.private_key"
                   placeholder="Server private key"
                 />
@@ -103,7 +103,7 @@
               <input
                 type="text"
                 class="form-control font-mono"
-                [class.is-warning]="!serverForm.public_key().value().trim()"
+                [class.is-warning]="!serverForm.public_key().value()"
                 [formField]="serverForm.public_key"
                 placeholder="Server public key"
               />

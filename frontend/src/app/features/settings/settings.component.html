@@ -22,7 +22,7 @@
           <input
             type="text"
             class="form-control"
-            [class.is-warning]="!settingsForm.endpoint_address().value().trim()"
+            [class.is-warning]="!settingsForm.endpoint_address().value()"
             [formField]="settingsForm.endpoint_address"
             placeholder="vpn.yourdomain.com or public IP"
           />
