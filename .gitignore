@@ -15,15 +15,11 @@ venv/
 .env
 *.env.local
 
-# Docker
-*.tar
-
 # IDE
 .vscode/
 .idea/
 *.swp
 .ruff_cache/
 
-# OS
-.DS_Store
-Thumbs.db
+# Temporary data
+.data_env/

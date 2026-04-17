@@ -19,3 +19,4 @@ node_modules/
 */.angular/
 */.ruff_cache/
 */__pycache__/
+.data_env/
