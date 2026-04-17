@@ -71,6 +71,7 @@ async def _seed_settings(db: AsyncSession) -> None:
                     "config_file_path": CONFIG_FILE,
                     "maintenance_mode": False,
                     "oidc_enabled": False,
+                    "oidc_only": False,
                     "oidc_response_type": "code",
                     "oidc_scope": "openid profile email",
                 }

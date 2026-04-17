@@ -193,6 +193,7 @@ export interface SmtpTestRequest {
 
 export interface OidcAdminSettings {
   enabled: boolean;
+  oidc_only: boolean;
   issuer: string;
   client_id: string;
   client_secret: string;
@@ -204,6 +205,7 @@ export interface OidcAdminSettings {
 
 export interface OidcPublicConfig {
   enabled: boolean;
+  oidc_only: boolean;
   issuer: string;
   client_id: string;
   redirect_uri: string;

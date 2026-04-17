@@ -40,54 +40,64 @@
       <div class="login-card">
         <div class="login-header">
           <h2>Sign in</h2>
-          <p>Access your WireGuard dashboard</p>
+          <p>
+            @if (isOidcOnly()) {
+              Access is restricted to your identity provider
+            } @else {
+              Access your WireGuard dashboard
+            }
+          </p>
         </div>
 
         <div-error [errorRef]="error()"></div-error>
 
         <form [formRoot]="loginForm" novalidate>
-          <div class="field-group">
-            <label for="username" class="field-label">Username</label>
-            <div class="field-wrapper">
-              <i class="bi bi-person field-icon"></i>
-              <input
-                type="text"
-                class="field-input"
-                [formField]="loginForm.username"
-                placeholder="Enter your username"
-                autocomplete="username"
-              />
-              <form-extra-fields [fieldRef]="loginForm.username"></form-extra-fields>
+          @if (!isOidcOnly()) {
+            <div class="field-group">
+              <label for="username" class="field-label">Username</label>
+              <div class="field-wrapper">
+                <i class="bi bi-person field-icon"></i>
+                <input
+                  type="text"
+                  class="field-input"
+                  [formField]="loginForm.username"
+                  placeholder="Enter your username"
+                  autocomplete="username"
+                />
+                <form-extra-fields [fieldRef]="loginForm.username"></form-extra-fields>
+              </div>
             </div>
-          </div>
 
-          <div class="field-group">
-            <label for="password" class="field-label">Password</label>
-            <div class="field-wrapper">
-              <i class="bi bi-lock field-icon"></i>
-              <input
-                type="password"
-                class="field-input"
-                [formField]="loginForm.password"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-              />
-              <form-extra-fields [fieldRef]="loginForm.password"></form-extra-fields>
+            <div class="field-group">
+              <label for="password" class="field-label">Password</label>
+              <div class="field-wrapper">
+                <i class="bi bi-lock field-icon"></i>
+                <input
+                  type="password"
+                  class="field-input"
+                  [formField]="loginForm.password"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                />
+                <form-extra-fields [fieldRef]="loginForm.password"></form-extra-fields>
+              </div>
             </div>
-          </div>
 
-          <button type="submit" class="btn-login" [disabled]="loginForm().invalid() || loginForm().submitting()">
-            @if (loginForm().submitting()) {
-              <span class="spinner"></span>
-              <span>Authenticating...</span>
-            } @else {
-              <i class="bi bi-arrow-right-circle me-2"></i>
-              <span>Sign in</span>
-            }
-          </button>
+            <button type="submit" class="btn-login" [disabled]="loginForm().invalid() || loginForm().submitting()">
+              @if (loginForm().submitting()) {
+                <span class="spinner"></span>
+                <span>Authenticating...</span>
+              } @else {
+                <i class="bi bi-arrow-right-circle me-2"></i>
+                <span>Sign in</span>
+              }
+            </button>
+          }
 
           @if (oidcConfig()?.enabled) {
-            <div class="login-divider"><span>or</span></div>
+            @if (!isOidcOnly()) {
+              <div class="login-divider"><span>or</span></div>
+            }
             <button type="button" class="btn-oidc" (click)="startOidcLogin()" [disabled]="isOidcLoading()">
               @if (isOidcLoading()) {
                 <span class="spinner"></span>

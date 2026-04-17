@@ -108,10 +108,12 @@ async def control_service(action: str, _: User = Depends(get_current_admin)):
     try:
         match action:
             case "start":
+                await write_server_config()
                 await start_service()
             case "stop":
                 await stop_service()
             case "restart":
+                await write_server_config()
                 await restart_service()
             case _:
                 raise HTTPException(400, detail=f"Unknown action: {action}")

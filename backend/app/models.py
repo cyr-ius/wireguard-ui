@@ -150,6 +150,7 @@ class GlobalSettings(SQLModel, table=True):
 
     # OIDC settings
     oidc_enabled: bool = Field(default=False)
+    oidc_only: bool = Field(default=False)
     oidc_issuer: str | None = Field(default="", max_length=512)
     oidc_client_id: str | None = Field(default="", max_length=255)
     oidc_client_secret: str | None = Field(default="", max_length=512)

@@ -32,6 +32,7 @@ export class LoginComponent implements OnInit {
   readonly isOidcLoading = signal(false);
   readonly error = signal<ApiError | null>(null);
   readonly oidcConfig = signal<OidcPublicConfig | null>(null);
+  readonly isOidcOnly = signal(false);
 
   private readonly loginInit = {
     username: "",
@@ -55,8 +56,14 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.oidc.getPublicConfig().subscribe({
-      next: (config) => this.oidcConfig.set(config),
-      error: () => this.oidcConfig.set(null),
+      next: (config) => {
+        this.oidcConfig.set(config);
+        this.isOidcOnly.set(config.oidc_only === true);
+      },
+      error: () => {
+        this.oidcConfig.set(null);
+        this.isOidcOnly.set(false);
+      },
     });
   }
 

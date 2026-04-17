@@ -25,6 +25,7 @@ export class OidcComponent implements OnInit {
 
   private readonly oidcInit: OidcAdminSettings = {
     enabled: false,
+    oidc_only: false,
     issuer: "",
     client_id: "",
     client_secret: "",

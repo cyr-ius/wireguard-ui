@@ -7,6 +7,7 @@ import ipaddress
 import json
 import logging
 import re
+import shlex
 import socket
 import subprocess
 from typing import Any
@@ -61,7 +62,7 @@ async def get_service_state(interface: str = "wg0") -> str:
 
 async def start_service(interface: str = "wg0") -> None:
     try:
-        await _run(f"wg-quick up {interface}")
+        await _run(f"wg-quick up {shlex.quote(CONFIG_FILE)}")
         logger.info("Wireguard started.")
     except WireGuardError as exc:
         raise WireGuardError(f"Start failed: {exc}") from exc
@@ -69,7 +70,7 @@ async def start_service(interface: str = "wg0") -> None:
 
 async def stop_service(interface: str = "wg0") -> None:
     try:
-        await _run(f"wg-quick down {interface}")
+        await _run(f"wg-quick down {shlex.quote(CONFIG_FILE)}")
         logger.info("Wireguard stopped.")
     except WireGuardError as exc:
         raise WireGuardError(f"Stop failed: {exc}") from exc

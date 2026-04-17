@@ -228,6 +228,7 @@ class SmtpTestRequest(SQLModel):
 
 class OidcSettingsUpdate(SQLModel):
     enabled: bool = False
+    oidc_only: bool = False
     issuer: str | None = None
     client_id: str | None = None
     client_secret: str | None = None
@@ -239,6 +240,7 @@ class OidcSettingsUpdate(SQLModel):
 
 class OidcSettingsResponse(SQLModel):
     enabled: bool
+    oidc_only: bool = False
     issuer: str
     client_id: str
     client_secret: str
@@ -250,13 +252,14 @@ class OidcSettingsResponse(SQLModel):
 
 class OidcPublicConfig(SQLModel):
     enabled: bool
+    oidc_only: bool = False
     issuer: str
     client_id: str
     redirect_uri: str
     post_logout_redirect_uri: str
     response_type: str
     scope: str
-    authorization_endpoint: str
+    authorization_endpoint: str = ""
     end_session_endpoint: str = ""
 
 

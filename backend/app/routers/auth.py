@@ -8,10 +8,17 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import create_access_token, get_current_user, hash_password, verify_password
 from ..database import get_db
-from ..models import User
+from ..models import GlobalSettings, User
 from ..schemas import LoginRequest, PasswordChangeRequest, TokenResponse, UserResponse
 
 router = APIRouter()
+
+
+async def _local_login_allowed(db: AsyncSession) -> bool:
+    settings = (await db.exec(select(GlobalSettings))).one_or_none()
+    if settings is None:
+        return True
+    return not (settings.oidc_enabled and settings.oidc_only)
 
 
 @router.post("/token", response_model=TokenResponse)
@@ -20,6 +27,12 @@ async def login_for_access_token(
     db: AsyncSession = Depends(get_db),
 ):
     """OAuth2 password-flow token endpoint used by the Swagger UI."""
+    if not await _local_login_allowed(db):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Local authentication is disabled. Use OIDC sign-in instead.",
+        )
+
     result = await db.exec(
         select(User)
         .where(User.username == credentials.username)
@@ -45,6 +58,12 @@ async def login_for_access_token(
 @router.post("/login", response_model=TokenResponse)
 async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate and return a JWT access token."""
+    if not await _local_login_allowed(db):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Local authentication is disabled. Use OIDC sign-in instead.",
+        )
+
     result = await db.exec(
         select(User)
         .where(User.username == credentials.username)
