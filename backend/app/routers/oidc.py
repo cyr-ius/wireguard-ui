@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import urllib.error
 import urllib.parse
@@ -56,6 +57,61 @@ def _normalize_issuer(issuer: str) -> str:
 
 def _discovery_url(issuer: str) -> str:
     return f"{_normalize_issuer(issuer)}/.well-known/openid-configuration"
+
+
+def _build_token_request(
+    discovery: dict[str, Any], settings: GlobalSettings, code: str
+) -> tuple[bytes, dict[str, str]]:
+    client_id = _get_str_attr(settings, "oidc_client_id").strip()
+    client_secret = _get_str_attr(settings, "oidc_client_secret")
+    redirect_uri = _get_str_attr(settings, "oidc_redirect_uri")
+
+    if not client_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OIDC client ID is not configured.",
+        )
+
+    token_data: dict[str, str] = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri,
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    supported_methods_raw = discovery.get("token_endpoint_auth_methods_supported")
+    supported_methods = (
+        [str(method) for method in supported_methods_raw if isinstance(method, str)]
+        if isinstance(supported_methods_raw, list)
+        else []
+    )
+
+    # RFC 8414: if omitted, the default is client_secret_basic.
+    if not supported_methods:
+        supported_methods = ["client_secret_basic"]
+
+    if client_secret and "client_secret_basic" in supported_methods:
+        credentials = f"{client_id}:{client_secret}".encode()
+        headers["Authorization"] = (
+            f"Basic {base64.b64encode(credentials).decode('ascii')}"
+        )
+        token_data["client_id"] = client_id
+    elif client_secret and "client_secret_post" in supported_methods:
+        token_data["client_id"] = client_id
+        token_data["client_secret"] = client_secret
+    elif "none" in supported_methods:
+        token_data["client_id"] = client_id
+    else:
+        allowed = ", ".join(supported_methods) or "none"
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "OIDC provider and configured client credentials are incompatible. "
+                f"Supported token endpoint auth methods: {allowed}."
+            ),
+        )
+
+    return urllib.parse.urlencode(token_data).encode("utf-8"), headers
 
 
 def _safe_username(claims: dict[str, Any]) -> str:
@@ -345,21 +401,13 @@ async def oidc_callback(body: dict[str, str], db: AsyncSession = Depends(get_db)
             detail="OIDC discovery document does not include a token endpoint.",
         )
 
-    token_data = urllib.parse.urlencode(
-        {
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": _get_str_attr(settings, "oidc_redirect_uri"),
-            "client_id": _get_str_attr(settings, "oidc_client_id"),
-            "client_secret": _get_str_attr(settings, "oidc_client_secret"),
-        }
-    ).encode("utf-8")
+    token_data, token_headers = _build_token_request(discovery, settings, code)
 
     token_response = await _fetch_json(
         token_endpoint,
         method="POST",
         data=token_data,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        headers=token_headers,
     )
 
     claims: dict[str, Any] = {}
