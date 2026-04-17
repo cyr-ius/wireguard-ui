@@ -39,12 +39,12 @@ def suggest_next_ip(
     # Collect all host IPs already in use (server + clients)
     used_ips: set[ipaddress.IPv4Address | ipaddress.IPv6Address] = set()
 
-    # Reserve the first host address for the server itself
+    # Reserve the address actually assigned to the WireGuard server:
+    # the first usable host in the configured subnet.
     try:
-        server_ip_str = server_cidr.split("/")[0]
-        used_ips.add(ipaddress.ip_address(server_ip_str))
-    except ValueError:
-        pass
+        used_ips.add(next(network.hosts()))
+    except StopIteration, ValueError:
+        logger.debug("Could not reserve server IP from network %s", network)
 
     # Add all client allocated IPs (strip /32 or /128 suffix)
     for ip_cidr in allocated_ips:

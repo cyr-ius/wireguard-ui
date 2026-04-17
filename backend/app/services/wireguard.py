@@ -168,7 +168,7 @@ def build_client_config(
 def build_server_config(server: WireGuardServer, clients: list[WireGuardClient]) -> str:
     try:
         net = ipaddress.ip_network(server.address, strict=False)
-        server_ip = str(list(net.hosts())[0])
+        server_ip = f"{next(net.hosts())}/{net.prefixlen}"
     except Exception:
         server_ip = server.address
 
