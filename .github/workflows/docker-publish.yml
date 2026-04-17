@@ -15,10 +15,10 @@ jobs:
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
-      packages: write # Required to push to GHCR
+      packages: write
+      id-token: write
 
     steps:
       # ── Checkout ─────────────────────────────────────────────────────────
