@@ -1,6 +1,6 @@
 import { provideHttpClient, withFetch, withInterceptors } from "@angular/common/http";
 import { ApplicationConfig, provideZonelessChangeDetection } from "@angular/core";
-import { provideRouter, withHashLocation } from "@angular/router";
+import { provideRouter } from "@angular/router";
 
 import { FormField, provideSignalFormsConfig } from "@angular/forms/signals";
 import { routes } from "./app.routes";
@@ -11,7 +11,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
-    provideRouter(routes, withHashLocation()),
+    provideRouter(routes),
     provideSignalFormsConfig({
       classes: {
         "is-invalid": (state: FormField<unknown>) => state.state().touched() && state.state().invalid(),
