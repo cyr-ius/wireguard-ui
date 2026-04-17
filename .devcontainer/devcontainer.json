@@ -25,7 +25,7 @@
         "alexcvzz.vscode-sqlite"
       ],
       "settings": {
-        // ── Python ──────────────────────────────────────────────────────
+        // ── Python ────────────────────────────────────────────────────────
         "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
         "python.pythonPath": "${workspaceFolder}/backend/.venv/bin/python",
         "python.terminal.activateEnvInCurrentTerminal": true,
@@ -42,7 +42,7 @@
         "ruff.enable": true,
         "ruff.organizeImports": true,
 
-        // ── TypeScript / Angular ─────────────────────────────────────────
+        // ── TypeScript / Angular ──────────────────────────────────────────
         "[typescript]": {
           "editor.defaultFormatter": "esbenp.prettier-vscode",
           "editor.formatOnSave": true
@@ -75,7 +75,7 @@
     }
   },
 
-  // ─── Ports forwardés automatiquement ──────────────────────────────────
+  // ─── Ports forwardés automatiquement ────────────────────────────────────
   "forwardPorts": [
     4200, // Angular dev server
     8000 // FastAPI
@@ -83,6 +83,11 @@
   "portsAttributes": {
     "4200": { "label": "Angular Frontend", "onAutoForward": "notify" },
     "8000": { "label": "FastAPI Backend", "onAutoForward": "notify" }
+  },
+
+  // ─── Environment varaibles ──────────────────────────────────────────────
+  "containerEnv": {
+    "DATA_DIR": "./data_env" // (db, configuration files, etc...)
   },
 
   // ─── Cycle de vie ──────────────────────────────────────────────────────
