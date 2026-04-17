@@ -1,5 +1,4 @@
 services:
-  # ── Portalcrane Application ──────────────────────────────────────────────
   wireguard-ui:
     build:
       context: .
