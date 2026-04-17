@@ -90,11 +90,11 @@ class WireGuardServer(SQLModel, table=True):
     private_key: str = Field(max_length=255)
     public_key: str = Field(max_length=255)
     postup: str | None = Field(
-        default="iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE",
+        default="EXT_IF=$(ip route show default | awk '/default/ {print $5; exit}'); iptables -A FORWARD -i wg0 -o $EXT_IF -j ACCEPT; iptables -A FORWARD -i $EXT_IF -o wg0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE",
         sa_column=Column(Text, nullable=True),
     )
     postdown: str | None = Field(
-        default="iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE",
+        default="EXT_IF=$(ip route show default | awk '/default/ {print $5; exit}'); iptables -D FORWARD -i wg0 -o $EXT_IF -j ACCEPT; iptables -D FORWARD -i $EXT_IF -o wg0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -D POSTROUTING -o $EXT_IF -j MASQUERADE",
         sa_column=Column(Text, nullable=True),
     )
     updated_at: datetime = Field(
