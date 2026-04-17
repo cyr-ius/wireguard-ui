@@ -51,15 +51,23 @@ export class SmtpComponent implements OnInit {
   };
 
   readonly smtpSignal = signal({ ...this.smtpInit });
-  readonly smtpForm = form(this.smtpSignal, (p) => {
-    required(p.smtp_server, { message: "SMTP server is required" });
-    required(p.smtp_port, { message: "SMTP port is required" });
-    required(p.smtp_from_name, { message: "Mail From Name is required" });
-    required(p.smtp_from, { message: "Mail From is required" });
-    min(p.smtp_port, 1, { message: "SMTP port must be at least 1" });
-    max(p.smtp_port, 65535, { message: "SMTP port must be at most 65535" });
-    email(p.smtp_from, { message: "Mail From must be a valid email address" });
-  });
+  readonly smtpForm = form(
+    this.smtpSignal,
+    (p) => {
+      required(p.smtp_server, { message: "SMTP server is required" });
+      required(p.smtp_port, { message: "SMTP port is required" });
+      required(p.smtp_from_name, { message: "Mail From Name is required" });
+      required(p.smtp_from, { message: "Mail From is required" });
+      min(p.smtp_port, 1, { message: "SMTP port must be at least 1" });
+      max(p.smtp_port, 65535, { message: "SMTP port must be at most 65535" });
+      email(p.smtp_from, { message: "Mail From must be a valid email address" });
+    },
+    {
+      submission: {
+        action: async (f) => this.onSubmit(f().value()),
+      },
+    },
+  );
 
   ngOnInit(): void {
     this.loadSmtp();

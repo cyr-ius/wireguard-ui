@@ -163,7 +163,7 @@ class GlobalSettings(SQLModel, table=True):
     smtp_port: int | None = Field(default=None)
     smtp_username: str | None = Field(default=None, max_length=255)
     smtp_password: str | None = Field(default=None, max_length=255)
-    smtp_from: str | None = Field(default=None, max_length=255)
+    smtp_from: str | None = Field(default="no-reply@wg.ui", max_length=255)
     smtp_from_name: str = Field(default="WireGuard UI", max_length=255)
     smtp_tls: bool = Field(default=True)
     smtp_ssl: bool = Field(default=False)
