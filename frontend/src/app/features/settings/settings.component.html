@@ -14,7 +14,6 @@
       <p>Loading...</p>
     </div>
   } @else {
-    {{ !settingsForm.endpoint_address().value()?.trim() }}
     <form [formRoot]="settingsForm" class="config-form">
       <div class="config-card">
         <h2 class="section-title"><i class="bi bi-globe me-2" class="form-error"></i>Network</h2>
@@ -23,7 +22,7 @@
           <input
             type="text"
             class="form-control"
-            [class.is-warning]="!settingsForm.endpoint_address().value()?.trim()"
+            [class.is-warning]="!settingsForm.endpoint_address().value().trim()"
             [formField]="settingsForm.endpoint_address"
             placeholder="vpn.yourdomain.com or public IP"
           />

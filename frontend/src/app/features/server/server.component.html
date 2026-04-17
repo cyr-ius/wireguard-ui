@@ -88,12 +88,12 @@
                 <input
                   [type]="showPrivateKey() ? 'text' : 'password'"
                   class="form-control font-mono"
-                  [class.is-warning]="!serverForm.private_key().value()?.trim()"
+                  [class.is-warning]="!serverForm.private_key().value().trim()"
                   [formField]="serverForm.private_key"
                   placeholder="Server private key"
                 />
                 <form-extra-fields [fieldRef]="serverForm.private_key"></form-extra-fields>
-                <button type="button" class="btn btn-outline-secondary" (click)="showPrivateKey.update(v => !v)">
+                <button type="button" class="btn btn-outline-secondary" (click)="showPrivateKey.update((v) => !v)">
                   <i class="bi" [class.bi-eye]="!showPrivateKey()" [class.bi-eye-slash]="showPrivateKey()"></i>
                 </button>
               </div>
@@ -103,7 +103,7 @@
               <input
                 type="text"
                 class="form-control font-mono"
-                [class.is-warning]="!serverForm.public_key().value()?.trim()"
+                [class.is-warning]="!serverForm.public_key().value().trim()"
                 [formField]="serverForm.public_key"
                 placeholder="Server public key"
               />
