@@ -7,19 +7,16 @@ on:
 
 env:
   # Docker Hub image name
-  DOCKERHUB_IMAGE: cyrius44/portalcrane
+  DOCKERHUB_IMAGE: cyrius44/wireguard-ui
   # GitHub Container Registry image name
-  GHCR_IMAGE: ghcr.io/cyr-ius/portalcrane
+  GHCR_IMAGE: ghcr.io/cyr-ius/wireguard-ui
 
 jobs:
   build-and-push:
-    name: Build and Push
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
-      id-token: write
-
+      packages: write # Required to push to GHCR
     steps:
       # ── Checkout ─────────────────────────────────────────────────────────
       - name: Checkout repository
@@ -76,12 +73,12 @@ jobs:
             # Tag with short commit SHA
             type=sha,prefix=sha-,format=short
           labels: |
-            org.opencontainers.image.title=Portalcrane
-            org.opencontainers.image.description=Docker Registry Manager
+            org.opencontainers.image.title=WireguardUI
+            org.opencontainers.image.description=WireGuardUI - Secure tunnel management
             org.opencontainers.image.vendor=cyr-ius
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/cyr-ius/portalcrane
-            org.opencontainers.image.documentation=https://github.com/cyr-ius/portalcrane#readme
+            org.opencontainers.image.source=https://github.com/cyr-ius/wireguard-ui
+            org.opencontainers.image.documentation=https://github.com/cyr-ius/wireguard-ui#readme
 
       # ── Build and push ────────────────────────────────────────────────────
       - name: Build and push Docker image
