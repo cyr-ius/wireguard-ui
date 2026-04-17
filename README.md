@@ -12,6 +12,12 @@ Interface web pour administrer un serveur WireGuard sans manipuler directement l
 - Déploiement simple avec Docker / Docker Compose.
 - Envoie de mail pour l'enrollement
 
+
+<img width="1295" height="948" alt="image" src="https://github.com/user-attachments/assets/f147aeed-9d02-43c4-b686-aa400d06942c" />
+<img width="1033" height="461" alt="image" src="https://github.com/user-attachments/assets/7beb9fea-089c-4ff4-a275-907674390f1c" />
+<img width="1033" height="947" alt="image" src="https://github.com/user-attachments/assets/6bc9e2f8-0380-44e5-b1db-19aa5304cb44" />
+
+
 ## 🧱 Stack technique
 
 | Layer          | Technology                                                          |
