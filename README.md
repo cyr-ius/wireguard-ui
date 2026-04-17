@@ -1,6 +1,6 @@
 # WireGuard UI
 
-Interface web moderne pour administrer un serveur WireGuard sans manipuler directement les fichiers de configuration.
+Interface web pour administrer un serveur WireGuard sans manipuler directement les fichiers de configuration.
 
 ## ✨ Fonctionnalités
 
@@ -10,15 +10,138 @@ Interface web moderne pour administrer un serveur WireGuard sans manipuler direc
 - Authentification administrateur.
 - Healthcheck API intégré (`/api/health`).
 - Déploiement simple avec Docker / Docker Compose.
+- Envoie de mail pour l'enrollement
 
 ## 🧱 Stack technique
 
-- **Backend** : FastAPI (Python)
-- **Frontend** : Angular
-- **Base de données** : SQLite (par défaut, persistée dans `/data`)
-- **Conteneurisation** : Docker multi-stage (Node + Python + WireGuard tools)
+| Layer          | Technology                                                          |
+| -------------- | ------------------------------------------------------------------- |
+| **Frontend**   | Angular 21 — Signals, Signal Forms, Zoneless, standalone components |
+| **Styling**    | Bootstrap 5 + Bootstrap Icons                                       |
+| **Backend**    | FastAPI + Python 3.14 (fully async)                                 |
+| **Validation** | Pydantic v2                                                         |
+| **Container**  | Single image — supervisord orchestrates all processes               |
+| **Platforms**  | `linux/amd64`, `linux/arm64` (Raspberry Pi, Apple Silicon)          |
 
-## 🚀 Démarrage rapide (Docker Compose)
+## 🚀 Démarrage rapide
+
+### Docker CLI
+
+```bash
+docker run -d \
+  --name wireguard-ui \
+  -p 8000:8000 \
+  -p 51820:51820 \
+  -e ADMIN_USERNAME=admin \
+  -e ADMIN_PASSWORD=yourpassword \
+  -e SECRET_KEY=your-secret-key \
+  -v /wireguard_data:/data \
+  cyrius44/wireguard-ui:latest
+```
+
+Open **http://localhost:8080** and log in with your admin credentials.
+
+### Docker Compose
+
+```yaml
+services:
+  portalcrane:
+    image: cyrius44/wireguard-ui:latest
+    container_name: wireguard-ui
+    ports:
+      - "8000:8000"
+      - "51820:51820"
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=changeme
+      - SECRET_KEY=your-secret-key
+    volumes:
+      - wireguard_data:/data
+    restart: unless-stopped
+
+volumes:
+  wireguard_data:
+```
+
+### Lancer l’application
+
+```bash
+docker compose up -d --build
+```
+
+---
+
+## 🌐 Ports
+
+- `8000` — Wireguard UI + API
+- `51820` — Wireguard port for clients
+
+## 🩺 Santé de service
+
+`GET /api/health` returns a JSON status payload.
+
+## 🔐 Security Notes
+
+- `SECRET_KEY` must be set to a non-default value or the app will refuse to start.
+- Always change `ADMIN_PASSWORD` on first launch.
+- If you expose the UI publicly, enable HTTPS at the reverse proxy level.
+
+## 🔐 Variables d’environnement importantes
+
+### Sécurité / Auth
+
+- `ADMIN_USERNAME` : identifiant admin initial.
+- `ADMIN_PASSWORD` : mot de passe admin initial.
+- `ADMIN_EMAIL` : email admin initial.
+- `SECRET_KEY` : clé de signature JWT (**obligatoire en production**).
+- `ACCESS_TOKEN_EXPIRE_MINUTES` : durée de vie des tokens.
+- `BCRYPT_ROUNDS` : coût de hash des mots de passe.
+
+### API / Application
+
+- `LOG_LEVEL` : niveau de logs (`INFO`, `DEBUG`, etc.).
+- `APP_VERSION` : version exposée par l’application.
+
+### Base de données
+
+- `DB_PATH` : URL de connexion SQLAlchemy.
+  - Par défaut : `sqlite+aiosqlite:////data/wireguard_ui.db`
+
+### WireGuard
+
+- `WIREGUARD_AUTOSTART` : active le démarrage automatique WireGuard au lancement.
+
+### Email (envoi de configuration / notifications)
+
+- `MAIL_FROM` : adresse expéditrice.
+- `MAIL_NAME` : nom expéditeur.
+
+### Systctl
+
+- `net.ipv4.ip_forward=1` : nécessaire pour forwwarder les appels vers la carte principale
+- `net.ipv4.conf.all.src_valid_mark=1` : nécessaire pour l'identification des sources
+
+> D’autres réglages SMTP sont configurables depuis l’interface d’administration.
+
+---
+
+## 📦 Persistance des données
+
+Le volume `wireguard-ui_data` est monté sur `/data` dans le conteneur.
+
+- Base SQLite
+- État applicatif persistant
+
+## 🛡️ Recommandations production
+
+- Remplacer `SECRET_KEY` par une valeur longue et aléatoire.
+- Changer immédiatement les identifiants admin par défaut.
+- Utiliser un reverse proxy TLS (Traefik, Nginx, Caddy).
+- Sauvegarder régulièrement le volume `/data`.
+
+---
+
+## 📋 Development
 
 ### 1) Cloner le dépôt
 
@@ -37,80 +160,6 @@ ADMIN_PASSWORD=change-me-now
 SECRET_KEY=replace-with-a-long-random-secret
 LOG_LEVEL=INFO
 ```
-
-### 3) Lancer l’application
-
-```bash
-docker compose up -d --build
-```
-
-### 4) Accéder à l’interface
-
-- UI / API : `http://localhost:8000`
-- Port WireGuard : `51820/udp`
-
-## 🔐 Variables d’environnement importantes
-
-### Sécurité / Auth
-
-- `ADMIN_USERNAME` : identifiant admin initial.
-- `ADMIN_PASSWORD` : mot de passe admin initial.
-- `ADMIN_EMAIL` : email admin initial.
-- `SECRET_KEY` : clé de signature JWT (**obligatoire en production**).
-- `ACCESS_TOKEN_EXPIRE_MINUTES` : durée de vie des tokens.
-- `BCRYPT_ROUNDS` : coût de hash des mots de passe.
-
-### API / Application
-
-- `LOG_LEVEL` : niveau de logs (`INFO`, `DEBUG`, etc.).
-- `APP_VERSION` : version exposée par l’application.
-- `ALLOWED_ORIGINS` : origines CORS autorisées (séparées par des virgules).
-- `FRONTEND_DIST` : chemin du build frontend servi en statique.
-
-### Base de données
-
-- `DB_PATH` : URL de connexion SQLAlchemy.
-  - Par défaut : `sqlite+aiosqlite:////data/wireguard_ui.db`
-
-### WireGuard
-
-- `WIREGUARD_AUTOSTART` : active le démarrage automatique WireGuard au lancement.
-
-### Email (envoi de configuration / notifications)
-
-- `MAIL_FROM` : adresse expéditrice.
-- `MAIL_NAME` : nom expéditeur.
-
-> D’autres réglages SMTP sont configurables depuis l’interface d’administration.
-
-## 🩺 Santé de service
-
-Le conteneur expose un healthcheck sur :
-
-```text
-GET /api/health
-```
-
-Exemple :
-
-```bash
-curl -f http://localhost:8000/api/health
-```
-
-## 📦 Persistance des données
-
-Le volume `wireguard-ui_data` est monté sur `/data` dans le conteneur.
-
-- Base SQLite
-- État applicatif persistant
-
-## 🛡️ Recommandations production
-
-- Remplacer `SECRET_KEY` par une valeur longue et aléatoire.
-- Changer immédiatement les identifiants admin par défaut.
-- Restreindre `ALLOWED_ORIGINS` à vos domaines.
-- Utiliser un reverse proxy TLS (Traefik, Nginx, Caddy).
-- Sauvegarder régulièrement le volume `/data`.
 
 ## 🧪 Développement local (sans Docker)
 
