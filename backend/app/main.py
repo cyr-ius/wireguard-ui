@@ -3,6 +3,7 @@ WireGuard UI - FastAPI Backend
 Copyright (C) 2021-2024  Cyr-ius (github.com/cyr-ius)
 """
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -49,6 +50,24 @@ async def ensure_schema_updates() -> None:
             logger.info("Added missing global_settings.oidc_only column")
 
 
+async def auto_start_wireguard():
+    """Autostart WireGuard if configured to do so and not already running."""
+    retry = 0
+    try:
+        await write_server_config()
+        await start_service()
+        logger.info("WireGuard autostart successful")
+    except WireGuardError as e:
+        logger.warning("WireGuard autostart failed: %s", e)
+        retry += 1
+        if retry < 3:
+            await asyncio.sleep(5)  # Wait before retrying
+            logger.info("Retrying WireGuard autostart (attempt %d)", retry)
+            await auto_start_wireguard()
+        else:
+            logger.error("WireGuard autostart failed after 3 attempts: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: create all tables and seed initial data, then yield."""
@@ -57,11 +76,7 @@ async def lifespan(app: FastAPI):
     await ensure_schema_updates()
     await seed_initial_data()
     if app_settings.wg_autostart:
-        try:
-            await write_server_config()
-            await start_service()
-        except WireGuardError as e:
-            logger.warning("Autostart failed (%s)", e)
+        await auto_start_wireguard()
 
     yield
     await engine.dispose()
