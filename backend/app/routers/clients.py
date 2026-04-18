@@ -28,6 +28,7 @@ from ..services.wireguard import (
     build_client_config,
     generate_keypair,
     get_machine_ips,
+    reload_peers,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,6 +88,12 @@ async def create_client(
     db.add(client)
     await db.commit()
     await db.refresh(client)
+
+    if client.enabled:
+        try:
+            await reload_peers()
+        except WireGuardError as exc:
+            raise HTTPException(500, detail=str(exc)) from exc
 
     # Optionally send configuration email in background
     if data.send_email:
@@ -215,6 +222,12 @@ async def update_client(
     db.add(c)
     await db.commit()
     await db.refresh(c)
+
+    try:
+        await reload_peers()
+    except WireGuardError as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
     return c  # type: ignore[return-value]
 
 
@@ -230,6 +243,11 @@ async def delete_client(
         raise HTTPException(404, detail="Client not found")
     await db.delete(c)
     await db.commit()
+
+    try:
+        await reload_peers()
+    except WireGuardError as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
 
 
 @router.get("/{client_id}/config", response_model=ClientConfigResponse)
