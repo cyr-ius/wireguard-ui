@@ -84,6 +84,15 @@ async def restart_service(interface: str = "wg0") -> None:
     await start_service(interface)
 
 
+async def reload_peers(interface: str = "wg0") -> None:
+    """Reload peers without restart."""
+    try:
+        await _run(f"wg syncconf {interface} <(wg-quick strip {interface})")
+    except WireguardError as exc:
+        logger.warning("Error to reload config (%s)", exc)
+        raise WireguardError("Reload configuration failed") from exc
+
+
 # ── Status ────────────────────────────────────────────────────────────────────
 
 
