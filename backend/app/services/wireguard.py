@@ -84,14 +84,33 @@ async def restart_service(interface: str = "wg0") -> None:
     await start_service(interface)
 
 
-async def reload_peers(interface: str = "wg0") -> None:
-    """Reload peers without restart."""
+async def restart_service(interface: str = "wg0") -> None:
     try:
-        await _run(f"wg syncconf {interface} <(wg-quick strip {interface})")
-    except WireguardError as exc:
-        logger.warning("Error to reload config (%s)", exc)
-        raise WireguardError("Reload configuration failed") from exc
+        await stop_service(interface)
+    except WireGuardError:
+        pass  # may already be down
+    await start_service(interface)
 
+
+async def add_peer(client: WireGuardClient, interface: str = "wg0") -> None:
+    """Add peer in config without restart."""
+    try:
+        cmd = f'wg set {interface} peer "{client.public_key}" allowed-ips {client.allocated_ips} && ip -4 route add {client.allocated_ips} dev {interface}'
+        await _run(cmd)
+    except WireguardError as exc:
+        logger.warning("Error to add peer (%s)", exc)
+        raise WireguardError(f"Add peer failed {client.name}") from exc
+
+
+async def remove_peer(client: WireGuardClient, interface: str = "wg0") -> None:
+    """Remove peer in config without restart."""
+    try:
+        cmd = f'wg set {interface} peer "{client.public_key}" remove && ip -4 route delete {client.allocated_ips} dev {interface}'
+        await _run(cmd)
+    except WireguardError as exc:
+        logger.warning("Error to remove peer (%s)", exc)
+        raise WireguardError(f"Remove peer failed {client.name}") from exc
+        
 
 # ── Status ────────────────────────────────────────────────────────────────────
 
