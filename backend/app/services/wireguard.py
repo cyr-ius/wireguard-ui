@@ -84,14 +84,6 @@ async def restart_service(interface: str = "wg0") -> None:
     await start_service(interface)
 
 
-async def restart_service(interface: str = "wg0") -> None:
-    try:
-        await stop_service(interface)
-    except WireGuardError:
-        pass  # may already be down
-    await start_service(interface)
-
-
 async def add_peer(client: WireGuardClient, interface: str = "wg0") -> None:
     """Add peer in config without restart."""
     try:
