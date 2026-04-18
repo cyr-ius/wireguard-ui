@@ -12,11 +12,9 @@ Interface web pour administrer un serveur WireGuard sans manipuler directement l
 - Déploiement simple avec Docker / Docker Compose.
 - Envoie de mail pour l'enrollement
 
-
 <img width="1295" height="948" alt="image" src="https://github.com/user-attachments/assets/f147aeed-9d02-43c4-b686-aa400d06942c" />
 <img width="1033" height="461" alt="image" src="https://github.com/user-attachments/assets/7beb9fea-089c-4ff4-a275-907674390f1c" />
 <img width="1033" height="947" alt="image" src="https://github.com/user-attachments/assets/6bc9e2f8-0380-44e5-b1db-19aa5304cb44" />
-
 
 ## 🧱 Stack technique
 
@@ -41,7 +39,7 @@ docker run -d \
   -e ADMIN_USERNAME=admin \
   -e ADMIN_PASSWORD=yourpassword \
   -e SECRET_KEY=your-secret-key \
-  -v /wireguard_data:/data \
+  -v /wireguard_data:/var/lib/wireguard-ui \
   cyrius44/wireguard-ui:latest
 ```
 
@@ -62,7 +60,7 @@ services:
       - ADMIN_PASSWORD=changeme
       - SECRET_KEY=your-secret-key
     volumes:
-      - wireguard_data:/data
+      - wireguard_data:/var/lib/wireguard-ui
     restart: unless-stopped
 
 volumes:
@@ -111,7 +109,7 @@ docker compose up -d --build
 ### Base de données
 
 - `DB_PATH` : URL de connexion SQLAlchemy.
-  - Par défaut : `sqlite+aiosqlite:////data/wireguard_ui.db`
+  - Par défaut : `sqlite+aiosqlite:////var/lib/wireguard-ui/wireguard_ui.db`
 
 ### WireGuard
 
@@ -133,7 +131,7 @@ docker compose up -d --build
 
 ## 📦 Persistance des données
 
-Le volume `wireguard-ui_data` est monté sur `/data` dans le conteneur.
+Le volume `wireguard-ui_data` est monté sur `/var/lib/wireguard-ui` dans le conteneur.
 
 - Base SQLite
 - État applicatif persistant
@@ -143,7 +141,7 @@ Le volume `wireguard-ui_data` est monté sur `/data` dans le conteneur.
 - Remplacer `SECRET_KEY` par une valeur longue et aléatoire.
 - Changer immédiatement les identifiants admin par défaut.
 - Utiliser un reverse proxy TLS (Traefik, Nginx, Caddy).
-- Sauvegarder régulièrement le volume `/data`.
+- Sauvegarder régulièrement le volume `/var/lib/wireguard-ui`.
 
 ---
 

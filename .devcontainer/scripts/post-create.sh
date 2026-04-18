@@ -5,7 +5,6 @@ set -euo pipefail
 WORKSPACE="$1"
 BACKEND_DIR="$WORKSPACE/backend"
 FRONTEND_DIR="$WORKSPACE/frontend"
-DATA_DIR="/data"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  🚀  Post-Create Setup — FastAPI + Angular DevContainer  "
@@ -91,10 +90,10 @@ if [ -d "/home/vscode/.codex" ]; then
 fi
 
 # ── 7. Data volume ─────────────────────────────────────────────────────────
-if [ -d "$DATA_DIR" ]; then
+if [ -d "${DATA_DIR}" ]; then
   echo ""
   echo "📄 Data volume settings..."
-  sudo chown vscode:vscode $DATA_DIR
+  sudo chown vscode:vscode ${DATA_DIR}
 fi
 
 echo ""

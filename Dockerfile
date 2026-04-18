@@ -57,7 +57,7 @@ ENV APP_VERSION=${VERSION:-"1.0.0"}
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD curl -f http://localhost:8000/api/health || exit 1
 
-VOLUME [ "/etc/wireguard", "/data" ]
+VOLUME [ "/etc/wireguard", "/var/lib/wireguard-ui" ]
 
 EXPOSE 8000/tcp 51820/udp
 
