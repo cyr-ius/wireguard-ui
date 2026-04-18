@@ -35,15 +35,17 @@ RUN npm install -g \
 RUN mkdir -p /etc/wireguard \
     && chown vscode:vscode /etc/wireguard
 
+RUN mkdir -p /workspaces/wireguard-ui/.data_env \
+    && chown vscode:vscode /workspaces/wireguard-ui/.data_env
+
 USER vscode
 
 # ── Dependencies ───────────────────────────────────────────────────────────────
 RUN uv tool install ruff \
     && uv tool install pre-commit
 
-
 # ── Volume for WireGuard configuration and data ────────────────────────────────
-VOLUME ["/data"]
+VOLUME ["/workspaces/wireguard-ui/.data_env", "/etc/wireguard"]
 
 # ── Workspace ──────────────────────────────────────────────────────────────────
-WORKDIR /workspace
+WORKDIR /workspaces

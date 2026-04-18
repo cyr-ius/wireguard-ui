@@ -87,7 +87,7 @@
 
   // ─── Environment varaibles ──────────────────────────────────────────────
   "containerEnv": {
-    "DATA_DIR": "./data_env" // (db, configuration files, etc...)
+    "DATA_DIR": "${containerWorkspaceFolder}/.data_env" // (db, configuration files, etc...)
   },
 
   // ─── Cycle de vie ──────────────────────────────────────────────────────

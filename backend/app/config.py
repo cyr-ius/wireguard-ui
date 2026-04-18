@@ -1,11 +1,12 @@
 """Application settings loaded from environment using pydantic-settings."""
 
+import os
 from functools import lru_cache
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DATA_DIR = "/data"
+DATA_DIR = os.getenv("DATA_DIR", "/var/lib/wireguard-ui")
 DEFAULT_DATABASE_URL = f"sqlite+aiosqlite:///{DATA_DIR}/wireguard_ui.db"
 CONFIG_FILE = "/etc/wireguard/wg0.conf"
 GITHUB_REPOSITORY = "cyr-ius/wireguard-ui"
