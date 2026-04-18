@@ -29,6 +29,7 @@ from ..services.wireguard import (
     generate_keypair,
     get_machine_ips,
     reload_peers,
+    write_server_config,
 )
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,7 @@ async def create_client(
 
     if client.enabled:
         try:
+            await write_server_config()
             await reload_peers()
         except WireGuardError as exc:
             raise HTTPException(500, detail=str(exc)) from exc
@@ -224,6 +226,7 @@ async def update_client(
     await db.refresh(c)
 
     try:
+        await write_server_config()
         await reload_peers()
     except WireGuardError as exc:
         raise HTTPException(500, detail=str(exc)) from exc
@@ -245,6 +248,7 @@ async def delete_client(
     await db.commit()
 
     try:
+        await write_server_config()
         await reload_peers()
     except WireGuardError as exc:
         raise HTTPException(500, detail=str(exc)) from exc
