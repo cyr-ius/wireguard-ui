@@ -1,7 +1,14 @@
 {
   "name": "FastAPI + Angular Dev Environment",
   "dockerFile": "Dockerfile",
-  "runArgs": ["--cap-add=NET_ADMIN"],
+  "runArgs": [
+    "--cap-add",
+    "NET_ADMIN",
+    "--sysctl",
+    "net.ipv4.ip_forward=1",
+    "--sysctl",
+    "net.ipv4.conf.all.src_valid_mark=1"
+  ],
   "mounts": ["source=${env:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached"],
 
   // ─── VS Code extensions ────────────────────────────────────────────────
