@@ -36,7 +36,7 @@ if [ -f "$FRONTEND_DIR/package.json" ]; then
   npm ci
 else
   echo "  ℹ️  frontend/package.json absent — création du projet Angular..."
-  cd /workspace && ng new frontend --style 'css' --zoneless --standalone --defaults
+  cd /$WORKSPACE && ng new frontend --style 'css' --zoneless --standalone --defaults
 fi
 
 # ── 3. Git repository ────────────────────────────────────────────────────────
@@ -53,9 +53,9 @@ fi
 # ── 4. Pre-commit hooks ──────────────────────────────────────────────────────
 if [ -f "$WORKSPACE/.pre-commit-config.yaml" ]; then
   echo ""
-  echo "🪝  Installing pre-commit hooks..."
+  echo "🪝  Installing prek hooks..."
   cd "$WORKSPACE"
-  uv run pre-commit install --install-hooks
+  uv run prek install --install-hooks
 else
   echo "  ℹ️  .pre-commit-config.yaml absent — hooks non installés"
 fi

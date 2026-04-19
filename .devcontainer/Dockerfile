@@ -42,10 +42,11 @@ USER vscode
 
 # ── Dependencies ───────────────────────────────────────────────────────────────
 RUN uv tool install ruff \
-    && uv tool install pre-commit
-
-# ── Volume for WireGuard configuration and data ────────────────────────────────
-VOLUME ["/workspaces/wireguard-ui/.data_env", "/etc/wireguard"]
+    && uv tool install prek
 
 # ── Workspace ──────────────────────────────────────────────────────────────────
-WORKDIR /workspaces
+ARG WORKSPACE=/workspaces
+WORKDIR /${WORKSPACE}
+
+# ── Volume for WireGuard configuration and data ────────────────────────────────
+VOLUME ["${WORKSPACE}/.data_env", "/etc/wireguard"]
