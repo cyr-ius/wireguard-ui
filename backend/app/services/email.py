@@ -56,17 +56,7 @@ def _render_email_template(
     qr_code_base64: str,
     settings: GlobalSettings,
 ) -> str:
-    """Render the HTML email template for a given language.
-
-    Args:
-        language: Language code (en, fr, es).
-        client: The WireGuard client whose config is being sent.
-        qr_code_base64: Base64-encoded QR code image.
-        settings: Global application settings (used for DNS, etc.).
-
-    Returns:
-        str: Rendered HTML content.
-    """
+    """Render the HTML email template for the given language and client."""
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=True,
@@ -90,24 +80,7 @@ async def send_client_config_email(
     config_content: str,
     language: SupportedLanguage = "en",
 ) -> None:
-    """Send a WireGuard configuration email to the client.
-
-    Sends an HTML email with:
-    - Client configuration details
-    - Inline QR code image
-    - Attached .conf file
-
-    Args:
-        client: The WireGuard client to send configuration to.
-        server: The WireGuard server (used for context).
-        settings: Global application settings (SMTP config, DNS, etc.).
-        config_content: The WireGuard configuration file content string.
-        language: Language code for the email template (en, fr, es).
-
-    Raises:
-        ValueError: If SMTP is not configured in settings.
-        Exception: If the email sending fails.
-    """
+    """Send WireGuard config email with inline QR code and .conf attachment."""
     if not settings.smtp_server or not settings.smtp_port:
         raise ValueError("SMTP server is not configured in global settings.")
 

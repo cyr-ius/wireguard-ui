@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 from typing import cast
 
-from email_validator import EmailNotValidError, validate_email
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi_mail import (
     ConnectionConfig,
@@ -26,6 +25,7 @@ from ..auth import get_current_admin
 from ..database import get_db
 from ..models import GlobalSettings, User
 from ..schemas import Lang, SmtpSettingsResponse, SmtpSettingsUpdate, SmtpTestRequest
+from ..services.email import _resolve_mail_from
 
 logger = logging.getLogger(__name__)
 default_lang: Lang = "en"
@@ -46,16 +46,7 @@ SMTP_DEFAULTS = {
 
 
 def _build_smtp_response(settings: GlobalSettings) -> SmtpSettingsResponse:
-    """Build a SmtpSettingsResponse from a GlobalSettings object.
-
-    Password is intentionally omitted from the response for security.
-
-    Args:
-        settings: The global settings ORM object.
-
-    Returns:
-        SmtpSettingsResponse: The response DTO.
-    """
+    """Map GlobalSettings to SmtpSettingsResponse, omitting the password."""
     return SmtpSettingsResponse(
         smtp_server=settings.smtp_server,
         smtp_port=settings.smtp_port,
@@ -70,34 +61,8 @@ def _build_smtp_response(settings: GlobalSettings) -> SmtpSettingsResponse:
     )
 
 
-def _resolve_mail_from(settings: GlobalSettings) -> str:
-    """Return a valid sender email or raise a clear configuration error."""
-    for candidate in (settings.smtp_from, settings.smtp_username):
-        if not candidate:
-            continue
-        try:
-            validate_email(candidate, check_deliverability=False)
-            return candidate
-        except EmailNotValidError:
-            continue
-
-    raise HTTPException(
-        400,
-        detail=(
-            "Mail From must be a valid email address, or SMTP Username must be a valid email address."
-        ),
-    )
-
-
 async def _get_settings(db: AsyncSession) -> GlobalSettings:
-    """Retrieve existing settings or create a default row if none exists.
-
-    Args:
-        db: The async database session.
-
-    Returns:
-        GlobalSettings: The settings ORM object.
-    """
+    """Return existing GlobalSettings or create a default row."""
     settings = (await db.exec(select(GlobalSettings))).one_or_none()
     if settings is None:
         settings = GlobalSettings()
@@ -112,10 +77,7 @@ async def get_smtp_settings(
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> SmtpSettingsResponse:
-    """Retrieve the current SMTP/email server configuration.
-
-    Password is not included in the response.
-    """
+    """Return current SMTP configuration (password excluded)."""
     settings = await _get_settings(db)
     return _build_smtp_response(settings)
 
@@ -126,13 +88,7 @@ async def update_smtp_settings(
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> SmtpSettingsResponse:
-    """Update the SMTP/email server configuration.
-
-    If smtp_password is not provided (None), the existing password is preserved.
-
-    Args:
-        payload: The SMTP settings to update.
-    """
+    """Update SMTP settings, preserving the password if not provided."""
     settings = await _get_settings(db)
 
     update_data = payload.model_dump(exclude_unset=True)
@@ -172,26 +128,28 @@ async def reset_smtp_settings(
     await db.refresh(settings)
 
 
-@router.post("/test", status_code=204)
+@router.post("/test", status_code=status.HTTP_204_NO_CONTENT)
 async def test_smtp_settings(
     body: SmtpTestRequest,
     background_tasks: BackgroundTasks,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    """Send a test email to verify SMTP configuration.
-
-    Args:
-        body: Contains the recipient email address for the test.
-    """
+    """Schedule a test email to verify the current SMTP configuration."""
     settings = (await db.exec(select(GlobalSettings))).one_or_none()
 
     if not settings or not settings.smtp_server or not settings.smtp_port:
         raise HTTPException(
-            400, detail="SMTP is not configured. Please save SMTP settings first."
+            status.HTTP_400_BAD_REQUEST,
+            detail="SMTP is not configured. Please save SMTP settings first.",
         )
 
     try:
+        try:
+            mail_from = _resolve_mail_from(settings)
+        except ValueError as exc:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
         email_config = ConnectionConfig(
             MAIL_USERNAME=settings.smtp_username or "",
             MAIL_PASSWORD=SecretStr(settings.smtp_password or ""),
@@ -201,7 +159,7 @@ async def test_smtp_settings(
             MAIL_SSL_TLS=settings.smtp_ssl,
             USE_CREDENTIALS=bool(settings.smtp_username),
             VALIDATE_CERTS=settings.smtp_verify,
-            MAIL_FROM=_resolve_mail_from(settings),
+            MAIL_FROM=mail_from,
             MAIL_FROM_NAME=settings.smtp_from_name or "WireGuard UI",
         )
 
@@ -224,5 +182,6 @@ async def test_smtp_settings(
     except Exception as exc:
         logger.exception("SMTP test failed: %s", exc)
         raise HTTPException(
-            500, detail="SMTP test failed due to an internal error. Check server logs."
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="SMTP test failed due to an internal error. Check server logs.",
         )

@@ -29,10 +29,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 
 def _bcrypt_input(password: str) -> bytes:
-    """
-    Normalize passwords to a fixed-size bcrypt input.
-    This avoids bcrypt's 72-byte truncation edge case.
-    """
+    """SHA-256 + base64 encode password to avoid bcrypt 72-byte truncation."""
     digest = hashlib.sha256(password.encode("utf-8")).digest()
     return base64.b64encode(digest)
 
@@ -46,10 +43,7 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """
-    Return True if plain matches the stored hash.
-    Supports legacy raw-bcrypt verification for older hashes.
-    """
+    """Return True if plain matches hashed; supports legacy raw-bcrypt hashes."""
     encoded_hash = hashed.encode("utf-8")
     try:
         if bcrypt.checkpw(_bcrypt_input(plain), encoded_hash):
@@ -72,10 +66,7 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """
-    Decode the JWT Bearer token and return the authenticated User.
-    Raises HTTP 401 when the token is invalid or the user is not found.
-    """
+    """Decode JWT Bearer token and return the authenticated User, raise 401 if invalid."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -101,10 +92,7 @@ async def get_current_user(
 async def get_current_admin(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    """
-    Raises HTTP 403 unless the authenticated user has the 'admin' role.
-    Use as a FastAPI dependency on any admin-only endpoint.
-    """
+    """Raise 403 unless the current user has the 'admin' role."""
     if not current_user.has_role("admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

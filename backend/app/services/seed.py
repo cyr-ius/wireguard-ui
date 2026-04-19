@@ -14,6 +14,7 @@ from ..models import GlobalSettings, Role, User
 
 
 async def seed_initial_data() -> None:
+    """Seed roles, admin user, and default settings on first run."""
     async with AsyncSessionLocal() as db:
         await _seed_roles(db)
         await _seed_admin(db)
@@ -22,6 +23,7 @@ async def seed_initial_data() -> None:
 
 
 async def _seed_roles(db: AsyncSession) -> None:
+    """Create default admin and user roles if they do not already exist."""
     defaults = [
         {
             "name": "admin",
@@ -62,6 +64,7 @@ async def _seed_admin(db: AsyncSession) -> None:
 
 
 async def _seed_settings(db: AsyncSession) -> None:
+    """Create default GlobalSettings row if none exists."""
     exists = await db.exec(select(GlobalSettings))
     if not exists.one_or_none():
         db.add(

@@ -25,9 +25,10 @@ SETTINGS_DEFAULTS = {
 async def get_settings(
     _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
 ):
+    """Return the current global settings."""
     s = (await db.exec(select(GlobalSettings))).one_or_none()
     if not s:
-        raise HTTPException(404, detail="Settings not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Settings not found")
     return s
 
 
@@ -37,6 +38,7 @@ async def update_settings(
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    """Partially update global settings."""
     s = (await db.exec(select(GlobalSettings))).one_or_none()
     if s is None:
         s = GlobalSettings.model_validate(data.model_dump(exclude_unset=True))
