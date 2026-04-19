@@ -8,23 +8,24 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
-from sqlalchemy import text
-from sqlmodel import SQLModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from alembic import command as alembic_command
 
 from .config import app_settings
 from .database import engine
 from .exceptions import http_exception_handler, validation_exception_handler
-from .helpers import (
-    resolve_safe_path,
-)
+from .helpers import resolve_safe_path
 from .routers import auth, clients, oidc, server, settings, smtp, status, users
 from .security import SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
 from .services.wireguard import WireGuardError, start_service, write_server_config
+
+_ALEMBIC_INI = Path(__file__).parent.parent / "alembic.ini"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -33,21 +34,9 @@ logging.basicConfig(
 )
 
 
-async def ensure_schema_updates() -> None:
-    """Apply lightweight schema fixes for existing SQLite databases."""
-    async with engine.begin() as conn:
-        columns_result = await conn.execute(text("PRAGMA table_info(global_settings)"))
-        columns = {
-            str(row[1]) for row in columns_result.fetchall() if len(row) > 1 and row[1]
-        }
-        if "oidc_only" not in columns:
-            await conn.execute(
-                text(
-                    "ALTER TABLE global_settings "
-                    "ADD COLUMN oidc_only BOOLEAN NOT NULL DEFAULT 0"
-                )
-            )
-            logger.info("Added missing global_settings.oidc_only column")
+def _alembic_upgrade() -> None:
+    cfg = AlembicConfig(str(_ALEMBIC_INI))
+    alembic_command.upgrade(cfg, "head")
 
 
 async def auto_start_wireguard(retry: int = 0) -> None:
@@ -69,10 +58,8 @@ async def auto_start_wireguard(retry: int = 0) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: create all tables and seed initial data, then yield."""
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-    await ensure_schema_updates()
+    """Startup: run Alembic migrations then seed initial data."""
+    await asyncio.to_thread(_alembic_upgrade)
     await seed_initial_data()
     if app_settings.wg_autostart:
         await auto_start_wireguard()
