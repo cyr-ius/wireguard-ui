@@ -53,7 +53,7 @@ export class AboutComponent implements OnInit {
     this.checkingUpdate.set(true);
     this.error.set(null);
 
-    this.api.getLatestGithubRelease(this.repository()).subscribe({
+    this.api.getLatestGithubRelease().subscribe({
       next: (release) => {
         this.latestRelease.set(release);
         this.updateAvailable.set(this.isNewerVersion(release.tag_name, this.appVersion()));

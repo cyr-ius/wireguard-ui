@@ -295,3 +295,10 @@ class IPAddressInfo(SQLModel):
 class AppVersionResponse(SQLModel):
     repository: str
     version: str
+
+
+class GithubReleaseResponse(SQLModel):
+    html_url: str
+    name: str
+    tag_name: str
+    published_at: str

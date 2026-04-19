@@ -5,7 +5,7 @@
       <p class="page-subtitle">Product details, API access, and update status</p>
     </div>
     <button class="btn-action" type="button" (click)="checkForUpdate()" [disabled]="checkingUpdate()">
-      <i class="bi" [class.bi-arrow-clockwise]="!checkingUpdate()" [class.spin]="checkingUpdate()"></i>
+      <i class="bi bi-arrow-clockwise" [class.spin]="checkingUpdate()"></i>
       Check updates
     </button>
   </div>

@@ -190,8 +190,8 @@ export class ApiService {
 
   // ── GitHub releases ───────────────────────────────────────────────────────
 
-  getLatestGithubRelease(repo: string): Observable<GithubRelease> {
-    return this.http.get<GithubRelease>(`https://api.github.com/repos/${repo}/releases/latest`);
+  getLatestGithubRelease(): Observable<GithubRelease> {
+    return this.http.get<GithubRelease>("/api/status/latest-release");
   }
 
   // ── OIDC ──────────────────────────────────────────────────────────────────
