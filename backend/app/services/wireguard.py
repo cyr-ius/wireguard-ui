@@ -130,11 +130,20 @@ async def get_status() -> dict[str, Any]:
     peers: list[dict[str, Any]] = []
     current_peer: dict[str, Any] = {}
     interface_name: str | None = None
+    public_key: str | None = None
+    listen_port: int | None = None
 
     for line in output.splitlines():
         line = line.strip()
         if line.startswith("interface:"):
             interface_name = line.split(":", 1)[1].strip()
+        elif line.startswith("public key:"):
+            public_key = line.split(":", 1)[1].strip()
+        elif line.startswith("listening port:"):
+            try:
+                listen_port = int(line.split(":", 1)[1].strip())
+            except ValueError:
+                pass
         elif line.startswith("peer:"):
             if current_peer:
                 peers.append(current_peer)
@@ -157,7 +166,13 @@ async def get_status() -> dict[str, Any]:
     if current_peer:
         peers.append(current_peer)
 
-    return {"state": "running", "interface": interface_name, "peers": peers}
+    return {
+        "state": "running",
+        "interface": interface_name,
+        "public_key": public_key,
+        "listen_port": listen_port,
+        "peers": peers,
+    }
 
 
 # ── Config builders ───────────────────────────────────────────────────────────

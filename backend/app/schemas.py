@@ -282,6 +282,8 @@ class PeerStatus(SQLModel):
 class WireGuardStatus(SQLModel):
     state: str  # "running" | "stopped" | "error"
     interface: str | None = None
+    public_key: str | None = None
+    listen_port: int | None = None
     peers: list[PeerStatus] = Field(default_factory=list)
 
 

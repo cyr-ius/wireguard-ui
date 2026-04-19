@@ -230,6 +230,8 @@ export interface PeerStatus {
 export interface WireGuardStatus {
   state: "running" | "stopped" | "error";
   interface?: string;
+  public_key?: string | null;
+  listen_port?: number | null;
   peers: PeerStatus[];
 }
 

@@ -29,8 +29,6 @@ import {
 
 export interface WgStatus extends WireGuardStatus {
   is_running: boolean;
-  public_key?: string | null;
-  listen_port?: number | null;
 }
 
 export interface GithubRelease {
