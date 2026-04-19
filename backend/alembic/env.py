@@ -11,7 +11,6 @@ from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel
 
 from alembic import context
-from app import models  # noqa: F401
 
 config = context.config
 
