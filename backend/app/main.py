@@ -50,9 +50,8 @@ async def ensure_schema_updates() -> None:
             logger.info("Added missing global_settings.oidc_only column")
 
 
-async def auto_start_wireguard():
+async def auto_start_wireguard(retry: int = 0) -> None:
     """Autostart WireGuard if configured to do so and not already running."""
-    retry = 0
     try:
         await write_server_config()
         await start_service()
@@ -63,7 +62,7 @@ async def auto_start_wireguard():
         if retry < 3:
             await asyncio.sleep(5)  # Wait before retrying
             logger.info("Retrying WireGuard autostart (attempt %d)", retry)
-            await auto_start_wireguard()
+            await auto_start_wireguard(retry)
         else:
             logger.error("WireGuard autostart failed after 3 attempts: %s", e)
 
