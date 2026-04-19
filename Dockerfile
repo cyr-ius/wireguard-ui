@@ -33,6 +33,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Copy Supervisor configuration template file
 COPY ./docker/supervisord.conf /etc/supervisor/supervisord.conf
+COPY ./docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 ENV UV_NO_CACHE=true
 ENV UV_COMPILE_BYTECODE=1
@@ -61,4 +63,4 @@ VOLUME [ "/etc/wireguard", "/var/lib/wireguard-ui" ]
 
 EXPOSE 8000/tcp 51820/udp
 
-CMD ["/usr/bin/supervisord", "-c","/etc/supervisor/supervisord.conf"]
+CMD ["/entrypoint.sh"]

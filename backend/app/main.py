@@ -6,15 +6,11 @@ Copyright (C) 2021-2024  Cyr-ius (github.com/cyr-ius)
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from pathlib import Path
 
-from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
-from alembic import command as alembic_command
 
 from .config import app_settings
 from .database import engine
@@ -25,18 +21,11 @@ from .security import SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
 from .services.wireguard import WireGuardError, start_service, write_server_config
 
-_ALEMBIC_INI = Path(__file__).parent.parent / "alembic.ini"
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=app_settings.log_level,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-
-
-def _alembic_upgrade() -> None:
-    cfg = AlembicConfig(str(_ALEMBIC_INI))
-    alembic_command.upgrade(cfg, "head")
 
 
 async def auto_start_wireguard(retry: int = 0) -> None:
@@ -58,8 +47,7 @@ async def auto_start_wireguard(retry: int = 0) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: run Alembic migrations then seed initial data."""
-    await asyncio.to_thread(_alembic_upgrade)
+    """Startup: seed initial data then optionally start WireGuard."""
     await seed_initial_data()
     if app_settings.wg_autostart:
         await auto_start_wireguard()
