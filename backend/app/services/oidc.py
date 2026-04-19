@@ -3,14 +3,10 @@
 from __future__ import annotations
 
 import base64
-import json
-import urllib.error
-import urllib.parse
-import urllib.request
 import uuid
-from asyncio import to_thread
 from typing import Any
 
+import httpx
 from fastapi import HTTPException, status
 from jose import jwt
 from sqlalchemy.orm import selectinload
@@ -20,6 +16,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from ..auth import hash_password
 from ..models import GlobalSettings, Role, User
 from ..schemas import OidcSettingsResponse
+
+AUTH_SOURCE_LOCAL = "local"
+AUTH_SOURCE_OIDC = "oidc"
 
 OIDC_DEFAULT: dict[str, Any] = {
     "oidc_enabled": False,
@@ -57,8 +56,8 @@ def discovery_url(issuer: str) -> str:
 
 def build_token_request(
     discovery: dict[str, Any], settings: GlobalSettings, code: str
-) -> tuple[bytes, dict[str, str]]:
-    """Build token endpoint request body and headers for authorization code exchange."""
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Build token endpoint form data and headers for authorization code exchange."""
     client_id = get_str_attr(settings, "oidc_client_id").strip()
     client_secret = get_str_attr(settings, "oidc_client_secret")
     redirect_uri = get_str_attr(settings, "oidc_redirect_uri")
@@ -74,7 +73,7 @@ def build_token_request(
         "code": code,
         "redirect_uri": redirect_uri,
     }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    headers: dict[str, str] = {}
 
     supported_methods_raw = discovery.get("token_endpoint_auth_methods_supported")
     supported_methods = (
@@ -106,7 +105,7 @@ def build_token_request(
             ),
         )
 
-    return urllib.parse.urlencode(token_data).encode("utf-8"), headers
+    return token_data, headers
 
 
 def safe_username(claims: dict[str, Any]) -> str:
@@ -171,46 +170,35 @@ def to_oidc_response(settings: GlobalSettings) -> OidcSettingsResponse:
 async def fetch_json(
     url: str,
     method: str = "GET",
-    data: bytes | None = None,
+    data: dict[str, str] | None = None,
     headers: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Execute an HTTP request in a thread and return the parsed JSON dict."""
-
-    def _request() -> dict[str, Any]:
-        request = urllib.request.Request(
-            url, data=data, headers=headers or {}, method=method
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=10) as response:
-                payload = response.read().decode("utf-8")
-        except urllib.error.HTTPError as exc:
-            detail = exc.read().decode("utf-8", errors="ignore").strip()
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=detail or f"OIDC provider returned HTTP {exc.code}.",
-            ) from exc
-        except urllib.error.URLError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"OIDC provider is unreachable: {exc.reason}",
-            ) from exc
-
-        try:
-            parsed = json.loads(payload)
-        except json.JSONDecodeError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="OIDC provider returned invalid JSON.",
-            ) from exc
-
-        if not isinstance(parsed, dict):
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="OIDC provider returned an unexpected payload.",
+    """Execute an async HTTP request and return the parsed JSON dict."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.request(
+                method, url, data=data, headers=headers or {}
             )
-        return parsed
+            response.raise_for_status()
+            parsed = response.json()
+    except httpx.HTTPStatusError as exc:
+        detail = exc.response.text.strip()
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=detail or f"OIDC provider returned HTTP {exc.response.status_code}.",
+        ) from exc
+    except httpx.RequestError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"OIDC provider is unreachable: {exc}",
+        ) from exc
 
-    return await to_thread(_request)
+    if not isinstance(parsed, dict):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="OIDC provider returned an unexpected payload.",
+        )
+    return parsed
 
 
 async def fetch_discovery_document(issuer: str) -> dict[str, Any]:
@@ -281,6 +269,7 @@ async def find_or_create_user(db: AsyncSession, claims: dict[str, Any]) -> User:
             "first_name": get_name_claim(claims, "given_name"),
             "last_name": get_name_claim(claims, "family_name"),
             "hashed_password": hash_password(uuid.uuid4().hex),
+            "auth_source": AUTH_SOURCE_OIDC,
             "active": True,
         }
     )

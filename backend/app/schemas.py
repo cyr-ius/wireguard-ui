@@ -41,6 +41,7 @@ class UserResponse(SQLModel):
     first_name: str | None = None
     last_name: str | None = None
     active: bool
+    auth_source: str = "local"
     roles: list[RoleResponse] = Field(default_factory=list)
     model_config = {"from_attributes": True}
 

@@ -54,6 +54,7 @@ class User(SQLModel, table=True):
     first_name: str | None = Field(default=None, max_length=255)
     last_name: str | None = Field(default=None, max_length=255)
     hashed_password: str = Field(max_length=255)
+    auth_source: str = Field(default="local", max_length=20)
     active: bool = Field(default=True)
     fs_uniquifier: str = Field(
         default_factory=lambda: uuid.uuid4().hex,

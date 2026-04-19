@@ -7,6 +7,7 @@ from ..auth import create_access_token, get_current_admin
 from ..database import get_db
 from ..models import User
 from ..schemas import (
+    OidcCallbackRequest,
     OidcPublicConfig,
     OidcSettingsResponse,
     OidcSettingsUpdate,
@@ -102,15 +103,9 @@ async def get_oidc_public_config(
 
 
 @router.post("/callback", response_model=TokenResponse)
-async def oidc_callback(body: dict[str, str], db: AsyncSession = Depends(get_db)):
+async def oidc_callback(body: OidcCallbackRequest, db: AsyncSession = Depends(get_db)):
     """Exchange an OIDC authorization code for an application JWT."""
-    code = (body.get("code") or "").strip()
-    if not code:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing OIDC authorization code.",
-        )
-    user = await exchange_code(db, code)
+    user = await exchange_code(db, body.code)
     token = create_access_token({"sub": user.username})
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
