@@ -8,9 +8,9 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import hash_password
-from ..config import CONFIG_FILE, app_settings
+from ..config import app_settings
 from ..database import AsyncSessionLocal
-from ..models import GlobalSettings, Role, User
+from ..models import GlobalSettings, OidcSettings, Role, SmtpSettings, User
 
 
 async def seed_initial_data() -> None:
@@ -19,6 +19,8 @@ async def seed_initial_data() -> None:
         await _seed_roles(db)
         await _seed_admin(db)
         await _seed_settings(db)
+        await _seed_oidc_settings(db)
+        await _seed_smtp_settings(db)
         await db.commit()
 
 
@@ -71,12 +73,19 @@ async def _seed_settings(db: AsyncSession) -> None:
             GlobalSettings.model_validate(
                 {
                     "dns_servers": ["1.1.1.1", "8.8.8.8"],
-                    "config_file_path": CONFIG_FILE,
                     "maintenance_mode": False,
-                    "oidc_enabled": False,
-                    "oidc_only": False,
-                    "oidc_response_type": "code",
-                    "oidc_scope": "openid profile email",
                 }
             )
         )
+
+
+async def _seed_oidc_settings(db: AsyncSession) -> None:
+    """Create default OidcSettings row if none exists."""
+    if not (await db.exec(select(OidcSettings))).one_or_none():
+        db.add(OidcSettings())
+
+
+async def _seed_smtp_settings(db: AsyncSession) -> None:
+    """Create default SmtpSettings row if none exists."""
+    if not (await db.exec(select(SmtpSettings))).one_or_none():
+        db.add(SmtpSettings())

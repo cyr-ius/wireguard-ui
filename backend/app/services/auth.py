@@ -6,15 +6,15 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import verify_password
-from ..models import GlobalSettings, User
+from ..models import OidcSettings, User
 
 
 async def local_login_allowed(db: AsyncSession) -> bool:
     """Return True if local password login is not disabled by OIDC-only mode."""
-    settings = (await db.exec(select(GlobalSettings))).one_or_none()
+    settings = (await db.exec(select(OidcSettings))).one_or_none()
     if settings is None:
         return True
-    return not (settings.oidc_enabled and settings.oidc_only)
+    return not (settings.enabled and settings.oidc_only)
 
 
 async def authenticate_user(db: AsyncSession, username: str, password: str) -> User:

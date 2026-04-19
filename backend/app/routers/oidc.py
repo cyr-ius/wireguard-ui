@@ -18,9 +18,7 @@ from ..services.oidc import (
     OIDC_DEFAULT,
     exchange_code,
     fetch_discovery_document,
-    get_bool_attr,
-    get_or_create_settings,
-    get_str_attr,
+    get_or_create_oidc_settings,
     to_oidc_response,
 )
 
@@ -32,7 +30,7 @@ async def get_oidc_settings(
     _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
 ):
     """Return the current OIDC settings."""
-    return to_oidc_response(await get_or_create_settings(db))
+    return to_oidc_response(await get_or_create_oidc_settings(db))
 
 
 @router.put("/settings", response_model=OidcSettingsResponse)
@@ -48,18 +46,18 @@ async def update_oidc_settings(
             detail="OIDC-only mode requires OIDC authentication to be enabled.",
         )
 
-    settings = await get_or_create_settings(db)
+    settings = await get_or_create_oidc_settings(db)
     settings.sqlmodel_update(
         {
-            "oidc_enabled": payload.enabled,
+            "enabled": payload.enabled,
             "oidc_only": payload.oidc_only,
-            "oidc_issuer": payload.issuer,
-            "oidc_client_id": payload.client_id,
-            "oidc_client_secret": payload.client_secret,
-            "oidc_redirect_uri": payload.redirect_uri,
-            "oidc_post_logout_redirect_uri": payload.post_logout_redirect_uri,
-            "oidc_response_type": payload.response_type,
-            "oidc_scope": payload.scope,
+            "issuer": payload.issuer or "",
+            "client_id": payload.client_id or "",
+            "client_secret": payload.client_secret or "",
+            "redirect_uri": payload.redirect_uri or "",
+            "post_logout_redirect_uri": payload.post_logout_redirect_uri or "",
+            "response_type": payload.response_type,
+            "scope": payload.scope,
         }
     )
     db.add(settings)
@@ -73,30 +71,28 @@ async def get_oidc_public_config(
     db: AsyncSession = Depends(get_db),
 ) -> OidcPublicConfig:
     """Return public OIDC config including authorization and logout endpoints."""
-    settings = await get_or_create_settings(db)
+    settings = await get_or_create_oidc_settings(db)
 
     authorization_endpoint = ""
     end_session_endpoint = ""
 
-    if settings.oidc_enabled and settings.oidc_issuer:
+    if settings.enabled and settings.issuer:
         try:
-            discovery = await fetch_discovery_document(settings.oidc_issuer)
+            discovery = await fetch_discovery_document(settings.issuer)
             authorization_endpoint = str(discovery.get("authorization_endpoint", ""))
             end_session_endpoint = str(discovery.get("end_session_endpoint", ""))
         except HTTPException:
             pass
 
     return OidcPublicConfig(
-        enabled=get_bool_attr(settings, "oidc_enabled", False),
-        oidc_only=get_bool_attr(settings, "oidc_only", False),
-        issuer=get_str_attr(settings, "oidc_issuer", ""),
-        client_id=get_str_attr(settings, "oidc_client_id", ""),
-        redirect_uri=get_str_attr(settings, "oidc_redirect_uri", ""),
-        post_logout_redirect_uri=get_str_attr(
-            settings, "oidc_post_logout_redirect_uri", ""
-        ),
-        response_type=get_str_attr(settings, "oidc_response_type", "code"),
-        scope=get_str_attr(settings, "oidc_scope", "openid profile email"),
+        enabled=settings.enabled,
+        oidc_only=settings.oidc_only,
+        issuer=settings.issuer,
+        client_id=settings.client_id,
+        redirect_uri=settings.redirect_uri,
+        post_logout_redirect_uri=settings.post_logout_redirect_uri,
+        response_type=settings.response_type,
+        scope=settings.scope,
         authorization_endpoint=authorization_endpoint,
         end_session_endpoint=end_session_endpoint,
     )
@@ -115,7 +111,7 @@ async def reset_oidc_settings(
     _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
 ):
     """Reset OIDC settings to their defaults."""
-    settings = await get_or_create_settings(db)
+    settings = await get_or_create_oidc_settings(db)
     settings.sqlmodel_update(OIDC_DEFAULT)
     db.add(settings)
     await db.commit()

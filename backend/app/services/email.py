@@ -22,7 +22,7 @@ from jinja2 import Environment, FileSystemLoader
 from pydantic import SecretStr
 from starlette.datastructures import Headers, UploadFile
 
-from ..models import GlobalSettings, WireGuardClient, WireGuardServer
+from ..models import GlobalSettings, SmtpSettings, WireGuardClient, WireGuardServer
 from .qr import generate_qr_code_base64
 
 logger = logging.getLogger(__name__)
@@ -34,9 +34,9 @@ TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 SupportedLanguage = Literal["en", "fr", "es"]
 
 
-def _resolve_mail_from(settings: GlobalSettings) -> str:
+def _resolve_mail_from(smtp: SmtpSettings) -> str:
     """Return a valid sender email or raise a clear configuration error."""
-    for candidate in (settings.smtp_from, settings.smtp_username):
+    for candidate in (smtp.from_address, smtp.username):
         if not candidate:
             continue
         try:
@@ -76,19 +76,22 @@ def _render_email_template(
 async def send_client_config_email(
     client: WireGuardClient,
     server: WireGuardServer,
-    settings: GlobalSettings,
+    global_settings: GlobalSettings,
+    smtp: SmtpSettings,
     config_content: str,
     language: SupportedLanguage = "en",
 ) -> None:
     """Send WireGuard config email with inline QR code and .conf attachment."""
-    if not settings.smtp_server or not settings.smtp_port:
-        raise ValueError("SMTP server is not configured in global settings.")
+    if not smtp.server or not smtp.port:
+        raise ValueError("SMTP server is not configured.")
 
     # Generate QR code from config content
     qr_code_base64 = generate_qr_code_base64(config_content)
 
     # Render HTML template
-    html_content = _render_email_template(language, client, qr_code_base64, settings)
+    html_content = _render_email_template(
+        language, client, qr_code_base64, global_settings
+    )
 
     # Subject lines per language
     subjects: dict[SupportedLanguage, str] = {
@@ -98,18 +101,17 @@ async def send_client_config_email(
     }
     subject = subjects.get(language, subjects["en"])
 
-    # Build SMTP connection config from global settings
     email_config = ConnectionConfig(
-        MAIL_USERNAME=settings.smtp_username or "",
-        MAIL_PASSWORD=SecretStr(settings.smtp_password or ""),
-        MAIL_PORT=settings.smtp_port,
-        MAIL_SERVER=settings.smtp_server,
-        MAIL_STARTTLS=settings.smtp_tls,
-        MAIL_SSL_TLS=settings.smtp_ssl,
-        USE_CREDENTIALS=bool(settings.smtp_username),
-        VALIDATE_CERTS=settings.smtp_verify,
-        MAIL_FROM=_resolve_mail_from(settings),
-        MAIL_FROM_NAME=settings.smtp_from_name or "WireGuard UI",
+        MAIL_USERNAME=smtp.username or "",
+        MAIL_PASSWORD=SecretStr(smtp.password or ""),
+        MAIL_PORT=smtp.port,
+        MAIL_SERVER=smtp.server,
+        MAIL_STARTTLS=smtp.tls,
+        MAIL_SSL_TLS=smtp.ssl,
+        USE_CREDENTIALS=bool(smtp.username),
+        VALIDATE_CERTS=smtp.verify,
+        MAIL_FROM=_resolve_mail_from(smtp),
+        MAIL_FROM_NAME=smtp.from_name or "WireGuard UI",
     )
 
     # Prepare config file attachment

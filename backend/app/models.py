@@ -134,6 +134,47 @@ class WireGuardClient(SQLModel, table=True):
         return f"<WireGuardClient {self.name}>"
 
 
+class OidcSettings(SQLModel, table=True):
+    """OIDC / OpenID Connect configuration (single row)."""
+
+    __tablename__ = "oidc_settings"  # type: ignore
+
+    id: int | None = Field(default=None, primary_key=True)
+    enabled: bool = Field(default=False)
+    oidc_only: bool = Field(default=False)
+    issuer: str = Field(default="", max_length=512)
+    client_id: str = Field(default="", max_length=255)
+    client_secret: str = Field(default="", max_length=512)
+    redirect_uri: str = Field(default="", max_length=512)
+    post_logout_redirect_uri: str = Field(default="", max_length=512)
+    response_type: str = Field(default="code", max_length=50)
+    scope: str = Field(default="openid profile email", max_length=255)
+
+    def __repr__(self) -> str:
+        return f"<OidcSettings issuer={self.issuer}>"
+
+
+class SmtpSettings(SQLModel, table=True):
+    """SMTP / email relay configuration (single row)."""
+
+    __tablename__ = "smtp_settings"  # type: ignore
+
+    id: int | None = Field(default=None, primary_key=True)
+    server: str | None = Field(default=None, max_length=255)
+    port: int | None = Field(default=None)
+    username: str | None = Field(default=None, max_length=255)
+    password: str | None = Field(default=None, max_length=255)
+    from_address: str | None = Field(default="no-reply@wg.ui", max_length=255)
+    from_name: str = Field(default="WireGuard UI", max_length=255)
+    tls: bool = Field(default=True)
+    ssl: bool = Field(default=False)
+    verify: bool = Field(default=True)
+    default_language: str = Field(default="en", max_length=5)
+
+    def __repr__(self) -> str:
+        return f"<SmtpSettings server={self.server}>"
+
+
 class GlobalSettings(SQLModel, table=True):
     """Global application and VPN settings (single row)."""
 
@@ -147,29 +188,6 @@ class GlobalSettings(SQLModel, table=True):
     mtu: int | None = Field(default=None)
     persistent_keepalive: int | None = Field(default=None)
     maintenance_mode: bool = Field(default=False)
-    default_email_language: str = Field(default="en", max_length=5)
-
-    # OIDC settings
-    oidc_enabled: bool = Field(default=False)
-    oidc_only: bool = Field(default=False)
-    oidc_issuer: str | None = Field(default="", max_length=512)
-    oidc_client_id: str | None = Field(default="", max_length=255)
-    oidc_client_secret: str | None = Field(default="", max_length=512)
-    oidc_redirect_uri: str | None = Field(default="", max_length=512)
-    oidc_post_logout_redirect_uri: str | None = Field(default="", max_length=512)
-    oidc_response_type: str | None = Field(default="code", max_length=50)
-    oidc_scope: str | None = Field(default="openid profile email", max_length=255)
-
-    # SMTP / Email settings
-    smtp_server: str | None = Field(default=None, max_length=255)
-    smtp_port: int | None = Field(default=None)
-    smtp_username: str | None = Field(default=None, max_length=255)
-    smtp_password: str | None = Field(default=None, max_length=255)
-    smtp_from: str | None = Field(default="no-reply@wg.ui", max_length=255)
-    smtp_from_name: str = Field(default="WireGuard UI", max_length=255)
-    smtp_tls: bool = Field(default=True)
-    smtp_ssl: bool = Field(default=False)
-    smtp_verify: bool = Field(default=True)
 
     updated_at: datetime = Field(
         default_factory=utc_now,

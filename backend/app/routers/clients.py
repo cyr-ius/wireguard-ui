@@ -10,7 +10,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import get_current_admin
 from ..database import get_db
-from ..models import GlobalSettings, User, WireGuardClient, WireGuardServer
+from ..models import (
+    GlobalSettings,
+    SmtpSettings,
+    User,
+    WireGuardClient,
+    WireGuardServer,
+)
 from ..schemas import (
     ClientConfigResponse,
     ClientCreate,
@@ -96,12 +102,13 @@ async def create_client(
     if data.send_email:
         server = (await db.exec(select(WireGuardServer))).one_or_none()
         settings = (await db.exec(select(GlobalSettings))).one_or_none()
+        smtp = (await db.exec(select(SmtpSettings))).one_or_none()
 
-        if server and settings and settings.smtp_server:
+        if server and settings and smtp and smtp.server:
             config_content = build_client_config(client, server, settings)
             default_language = (
-                settings.default_email_language
-                if settings.default_email_language in ("en", "fr", "es")
+                smtp.default_language
+                if smtp.default_language in ("en", "fr", "es")
                 else "en"
             )
             lang: SupportedLanguage = (
@@ -115,6 +122,7 @@ async def create_client(
                 client,
                 server,
                 settings,
+                smtp,
                 config_content,
                 lang,
             )
@@ -294,6 +302,7 @@ async def send_client_email(
 
     server = (await db.exec(select(WireGuardServer))).one_or_none()
     settings = (await db.exec(select(GlobalSettings))).one_or_none()
+    smtp = (await db.exec(select(SmtpSettings))).one_or_none()
 
     if not server:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Server not configured")
@@ -301,7 +310,7 @@ async def send_client_email(
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, detail="Settings not configured"
         )
-    if not settings.smtp_server or not settings.smtp_port:
+    if not smtp or not smtp.server or not smtp.port:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
             detail="SMTP is not configured. Please configure it in Administration > Mail Server.",
@@ -309,9 +318,7 @@ async def send_client_email(
 
     config_content = build_client_config(client, server, settings)
     default_language = (
-        settings.default_email_language
-        if settings.default_email_language in ("en", "fr", "es")
-        else "en"
+        smtp.default_language if smtp.default_language in ("en", "fr", "es") else "en"
     )
     lang: SupportedLanguage = (
         body.language if body.language in ("en", "fr", "es") else default_language
@@ -322,6 +329,7 @@ async def send_client_email(
         client,
         server,
         settings,
+        smtp,
         config_content,
         lang,
     )
