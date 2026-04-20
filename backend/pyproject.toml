@@ -23,13 +23,6 @@ dependencies = [
     "pillow>=12.2.0",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "ruff",
-    "mypy",
-    "pre-commit",
-]
-
 [tool.setuptools]
 packages = ["backend"]
 
