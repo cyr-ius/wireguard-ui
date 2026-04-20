@@ -34,37 +34,48 @@ Interface web pour administrer un serveur WireGuard sans manipuler directement l
 ```bash
 docker run -d \
   --name wireguard-ui \
+  --cap-add NET_ADMIN \
+  --sysctl net.ipv4.ip_forward=1 \
+  --sysctl net.ipv4.conf.all.src_valid_mark=1 \
   -p 8000:8000 \
-  -p 51820:51820 \
+  -p 51820:51820/udp \
   -e ADMIN_USERNAME=admin \
   -e ADMIN_PASSWORD=yourpassword \
   -e SECRET_KEY=your-secret-key \
-  -v /wireguard_data:/var/lib/wireguard-ui \
+  -v wg_config:/etc/wireguard \
+  -v wireguard-ui_data:/var/lib/wireguard-ui \
   cyrius44/wireguard-ui:latest
 ```
 
-Open **http://localhost:8080** and log in with your admin credentials.
+Open **http://localhost:8000** and log in with your admin credentials.
 
 ### Docker Compose
 
 ```yaml
 services:
-  portalcrane:
+  wireguard-ui:
     image: cyrius44/wireguard-ui:latest
     container_name: wireguard-ui
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
     ports:
       - "8000:8000"
-      - "51820:51820"
+      - "51820:51820/udp"
     environment:
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=changeme
       - SECRET_KEY=your-secret-key
     volumes:
-      - wireguard_data:/var/lib/wireguard-ui
-    restart: unless-stopped
+      - wg_config:/etc/wireguard
+      - wireguard-ui_data:/var/lib/wireguard-ui
 
 volumes:
-  wireguard_data:
+  wg_config:
+  wireguard-ui_data:
 ```
 
 ### Lancer l’application
@@ -131,17 +142,19 @@ docker compose up -d --build
 
 ## 📦 Persistance des données
 
-Le volume `wireguard-ui_data` est monté sur `/var/lib/wireguard-ui` dans le conteneur.
+Deux volumes sont nécessaires :
 
-- Base SQLite
-- État applicatif persistant
+| Volume | Point de montage | Contenu |
+|---|---|---|
+| `wg_config` | `/etc/wireguard` | Configuration WireGuard (`wg0.conf`, clés) |
+| `wireguard-ui_data` | `/var/lib/wireguard-ui` | Base SQLite, données applicatives |
 
 ## 🛡️ Recommandations production
 
 - Remplacer `SECRET_KEY` par une valeur longue et aléatoire.
 - Changer immédiatement les identifiants admin par défaut.
 - Utiliser un reverse proxy TLS (Traefik, Nginx, Caddy).
-- Sauvegarder régulièrement le volume `/var/lib/wireguard-ui`.
+- Sauvegarder régulièrement les volumes `/etc/wireguard` et `/var/lib/wireguard-ui`.
 
 ---
 

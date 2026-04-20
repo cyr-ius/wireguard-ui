@@ -11,7 +11,8 @@ services:
       - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      - wireguard-ui_data:/var/lib/wireguard-ui
+      - wg_config:/etc/wireguard
+      - wg_data:/var/lib/wireguard-ui
     cap_add:
       - NET_ADMIN
     ports:
@@ -21,4 +22,5 @@ services:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
 volumes:
-  wireguard-ui_data:
+  wg_config:
+  wg_data:
