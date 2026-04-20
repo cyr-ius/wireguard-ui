@@ -42,7 +42,8 @@ USER vscode
 
 # ── Dependencies ───────────────────────────────────────────────────────────────
 RUN uv tool install ruff \
-    && uv tool install prek
+    && uv tool install prek \
+    && uv tool install alembic
 
 # ── Workspace ──────────────────────────────────────────────────────────────────
 ARG WORKSPACE=/workspaces
