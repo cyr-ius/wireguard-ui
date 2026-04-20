@@ -1586,17 +1586,17 @@ rules:
 
 ```bash
 # Run all hooks on all files
-pre-commit run --all-files
+prek run --all-files
 
 # Run specific hook
-pre-commit run ruff-format --all-files
-pre-commit run prettier --all-files
+prek run ruff-format --all-files
+prek run prettier --all-files
 
 # Install pre-commit hook (auto-run on git commit)
-pre-commit install
+prek install
 
 # Update hooks to latest versions
-pre-commit autoupdate
+prek autoupdate
 
 # Disable hooks for single commit (not recommended!)
 git commit --no-verify
@@ -1612,13 +1612,13 @@ cd backend && ruff format . && cd ..
 cd frontend && npm run prettier && cd ..
 
 # 2. Run all pre-commit hooks
-pre-commit run --all-files
+prek run --all-files
 
 # 3. Fix any remaining issues manually
 # (ruff might have unfixable errors)
 
 # 4. Verify no errors remain
-pre-commit run --all-files  # Should pass without changes
+prek run --all-files  # Should pass without changes
 
 # 5. Run tests
 cd backend && python -m pytest && cd ..
