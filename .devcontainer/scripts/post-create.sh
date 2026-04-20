@@ -65,9 +65,9 @@ if [ -f "$BACKEND_DIR/alembic.ini" ]; then
   echo ""
   echo "🗄️   Application des migrations Alembic..."
   cd "$BACKEND_DIR"
-  for i in {1..10}; do
-    alembic upgrade head && break || {
-      echo "  Attente de la base de données... ($i/10)"
+  for i in {1..5}; do
+    uv run alembic upgrade head && break || {
+      echo "  Attente de la base de données... ($i/5)"
       sleep 3
     }
   done
@@ -82,12 +82,6 @@ for dir in "$BACKEND_DIR" "$FRONTEND_DIR"; do
   fi
 done
 
-# ── 6. IA Agent local ─────────────────────────────────────────────────────────
-if [ -d "/home/vscode/.codex" ]; then
-  echo ""
-  echo "📄 Codex settings..."
-  mkdir -p /home/vscode/.codex && sudo chown vscode:vscode /home/vscode/.codex
-fi
 
 # ── 7. Data volume ─────────────────────────────────────────────────────────
 if [ -d "${DATA_DIR}" ]; then
