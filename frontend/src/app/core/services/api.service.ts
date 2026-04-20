@@ -151,8 +151,8 @@ export class ApiService {
     return this.http.put<SmtpSettings>("/api/smtp", data);
   }
 
-  resetSmtpSettings(): Observable<void> {
-    return this.http.delete<void>("/api/smtp/reset");
+  resetSmtpSettings(): Observable<SmtpSettings> {
+    return this.http.delete<SmtpSettings>("/api/smtp/reset");
   }
 
   testSmtpSettings(data: SmtpTestRequest): Observable<void> {
@@ -310,7 +310,7 @@ export class SmtpService {
     return this.api.updateSmtpSettings(data);
   }
 
-  reset(): Observable<void> {
+  reset(): Observable<SmtpSettings> {
     return this.api.resetSmtpSettings();
   }
 

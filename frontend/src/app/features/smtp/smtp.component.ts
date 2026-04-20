@@ -39,7 +39,7 @@ export class SmtpComponent implements OnInit {
 
   private readonly smtpInit = {
     smtp_server: "",
-    smtp_port: 25,
+    smtp_port: 587,
     smtp_username: "",
     smtp_password: "",
     smtp_from: "no-reply@wg.ui",
@@ -64,7 +64,7 @@ export class SmtpComponent implements OnInit {
     },
     {
       submission: {
-        action: async (f) => this.onSubmit(f().value()),
+        action: async () => this.onSubmit(),
       },
     },
   );
@@ -96,7 +96,7 @@ export class SmtpComponent implements OnInit {
     });
   }
 
-  async onSubmit(f: SmtpSettingsUpdate): Promise<void> {
+  async onSubmit(): Promise<void> {
     this.error.set(null);
     this.successMessage.set(null);
 
@@ -120,9 +120,9 @@ export class SmtpComponent implements OnInit {
     this.error.set(null);
 
     this.smtpService.reset().subscribe({
-      next: (smtp) => {
-        this.applySmtpSettings(smtp);
+      next: (smtp: SmtpSettings) => {
         this.resetting.set(false);
+        this.applySmtpSettings(smtp);
         this.successMessage.set("Mail settings reset successfully");
         setTimeout(() => this.successMessage.set(null), 4000);
       },
@@ -156,22 +156,22 @@ export class SmtpComponent implements OnInit {
 
   onSslToggle(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    this.smtpSignal.update((smtp) => ({
-      ...smtp,
-      smtp_ssl: checked,
-      smtp_tls: checked ? false : smtp.smtp_tls,
-      smtp_port: checked ? 465 : smtp.smtp_port,
-    }));
+    this.smtpSignal.update((smtp) => {
+      const newSsl = checked;
+      const newTls = checked ? false : smtp.smtp_tls;
+      const newPort = newSsl ? 465 : newTls ? 587 : 25;
+      return { ...smtp, smtp_ssl: newSsl, smtp_tls: newTls, smtp_port: newPort };
+    });
   }
 
   onStartTlsToggle(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    this.smtpSignal.update((smtp) => ({
-      ...smtp,
-      smtp_tls: checked,
-      smtp_ssl: checked ? false : smtp.smtp_ssl,
-      smtp_port: checked ? 587 : smtp.smtp_port,
-    }));
+    this.smtpSignal.update((smtp) => {
+      const newTls = checked;
+      const newSsl = checked ? false : smtp.smtp_ssl;
+      const newPort = newTls ? 587 : newSsl ? 465 : 25;
+      return { ...smtp, smtp_tls: newTls, smtp_ssl: newSsl, smtp_port: newPort };
+    });
   }
 
   sendTestEmail(): void {
@@ -235,12 +235,12 @@ export class SmtpComponent implements OnInit {
   private buildPayload(): SmtpSettingsUpdate {
     const smtp = this.smtpSignal();
     return {
-      smtp_server: smtp.smtp_server.trim(),
+      smtp_server: (smtp.smtp_server ?? "").trim(),
       smtp_port: smtp.smtp_port,
-      smtp_username: smtp.smtp_username.trim() || null,
-      smtp_password: smtp.smtp_password.trim() || null,
-      smtp_from: smtp.smtp_from.trim() || null,
-      smtp_from_name: smtp.smtp_from_name.trim() || this.smtpInit.smtp_from_name,
+      smtp_username: (smtp.smtp_username ?? "").trim() || null,
+      smtp_password: (smtp.smtp_password ?? "").trim() || null,
+      smtp_from: (smtp.smtp_from ?? "").trim() || null,
+      smtp_from_name: (smtp.smtp_from_name ?? "").trim() || this.smtpInit.smtp_from_name,
       smtp_tls: smtp.smtp_tls,
       smtp_ssl: smtp.smtp_ssl,
       smtp_verify: smtp.smtp_verify,
@@ -249,7 +249,14 @@ export class SmtpComponent implements OnInit {
   }
 
   private applySmtpSettings(smtp: any): void {
-    this.smtpSignal.set({ ...this.smtpInit, ...smtp });
+    this.smtpSignal.set({
+      ...this.smtpInit,
+      ...smtp,
+      smtp_server: smtp.smtp_server ?? "",
+      smtp_username: smtp.smtp_username ?? "",
+      smtp_from: smtp.smtp_from ?? "",
+      smtp_from_name: smtp.smtp_from_name ?? this.smtpInit.smtp_from_name,
+    });
     this.submitted.set(false);
     this.testRecipientError.set(null);
   }

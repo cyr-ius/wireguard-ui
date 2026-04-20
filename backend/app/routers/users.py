@@ -109,10 +109,8 @@ async def update_user(
 
     db.add(u)
     await db.commit()
-    result = await db.exec(
-        select(User).where(User.id == user_id).options(selectinload(User.roles))  # type: ignore[arg-type]
-    )
-    return result.one()
+    await db.refresh(u)
+    return u
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
