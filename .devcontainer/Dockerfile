@@ -31,12 +31,19 @@ RUN npm install -g \
     @angular/cli@21 \
     prettier@3
 
+# ── Workspace ──────────────────────────────────────────────────────────────────
+ARG WORKSPACE=/workspaces
+WORKDIR /${WORKSPACE}
+
+# ── Volume for WireGuard configuration and data ────────────────────────────────
+VOLUME ["${WORKSPACE}/.data_env", "/etc/wireguard"]
+
 # ── WireGuard directory ────────────────────────────────────────────────────────
+RUN mkdir -p ${WORKSPACE}/.data_env \
+    && chown vscode:vscode ${WORKSPACE}/.data_env
+
 RUN mkdir -p /etc/wireguard \
     && chown vscode:vscode /etc/wireguard
-
-RUN mkdir -p /workspaces/wireguard-ui/.data_env \
-    && chown vscode:vscode /workspaces/wireguard-ui/.data_env
 
 USER vscode
 
@@ -44,10 +51,3 @@ USER vscode
 RUN uv tool install ruff \
     && uv tool install prek \
     && uv tool install alembic
-
-# ── Workspace ──────────────────────────────────────────────────────────────────
-ARG WORKSPACE=/workspaces
-WORKDIR /${WORKSPACE}
-
-# ── Volume for WireGuard configuration and data ────────────────────────────────
-VOLUME ["${WORKSPACE}/.data_env", "/etc/wireguard"]
