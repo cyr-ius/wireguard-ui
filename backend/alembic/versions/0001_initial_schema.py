@@ -35,10 +35,7 @@ def upgrade() -> None:
         sa.Column("last_name", sa.String(length=255), nullable=True),
         sa.Column("hashed_password", sa.String(length=255), nullable=False),
         sa.Column(
-            "auth_source",
-            sa.String(length=20),
-            nullable=False,
-            server_default="local",
+            "auth_source", sa.String(length=20), nullable=False, server_default="local"
         ),
         sa.Column("active", sa.Boolean(), nullable=False),
         sa.Column("fs_uniquifier", sa.String(length=64), nullable=False),

@@ -10,9 +10,7 @@ _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _backend_dir not in sys.path:
     sys.path.insert(0, _backend_dir)
 
-from alembic.runtime.migration import MigrationContext
-from alembic.script import ScriptDirectory
-from sqlalchemy import create_engine, inspect as sa_inspect
+from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel
 
@@ -34,16 +32,6 @@ def get_url() -> str:
     return url.replace("sqlite+aiosqlite://", "sqlite://")
 
 
-def _stamp_if_unversioned(conn) -> bool:
-    """Stamp pre-Alembic databases as head without running DDL."""
-    inspector = sa_inspect(conn)
-    if inspector.has_table("users") and not inspector.has_table("alembic_version"):
-        script = ScriptDirectory.from_config(config)
-        MigrationContext.configure(conn).stamp(script, "head")
-        return True
-    return False
-
-
 def run_migrations_offline() -> None:
     context.configure(
         url=get_url(),
@@ -56,14 +44,18 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    engine = create_engine(get_url(), poolclass=NullPool)
-    with engine.connect() as conn:
-        if not _stamp_if_unversioned(conn):
-            context.configure(connection=conn, target_metadata=target_metadata)
-            with context.begin_transaction():
-                context.run_migrations()
-        conn.commit()
-    engine.dispose()
+    """Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine
+    and associate a connection with the context.
+
+    """
+    connectable = create_engine(get_url(), poolclass=NullPool)
+    with connectable.connect() as connection:
+        context.configure(connection=connection, target_metadata=target_metadata)
+
+        with context.begin_transaction():
+            context.run_migrations()
 
 
 if context.is_offline_mode():
