@@ -6,6 +6,7 @@ Copyright (C) 2021-2024  Cyr-ius (github.com/cyr-ius)
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
