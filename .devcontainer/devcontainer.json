@@ -9,7 +9,7 @@
     "--sysctl",
     "net.ipv4.conf.all.src_valid_mark=1"
   ],
-  "mounts": ["source=${env:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached"],
+  "mounts": ["source=${env:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached"],
 
   // ─── VS Code extensions ────────────────────────────────────────────────
   "customizations": {
@@ -98,8 +98,8 @@
   },
 
   // ─── Cycle de vie ──────────────────────────────────────────────────────
-  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh ${containerWorkspaceFolder}",
+  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh ${containerWorkspaceFolder}"
 
   // ─── Utilisateur non-root ──────────────────────────────────────────────
-  "remoteUser": "vscode"
+  // "remoteUser": "vscode"
 }
