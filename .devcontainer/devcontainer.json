@@ -1,6 +1,12 @@
 {
   "name": "FastAPI + Angular Dev Environment",
-  "dockerFile": "Dockerfile",
+  "build": {
+    "context": ".",
+    "dockerfile": "Dockerfile",
+    "args": {
+      "WORKSPACE": "${containerWorkspaceFolder}"
+    }
+  },
   "runArgs": [
     "--cap-add",
     "NET_ADMIN",
@@ -9,7 +15,11 @@
     "--sysctl",
     "net.ipv4.conf.all.src_valid_mark=1"
   ],
-  "mounts": ["source=${env:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached"],
+
+  "mounts": [
+    "source=${env:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
+    "target=${containerWorkspaceFolder}/.data_env,type=volume,consistency=cached"
+  ],
 
   // ─── VS Code extensions ────────────────────────────────────────────────
   "customizations": {
