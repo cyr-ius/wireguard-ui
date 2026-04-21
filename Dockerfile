@@ -32,7 +32,6 @@ RUN apk add --no-cache \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Copy Supervisor configuration template file
-COPY ./docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY ./docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
