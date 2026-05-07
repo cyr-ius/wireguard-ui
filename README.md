@@ -144,10 +144,10 @@ docker compose up -d --build
 
 Deux volumes sont nécessaires :
 
-| Volume | Point de montage | Contenu |
-|---|---|---|
-| `wg_config` | `/etc/wireguard` | Configuration WireGuard (`wg0.conf`, clés) |
-| `wireguard-ui_data` | `/var/lib/wireguard-ui` | Base SQLite, données applicatives |
+| Volume              | Point de montage        | Contenu                                    |
+| ------------------- | ----------------------- | ------------------------------------------ |
+| `wg_config`         | `/etc/wireguard`        | Configuration WireGuard (`wg0.conf`, clés) |
+| `wireguard-ui_data` | `/var/lib/wireguard-ui` | Base SQLite, données applicatives          |
 
 ## 🛡️ Recommandations production
 
