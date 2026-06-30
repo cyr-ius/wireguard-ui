@@ -86,9 +86,7 @@ import { Component, Directive, Injectable, inject, ElementRef } from "@angular/c
 import { HttpClient } from "@angular/common/http";
 
 // 1. In a Component (Field Initializer & Constructor)
-@Component({
-  /*...*/
-})
+@Component({/*...*/})
 export class Example {
   private service1 = inject(MyService); // ✅ Field initializer
 
@@ -99,9 +97,7 @@ export class Example {
 }
 
 // 2. In a Directive
-@Directive({
-  /*...*/
-})
+@Directive({/*...*/})
 export class MyDirective {
   private element = inject(ElementRef); // ✅ Field initializer
 }
