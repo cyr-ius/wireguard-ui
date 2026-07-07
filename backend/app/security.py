@@ -41,14 +41,15 @@ class CsrfMiddleware(BaseHTTPMiddleware):
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Add security headers to every HTTP response."""
 
-    JSDELIVR = "https://cdn.jsdelivr.net/npm/"
     FONT_GOOGLE = "https://fonts.gstatic.com"
 
     # Build CSP once at class level — one directive per list entry, auditable.
+    # Swagger UI assets are self-hosted (see main.py), so no third-party CDN is
+    # allowed in script-src/style-src.
     _CSP_DIRECTIVES: list[str] = [
         "default-src 'self'",
-        f"script-src 'self' 'unsafe-inline' {JSDELIVR}",  # Angular requires unsafe-inline
-        f"style-src 'self' 'unsafe-inline' {JSDELIVR}",  # Bootstrap inline styles
+        "script-src 'self' 'unsafe-inline'",  # Angular requires unsafe-inline
+        "style-src 'self' 'unsafe-inline'",  # Bootstrap inline styles
         "img-src 'self' data: https:",  # logos, QR codes base64
         f"font-src 'self' data: {FONT_GOOGLE}",  # Bootstrap Icons embedded font
         "connect-src 'self'",  # API calls + Azure endpoints
