@@ -9,6 +9,7 @@ from ..database import get_db
 from ..models import User
 from ..schemas import LoginRequest, PasswordChangeRequest, TokenResponse, UserResponse
 from ..services.auth import authenticate_user, local_login_allowed
+from ..services.ratelimit import login_rate_limit
 
 router = APIRouter()
 
@@ -17,6 +18,7 @@ router = APIRouter()
 async def login_for_access_token(
     credentials: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
+    _rate: None = Depends(login_rate_limit),
 ):
     """OAuth2 password-flow token endpoint used by the Swagger UI."""
     if not await local_login_allowed(db):
@@ -30,7 +32,11 @@ async def login_for_access_token(
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(
+    credentials: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+    _rate: None = Depends(login_rate_limit),
+):
     """Authenticate and return a JWT access token."""
     if not await local_login_allowed(db):
         raise HTTPException(

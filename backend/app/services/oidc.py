@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 from fastapi import HTTPException, status
-from jose import jwt
+from jose import JWTError, jwt
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -189,6 +189,51 @@ async def fetch_discovery_document(issuer: str) -> dict[str, Any]:
     return await fetch_json(discovery_url(issuer))
 
 
+async def verify_id_token(
+    discovery: dict[str, Any], settings: OidcSettings, id_token: str
+) -> dict[str, Any]:
+    """Verify an OIDC id_token's signature and standard claims, returning them.
+
+    Fetches the provider JWKS from the discovery document and validates the
+    token signature, audience (client_id), issuer and expiry. Raises 401/502 on
+    any failure so an unverified token can never be trusted as an identity.
+    """
+    jwks_uri = str(discovery.get("jwks_uri", "")).strip()
+    if not jwks_uri:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="OIDC discovery document does not include a JWKS URI.",
+        )
+    jwks = await fetch_json(jwks_uri)
+
+    raw_algs = discovery.get("id_token_signing_alg_values_supported")
+    algorithms = (
+        [a for a in raw_algs if isinstance(a, str)]
+        if isinstance(raw_algs, list)
+        else []
+    ) or ["RS256"]
+
+    expected_issuer = str(discovery.get("issuer", "")).strip() or _normalize_issuer(
+        settings.issuer
+    )
+
+    try:
+        claims: dict[str, Any] = jwt.decode(
+            id_token,
+            jwks,
+            algorithms=algorithms,
+            audience=settings.client_id.strip(),
+            issuer=expected_issuer,
+            options={"verify_at_hash": False},
+        )
+        return claims
+    except JWTError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"OIDC id_token verification failed: {exc}",
+        ) from exc
+
+
 async def get_or_create_oidc_settings(db: AsyncSession) -> OidcSettings:
     """Return existing OidcSettings row, creating a default one if absent."""
     settings = (await db.exec(select(OidcSettings))).one_or_none()
@@ -291,7 +336,7 @@ async def exchange_code(db: AsyncSession, code: str) -> User:
             userinfo_endpoint, headers={"Authorization": f"Bearer {access_token}"}
         )
     elif isinstance(token_response.get("id_token"), str):
-        claims = jwt.get_unverified_claims(token_response["id_token"])
+        claims = await verify_id_token(discovery, settings, token_response["id_token"])
 
     if not claims:
         raise HTTPException(

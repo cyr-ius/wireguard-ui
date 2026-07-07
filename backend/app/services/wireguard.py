@@ -7,7 +7,6 @@ import ipaddress
 import json
 import logging
 import re
-import shlex
 import socket
 import subprocess
 from typing import Any
@@ -25,16 +24,26 @@ class WireGuardError(Exception):
     """Raised when a wg / wg-quick command fails."""
 
 
-async def _run(cmd: str) -> str:
-    """Run a shell command and return stripped stdout. Raises WireGuardError on failure."""
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
+async def _run(*args: str, stdin: str | None = None) -> str:
+    """Run a command without a shell and return stripped stdout.
+
+    Arguments are passed as a list to ``create_subprocess_exec`` so user-derived
+    values (peer keys, IPs, interface names) can never be interpreted by a shell.
+    Raises WireGuardError on non-zero exit.
+    """
+    proc = await asyncio.create_subprocess_exec(
+        *args,
+        stdin=asyncio.subprocess.PIPE if stdin is not None else None,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, stderr = await proc.communicate()
+    stdout, stderr = await proc.communicate(
+        stdin.encode() if stdin is not None else None
+    )
     if proc.returncode != 0:
-        raise WireGuardError(stderr.decode().strip() or f"Command failed: {cmd}")
+        raise WireGuardError(
+            stderr.decode().strip() or f"Command failed: {' '.join(args)}"
+        )
     return stdout.decode().strip()
 
 
@@ -43,8 +52,8 @@ async def _run(cmd: str) -> str:
 
 async def generate_keypair() -> dict[str, str]:
     """Generate a fresh WireGuard private/public key pair."""
-    private_key = await _run("wg genkey")
-    public_key = await _run(f"echo {private_key} | wg pubkey")
+    private_key = await _run("wg", "genkey")
+    public_key = await _run("wg", "pubkey", stdin=private_key)
     return {"private_key": private_key, "public_key": public_key}
 
 
@@ -54,7 +63,7 @@ async def generate_keypair() -> dict[str, str]:
 async def get_service_state(interface: str = "wg0") -> str:
     """Return 'running' if the interface is up, 'stopped' otherwise."""
     try:
-        await _run(f"wg showconf {interface}")
+        await _run("wg", "showconf", interface)
         return "running"
     except WireGuardError:
         return "stopped"
@@ -63,7 +72,7 @@ async def get_service_state(interface: str = "wg0") -> str:
 async def start_service(interface: str = "wg0") -> None:
     """Start the WireGuard interface via wg-quick up."""
     try:
-        await _run(f"wg-quick up {shlex.quote(CONFIG_FILE)}")
+        await _run("wg-quick", "up", CONFIG_FILE)
         logger.info("Wireguard started.")
     except WireGuardError as exc:
         raise WireGuardError(f"Start failed: {exc}") from exc
@@ -72,7 +81,7 @@ async def start_service(interface: str = "wg0") -> None:
 async def stop_service(interface: str = "wg0") -> None:
     """Stop the WireGuard interface via wg-quick down."""
     try:
-        await _run(f"wg-quick down {shlex.quote(CONFIG_FILE)}")
+        await _run("wg-quick", "down", CONFIG_FILE)
         logger.info("Wireguard stopped.")
     except WireGuardError as exc:
         raise WireGuardError(f"Stop failed: {exc}") from exc
@@ -90,8 +99,16 @@ async def restart_service(interface: str = "wg0") -> None:
 async def add_peer(client: WireGuardClient, interface: str = "wg0") -> None:
     """Add peer in config without restart."""
     try:
-        cmd = f'wg set {interface} peer "{client.public_key}" allowed-ips {client.allocated_ips} && ip -4 route add {client.allocated_ips} dev {interface}'
-        await _run(cmd)
+        await _run(
+            "wg",
+            "set",
+            interface,
+            "peer",
+            client.public_key,
+            "allowed-ips",
+            client.allocated_ips,
+        )
+        await _run("ip", "-4", "route", "add", client.allocated_ips, "dev", interface)
     except WireGuardError as exc:
         logger.warning("Error to add peer (%s)", exc)
         raise WireGuardError(f"Add peer failed {client.name}") from exc
@@ -100,8 +117,10 @@ async def add_peer(client: WireGuardClient, interface: str = "wg0") -> None:
 async def remove_peer(client: WireGuardClient, interface: str = "wg0") -> None:
     """Remove peer in config without restart."""
     try:
-        cmd = f'wg set {interface} peer "{client.public_key}" remove && ip -4 route delete {client.allocated_ips} dev {interface}'
-        await _run(cmd)
+        await _run("wg", "set", interface, "peer", client.public_key, "remove")
+        await _run(
+            "ip", "-4", "route", "delete", client.allocated_ips, "dev", interface
+        )
     except WireGuardError as exc:
         logger.warning("Error to remove peer (%s)", exc)
         raise WireGuardError(f"Remove peer failed {client.name}") from exc
@@ -110,7 +129,8 @@ async def remove_peer(client: WireGuardClient, interface: str = "wg0") -> None:
 async def reload_peers(interface: str = "wg0") -> None:
     """Reload peers without restart."""
     try:
-        await _run(f"wg syncconf {interface} <(wg-quick strip {interface})")
+        stripped = await _run("wg-quick", "strip", interface)
+        await _run("wg", "syncconf", interface, "/dev/stdin", stdin=stripped)
     except WireGuardError as exc:
         logger.warning("Error to reload config (%s)", exc)
         raise WireGuardError("Reload configuration failed") from exc
@@ -126,7 +146,7 @@ async def get_status() -> dict[str, Any]:
         return {"state": "stopped", "interface": None, "peers": []}
 
     try:
-        output = await _run("wg show")
+        output = await _run("wg", "show")
     except WireGuardError:
         return {"state": "error", "interface": None, "peers": []}
 

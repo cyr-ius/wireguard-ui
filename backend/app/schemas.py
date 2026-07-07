@@ -4,14 +4,44 @@ Pydantic v2 schemas for all request bodies and response models.
 
 from __future__ import annotations
 
+import ipaddress
 from datetime import datetime
 from typing import Literal
 
 from fastapi_mail import NameEmail
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
 from sqlmodel import Field, SQLModel
 
 Lang = Literal["en", "fr", "es"]
+
+
+def _validate_ip_or_cidr(value: str, label: str) -> str:
+    """Validate a single IP address or CIDR network, returning it trimmed.
+
+    Rejects anything that is not a well-formed address so that these values can
+    never carry newlines or shell/config metacharacters into the WireGuard
+    configuration file or command line.
+    """
+    token = value.strip()
+    if not token:
+        raise ValueError(f"{label} must not be empty")
+    try:
+        if "/" in token:
+            ipaddress.ip_network(token, strict=False)
+        else:
+            ipaddress.ip_address(token)
+    except ValueError as exc:
+        raise ValueError(f"Invalid {label}: {token!r}") from exc
+    return token
+
+
+def _validate_ip_or_cidr_list(value: str, label: str) -> str:
+    """Validate a comma-separated list of IP addresses / CIDR networks."""
+    tokens = [t.strip() for t in value.split(",")]
+    if not tokens or any(not t for t in tokens):
+        raise ValueError(f"{label} must be a comma-separated list of IP/CIDR values")
+    return ",".join(_validate_ip_or_cidr(t, label) for t in tokens)
+
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -84,6 +114,11 @@ class ServerCreate(SQLModel):
     postup: str | None = None
     postdown: str | None = None
 
+    @field_validator("address")
+    @classmethod
+    def _check_address(cls, value: str) -> str:
+        return _validate_ip_or_cidr(value, "server address")
+
 
 class ServerResponse(SQLModel):
     id: int
@@ -116,6 +151,16 @@ class ClientCreate(SQLModel):
     send_email: bool = False
     email_language: str = "en"
 
+    @field_validator("allocated_ips")
+    @classmethod
+    def _check_allocated_ips(cls, value: str) -> str:
+        return _validate_ip_or_cidr_list(value, "allocated IP")
+
+    @field_validator("allowed_ips")
+    @classmethod
+    def _check_allowed_ips(cls, value: list[str]) -> list[str]:
+        return [_validate_ip_or_cidr(item, "allowed IP") for item in value]
+
 
 class ClientUpdate(SQLModel):
     name: str | None = None
@@ -125,6 +170,20 @@ class ClientUpdate(SQLModel):
     use_server_dns: bool | None = None
     enabled: bool | None = None
     preshared_key: str | None = None
+
+    @field_validator("allocated_ips")
+    @classmethod
+    def _check_allocated_ips(cls, value: str | None) -> str | None:
+        return (
+            None if value is None else _validate_ip_or_cidr_list(value, "allocated IP")
+        )
+
+    @field_validator("allowed_ips")
+    @classmethod
+    def _check_allowed_ips(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        return [_validate_ip_or_cidr(item, "allowed IP") for item in value]
 
 
 class ClientResponse(SQLModel):

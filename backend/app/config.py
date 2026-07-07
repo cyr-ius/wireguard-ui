@@ -37,6 +37,12 @@ class AppSettings(BaseSettings):
         default=60, ge=1, validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES"
     )
     bcrypt_rounds: int = Field(default=12, ge=4, validation_alias="BCRYPT_ROUNDS")
+    login_rate_limit_max: int = Field(
+        default=10, ge=1, validation_alias="LOGIN_RATE_LIMIT_MAX"
+    )
+    login_rate_limit_window: int = Field(
+        default=60, ge=1, validation_alias="LOGIN_RATE_LIMIT_WINDOW"
+    )
     admin_username: str = Field(default="admin", validation_alias="ADMIN_USERNAME")
     admin_email: str = Field(default="admin@wg.ui", validation_alias="ADMIN_EMAIL")
     admin_password: str = Field(
