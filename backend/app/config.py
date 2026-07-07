@@ -17,7 +17,6 @@ CONFIG_FILE = "/etc/wireguard/wg0.conf"
 GITHUB_REPOSITORY = "cyr-ius/wireguard-ui"
 
 DEFAULT_SECRET_KEY = "CHANGE_ME_use_a_long_random_secret_in_production"
-DEFAULT_ADMIN_PASSWORD = "admin"
 SECRET_KEY_FILE = "secret_key"
 
 
@@ -49,9 +48,6 @@ class AppSettings(BaseSettings):
     cookie_samesite: str = Field(default="lax", validation_alias="COOKIE_SAMESITE")
     admin_username: str = Field(default="admin", validation_alias="ADMIN_USERNAME")
     admin_email: str = Field(default="admin@wg.ui", validation_alias="ADMIN_EMAIL")
-    admin_password: str = Field(
-        default=DEFAULT_ADMIN_PASSWORD, validation_alias="ADMIN_PASSWORD"
-    )
     mail_from: str = Field(default="no-reply@wg.ui", validation_alias="MAIL_FROM")
     mail_name: str = Field(default="WireGuardUI", validation_alias="MAIL_NAME")
     wg_autostart: bool = Field(default=True, validation_alias="WIREGUARD_AUTOSTART")

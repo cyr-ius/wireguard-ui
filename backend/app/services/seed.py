@@ -11,7 +11,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import hash_password
-from ..config import DEFAULT_ADMIN_PASSWORD, app_settings
+from ..config import app_settings
 from ..database import AsyncSessionLocal
 from ..models import GlobalSettings, OidcSettings, Role, SmtpSettings, User
 
@@ -57,10 +57,7 @@ async def _seed_admin(db: AsyncSession) -> None:
 
     admin_role = (await db.exec(select(Role).where(Role.name == "admin"))).one_or_none()
 
-    password = app_settings.admin_password
-    generated = not password or password == DEFAULT_ADMIN_PASSWORD
-    if generated:
-        password = secrets.token_urlsafe(16)
+    password = secrets.token_urlsafe(16)
 
     user = User.model_validate(
         {
@@ -74,19 +71,18 @@ async def _seed_admin(db: AsyncSession) -> None:
     user.roles = [admin_role] if admin_role else []
     db.add(user)
 
-    if generated:
-        logger.warning(
-            "\n%s\n"
-            "Initial admin account created — no ADMIN_PASSWORD was provided.\n"
-            "  username: %s\n"
-            "  password: %s\n"
-            "Save this password now; it will not be shown again.\n"
-            "%s",
-            "=" * 64,
-            app_settings.admin_username,
-            password,
-            "=" * 64,
-        )
+    logger.warning(
+        "\n%s\n"
+        "Initial admin account created with a generated password.\n"
+        "  username: %s\n"
+        "  password: %s\n"
+        "Save this password now; it will not be shown again.\n"
+        "%s",
+        "=" * 64,
+        app_settings.admin_username,
+        password,
+        "=" * 64,
+    )
 
 
 async def _seed_settings(db: AsyncSession) -> None:

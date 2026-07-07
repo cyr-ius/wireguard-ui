@@ -40,14 +40,13 @@ docker run -d \
   -p 8000:8000 \
   -p 51820:51820/udp \
   -e ADMIN_USERNAME=admin \
-  -e ADMIN_PASSWORD=yourpassword \
   -e SECRET_KEY=your-secret-key \
   -v wg_config:/etc/wireguard \
   -v wireguard-ui_data:/var/lib/wireguard-ui \
   cyrius44/wireguard-ui:latest
 ```
 
-Open **http://localhost:8000** and log in with your admin credentials.
+Open **http://localhost:8000** and log in as the admin user. The admin password is generated automatically at first launch and printed in the container logs — check them with `docker logs wireguard-ui`.
 
 ### Docker Compose
 
@@ -67,7 +66,6 @@ services:
       - "51820:51820/udp"
     environment:
       - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=changeme
       - SECRET_KEY=your-secret-key
     volumes:
       - wg_config:/etc/wireguard
@@ -98,7 +96,7 @@ docker compose up -d --build
 ## 🔐 Security Notes
 
 - `SECRET_KEY` must be set to a non-default value or the app will refuse to start.
-- Always change `ADMIN_PASSWORD` on first launch.
+- The admin password is generated automatically on first launch and printed once in the logs. Save it right away.
 - If you expose the UI publicly, enable HTTPS at the reverse proxy level.
 
 ## 🔐 Variables d’environnement importantes
@@ -106,7 +104,6 @@ docker compose up -d --build
 ### Sécurité / Auth
 
 - `ADMIN_USERNAME` : identifiant admin initial.
-- `ADMIN_PASSWORD` : mot de passe admin initial.
 - `ADMIN_EMAIL` : email admin initial.
 - `SECRET_KEY` : clé de signature JWT (**obligatoire en production**).
 - `ACCESS_TOKEN_EXPIRE_MINUTES` : durée de vie des tokens.
@@ -173,7 +170,6 @@ Le `docker-compose.yaml` fournit déjà des valeurs par défaut, mais il est rec
 
 ```env
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=change-me-now
 SECRET_KEY=replace-with-a-long-random-secret
 LOG_LEVEL=INFO
 ```
