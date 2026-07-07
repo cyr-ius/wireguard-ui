@@ -108,14 +108,20 @@ docker compose up -d --build
 - `SECRET_KEY` : clé de signature JWT (**obligatoire en production**).
 - `ACCESS_TOKEN_EXPIRE_MINUTES` : durée de vie des tokens.
 - `BCRYPT_ROUNDS` : coût de hash des mots de passe.
-- `LOGIN_RATE_LIMIT_MAX` / `LOGIN_RATE_LIMIT_WINDOW` : nombre max de tentatives
-  de connexion par IP et fenêtre en secondes (défaut : 10 / 60).
+- `RATE_LIMIT_ENABLED` : active le rate-limiting par IP sur l'API (activé par
+  défaut ; mettre à `false` pour le désactiver entièrement).
+- `RATE_LIMIT_MAX_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` : nombre max de requêtes
+  par IP sur `/api/*` et durée de la fenêtre glissante en secondes
+  (défaut : 100 / 60).
+- `RATE_LIMIT_AUTH_MAX_REQUESTS` : limite plus stricte, appliquée aux endpoints
+  d'authentification (`/api/auth/login`, `/api/auth/token`) pour freiner le
+  brute-force. Même fenêtre que ci-dessus (défaut : 5).
 - `TRUSTED_PROXIES` : IP/CIDR des reverse-proxies de confiance, séparés par des
   virgules (ex. `172.16.0.0/12`). **À renseigner derrière un reverse-proxy** :
   les en-têtes `X-Forwarded-For` / `X-Forwarded-Proto` ne sont pris en compte
   que si la requête provient d'une de ces adresses. Sans cela, le cookie de
-  session n'est pas marqué `Secure` (proxy TLS non détecté) et le rate-limit de
-  connexion regroupe tous les clients sur l'IP du proxy. Vide par défaut
+  session n'est pas marqué `Secure` (proxy TLS non détecté) et le rate-limit
+  regroupe tous les clients sur l'IP du proxy. Vide par défaut
   (aucun proxy de confiance).
 
 ### API / Application

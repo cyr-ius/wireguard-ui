@@ -58,25 +58,47 @@ class SlidingWindowRateLimiter:
 
 # Broad per-IP throttle applied to every /api request by RateLimitMiddleware.
 global_limiter = SlidingWindowRateLimiter(
-    app_settings.global_rate_limit_max,
-    app_settings.global_rate_limit_window,
+    app_settings.rate_limit_max,
+    app_settings.rate_limit_window,
 )
+
+# Stricter per-IP throttle reserved for credential-accepting auth endpoints,
+# where brute-forcing is the real threat. Shares the same window as the global
+# limiter but allows far fewer hits.
+auth_limiter = SlidingWindowRateLimiter(
+    app_settings.rate_limit_auth_max,
+    app_settings.rate_limit_window,
+)
+
+# Endpoints that accept credentials and therefore warrant the stricter bucket.
+AUTH_PATHS = frozenset({"/api/auth/login", "/api/auth/token"})
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Broad per-IP request throttle for the API surface.
+    """Per-IP request throttle for the API surface, in two tiers.
 
-    Counts every ``/api`` request (except the health check) against a shared
+    Every ``/api`` request (except the health check) is counted against a
     sliding-window limiter keyed on the trusted-proxy aware client IP, so a
     client behind a declared reverse proxy is throttled on its real address and
-    cannot escape it by forging ``X-Forwarded-For``.
+    cannot escape it by forging ``X-Forwarded-For``. Authentication endpoints
+    use a separate, stricter bucket to slow credential brute-force without
+    starving the rest of the API. Disabled entirely when RATE_LIMIT_ENABLED is
+    false.
     """
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
-        if path.startswith("/api") and path != "/api/health":
+        if (
+            app_settings.rate_limit_enabled
+            and path.startswith("/api")
+            and path != "/api/health"
+        ):
+            if path in AUTH_PATHS:
+                limiter, scope = auth_limiter, "auth"
+            else:
+                limiter, scope = global_limiter, "global"
             try:
-                global_limiter.check(f"global:{client_ip(request)}")
+                limiter.check(f"{scope}:{client_ip(request)}")
             except HTTPException as exc:
                 return JSONResponse(
                     status_code=exc.status_code,
