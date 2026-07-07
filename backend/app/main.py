@@ -20,7 +20,7 @@ from .database import engine
 from .exceptions import http_exception_handler, validation_exception_handler
 from .helpers import resolve_safe_path
 from .routers import auth, clients, oidc, server, settings, smtp, status, users
-from .security import CsrfMiddleware, SecurityHeadersMiddleware
+from .security import CsrfMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
 from .services.wireguard import WireGuardError, start_service, write_server_config
 
@@ -97,6 +97,8 @@ if app_settings.swagger_enabled:
 # ── Middleware ───────────────────────────────────────────────────────────────
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CsrfMiddleware)
+# Added last → outermost: throttles per IP before any heavier processing runs.
+app.add_middleware(RateLimitMiddleware)
 
 # ── Exception handlers ───────────────────────────────────────────────────────
 app.add_exception_handler(RequestValidationError, validation_exception_handler)  # pyright: ignore[reportArgumentType]

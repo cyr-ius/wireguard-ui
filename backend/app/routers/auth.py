@@ -16,7 +16,6 @@ from ..database import get_db
 from ..models import User
 from ..schemas import LoginRequest, PasswordChangeRequest, TokenResponse, UserResponse
 from ..services.auth import authenticate_user, local_login_allowed
-from ..services.ratelimit import login_rate_limit
 
 router = APIRouter()
 
@@ -27,7 +26,6 @@ async def login_for_access_token(
     response: Response,
     credentials: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
-    _rate: None = Depends(login_rate_limit),
 ):
     """OAuth2 password-flow token endpoint used by the Swagger UI."""
     if not await local_login_allowed(db):
@@ -47,7 +45,6 @@ async def login(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
-    _rate: None = Depends(login_rate_limit),
 ):
     """Authenticate and return a JWT access token, setting the session cookie."""
     if not await local_login_allowed(db):

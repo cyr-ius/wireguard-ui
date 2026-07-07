@@ -36,11 +36,11 @@ class AppSettings(BaseSettings):
         default=60, ge=1, validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES"
     )
     bcrypt_rounds: int = Field(default=12, ge=4, validation_alias="BCRYPT_ROUNDS")
-    login_rate_limit_max: int = Field(
-        default=10, ge=1, validation_alias="LOGIN_RATE_LIMIT_MAX"
+    global_rate_limit_max: int = Field(
+        default=120, ge=1, validation_alias="GLOBAL_RATE_LIMIT_MAX"
     )
-    login_rate_limit_window: int = Field(
-        default=60, ge=1, validation_alias="LOGIN_RATE_LIMIT_WINDOW"
+    global_rate_limit_window: int = Field(
+        default=60, ge=1, validation_alias="GLOBAL_RATE_LIMIT_WINDOW"
     )
     # Comma-separated IPs/CIDRs of reverse proxies whose X-Forwarded-* headers
     # are trusted. Empty (default) → forwarded headers are ignored, only the
