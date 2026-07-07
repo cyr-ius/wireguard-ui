@@ -94,6 +94,8 @@
 
   // ─── Environment varaibles ──────────────────────────────────────────────
   "containerEnv": {
+    "UV_LINK_MODE": "copy",
+    "NG_FORCE_TTY": "false",
     "DATA_DIR": "${containerWorkspaceFolder}/.data_env" // (db, configuration files, etc...)
   },
 

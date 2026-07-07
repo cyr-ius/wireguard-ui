@@ -18,9 +18,6 @@ if [ -d "${WORKSPACE}/.data_env" ]; then
 fi
 
 # ── 1. Python dependencies ─────────────────────────────────────────────────────
-if [ ! -f "$BACKEND_DIR/pyproject.toml" ]; then
-  cp "$WORKSPACE/.devcontainer/pyproject.toml" "$BACKEND_DIR"
-fi
 if [ -f "$BACKEND_DIR/pyproject.toml" ]; then
   echo ""
   echo "📦  Installing Python dependencies..."
