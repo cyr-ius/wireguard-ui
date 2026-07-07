@@ -245,14 +245,39 @@ async def get_or_create_oidc_settings(db: AsyncSession) -> OidcSettings:
     return settings
 
 
-async def get_existing_user(db: AsyncSession, username: str, email: str) -> User | None:
-    """Look up a user by username or email, eager-loading roles."""
+async def get_existing_oidc_user(
+    db: AsyncSession, username: str, email: str
+) -> User | None:
+    """Look up an OIDC-provisioned user by username or email, eager-loading roles.
+
+    The lookup is scoped to ``auth_source == oidc`` so an OIDC identity can never
+    resolve to a local account (see :func:`local_account_conflict`).
+    """
     result = await db.exec(
         select(User)
-        .where((User.username == username) | (User.email == email))
+        .where(
+            (User.auth_source == AUTH_SOURCE_OIDC)
+            & ((User.username == username) | (User.email == email))
+        )
         .options(selectinload(User.roles))  # type: ignore[arg-type]
     )
     return result.first()
+
+
+async def local_account_conflict(db: AsyncSession, username: str, email: str) -> bool:
+    """Return True if a non-OIDC account already owns this username or email.
+
+    Anti-usurpation guard: prevents an OIDC login from taking over the built-in
+    admin or any local account whose username/email the provider happens to
+    return (e.g. a claim an attacker-controlled IdP could set to ``admin``).
+    """
+    result = await db.exec(
+        select(User).where(
+            (User.auth_source != AUTH_SOURCE_OIDC)
+            & ((User.username == username) | (User.email == email))
+        )
+    )
+    return result.first() is not None
 
 
 async def generate_unique_username(db: AsyncSession, base: str) -> str:
@@ -274,13 +299,22 @@ async def find_or_create_user(db: AsyncSession, claims: dict[str, Any]) -> User:
     username = safe_username(claims)
     email = safe_email(claims, username)
 
-    existing = await get_existing_user(db, username, email)
+    existing = await get_existing_oidc_user(db, username, email)
     if existing is not None:
         if existing.active is False:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled."
             )
         return existing
+
+    # Keep OIDC identities strictly separate from local accounts: refuse to
+    # provision (and thus never authenticate as) an identity that collides with
+    # an existing local account.
+    if await local_account_conflict(db, username, email):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This identity conflicts with an existing local account.",
+        )
 
     user_role = (await db.exec(select(Role).where(Role.name == "user"))).one_or_none()
 

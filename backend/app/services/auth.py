@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import verify_password
 from ..models import OidcSettings, User
+from .oidc import AUTH_SOURCE_OIDC
 
 
 async def local_login_allowed(db: AsyncSession) -> bool:
@@ -23,6 +24,16 @@ async def authenticate_user(db: AsyncSession, username: str, password: str) -> U
         select(User).where(User.username == username).options(selectinload(User.roles))  # type: ignore[arg-type]
     )
     user = result.one_or_none()
+
+    # OIDC-provisioned accounts have no usable local password and must only
+    # authenticate through the OIDC flow; reject them with the same generic
+    # error to avoid disclosing the account's auth source.
+    if user is not None and user.auth_source == AUTH_SOURCE_OIDC:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     if not user or not verify_password(password, str(user.hashed_password)):
         raise HTTPException(
