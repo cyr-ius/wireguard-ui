@@ -21,7 +21,6 @@ export interface TokenResponse {
 export interface CurrentUser {
   username: string;
   role: "admin" | "user";
-  token: string;
 }
 
 const STORAGE_KEY = "wg_auth";
@@ -49,16 +48,13 @@ export class AuthService {
     this.applyTokenResponse(response);
   }
 
-  /** Logout: clear state and redirect to login. */
+  /** Logout: clear the server session cookie, local state, and redirect. */
   logout(): void {
+    // Best-effort: the JWT cookie is HttpOnly, only the backend can clear it.
+    this.http.post("/api/auth/logout", {}).subscribe({ error: () => {} });
     this._currentUser.set(null);
     sessionStorage.removeItem(STORAGE_KEY);
     this.router.navigate(["/login"]);
-  }
-
-  /** Get the raw JWT token for use in HTTP interceptor. */
-  getToken(): string | null {
-    return this._currentUser()?.token ?? null;
   }
 
   private _loadFromStorage(): CurrentUser | null {
@@ -71,11 +67,12 @@ export class AuthService {
   }
 
   private applyTokenResponse(response: TokenResponse): void {
+    // The JWT is delivered as an HttpOnly cookie by the backend; we keep only
+    // non-sensitive identity in sessionStorage to render the UI after a reload.
     const isAdmin = response.user.roles?.some((r) => r.name === "admin") ?? false;
     const user: CurrentUser = {
       username: response.user.username,
       role: isAdmin ? "admin" : "user",
-      token: response.access_token,
     };
     this._currentUser.set(user);
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));

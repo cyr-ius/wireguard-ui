@@ -43,6 +43,10 @@ class AppSettings(BaseSettings):
     login_rate_limit_window: int = Field(
         default=60, ge=1, validation_alias="LOGIN_RATE_LIMIT_WINDOW"
     )
+    # None → derive "Secure" from the request scheme (https). Set explicitly
+    # (true/false) to force it, e.g. true when running behind a TLS proxy.
+    cookie_secure: bool | None = Field(default=None, validation_alias="COOKIE_SECURE")
+    cookie_samesite: str = Field(default="lax", validation_alias="COOKIE_SAMESITE")
     admin_username: str = Field(default="admin", validation_alias="ADMIN_USERNAME")
     admin_email: str = Field(default="admin@wg.ui", validation_alias="ADMIN_EMAIL")
     admin_password: str = Field(
@@ -53,6 +57,14 @@ class AppSettings(BaseSettings):
     wg_autostart: bool = Field(default=True, validation_alias="WIREGUARD_AUTOSTART")
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     app_version: str = Field(default="Development", validation_alias="APP_VERSION")
+
+    @field_validator("cookie_samesite", mode="before")
+    @classmethod
+    def normalize_samesite(cls, value: object) -> str:
+        raw = str(value).strip().lower() if value is not None else "lax"
+        if raw not in ("lax", "strict", "none"):
+            raise ValueError("COOKIE_SAMESITE must be one of: lax, strict, none")
+        return raw
 
     @field_validator("db_path", mode="before")
     @classmethod

@@ -6,10 +6,12 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Literal, cast
 
 import bcrypt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import selectinload
@@ -25,7 +27,58 @@ ALGORITHM = app_settings.jwt_algorithm
 EXPIRE_MIN = app_settings.access_token_expire_minutes
 PASSWORD_HASH_ROUNDS = app_settings.bcrypt_rounds
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+# Names of the cookies / header used for the browser session and CSRF protection.
+ACCESS_COOKIE = "access_token"
+CSRF_COOKIE = "csrf_token"
+CSRF_HEADER = "X-CSRF-Token"
+
+# auto_error=False so the Bearer header stays optional: the browser SPA
+# authenticates via the HttpOnly cookie, while API clients may still use Bearer.
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=False)
+
+
+def _cookie_secure(request: Request) -> bool:
+    """Whether cookies should carry the Secure flag for this request."""
+    if app_settings.cookie_secure is not None:
+        return app_settings.cookie_secure
+    return request.url.scheme == "https"
+
+
+def set_auth_cookies(response: Response, request: Request, token: str) -> None:
+    """Set the HttpOnly session cookie and a JS-readable CSRF cookie."""
+    secure = _cookie_secure(request)
+    samesite = cast(Literal["lax", "strict", "none"], app_settings.cookie_samesite)
+    max_age = EXPIRE_MIN * 60
+    response.set_cookie(
+        ACCESS_COOKIE,
+        token,
+        max_age=max_age,
+        httponly=True,
+        secure=secure,
+        samesite=samesite,
+        path="/",
+    )
+    response.set_cookie(
+        CSRF_COOKIE,
+        secrets.token_urlsafe(32),
+        max_age=max_age,
+        httponly=False,
+        secure=secure,
+        samesite=samesite,
+        path="/",
+    )
+
+
+def clear_auth_cookies(response: Response, request: Request) -> None:
+    """Remove the session and CSRF cookies (used on logout)."""
+    secure = _cookie_secure(request)
+    samesite = cast(Literal["lax", "strict", "none"], app_settings.cookie_samesite)
+    response.delete_cookie(
+        ACCESS_COOKIE, path="/", httponly=True, secure=secure, samesite=samesite
+    )
+    response.delete_cookie(
+        CSRF_COOKIE, path="/", httponly=False, secure=secure, samesite=samesite
+    )
 
 
 def _bcrypt_input(password: str) -> bytes:
@@ -62,11 +115,26 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
+async def get_token(
+    request: Request,
+    bearer: str | None = Depends(oauth2_scheme),
+) -> str:
+    """Return the JWT from the session cookie, falling back to the Bearer header."""
+    token = request.cookies.get(ACCESS_COOKIE) or bearer
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return token
+
+
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    token: str = Depends(get_token),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Decode JWT Bearer token and return the authenticated User, raise 401 if invalid."""
+    """Decode the JWT and return the authenticated User, raise 401 if invalid."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

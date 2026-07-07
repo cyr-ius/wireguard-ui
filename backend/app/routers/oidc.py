@@ -1,9 +1,9 @@
 """OIDC settings and authentication router."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ..auth import create_access_token, get_current_admin
+from ..auth import create_access_token, get_current_admin, set_auth_cookies
 from ..database import get_db
 from ..models import User
 from ..schemas import (
@@ -99,10 +99,16 @@ async def get_oidc_public_config(
 
 
 @router.post("/callback", response_model=TokenResponse)
-async def oidc_callback(body: OidcCallbackRequest, db: AsyncSession = Depends(get_db)):
-    """Exchange an OIDC authorization code for an application JWT."""
+async def oidc_callback(
+    body: OidcCallbackRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    """Exchange an OIDC authorization code for an application JWT and session cookie."""
     user = await exchange_code(db, body.code)
     token = create_access_token({"sub": user.username})
+    set_auth_cookies(response, request, token)
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
 

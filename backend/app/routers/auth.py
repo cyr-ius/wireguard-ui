@@ -1,10 +1,17 @@
 """Authentication router: login, current user, password change."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ..auth import create_access_token, get_current_user, hash_password, verify_password
+from ..auth import (
+    clear_auth_cookies,
+    create_access_token,
+    get_current_user,
+    hash_password,
+    set_auth_cookies,
+    verify_password,
+)
 from ..database import get_db
 from ..models import User
 from ..schemas import LoginRequest, PasswordChangeRequest, TokenResponse, UserResponse
@@ -16,6 +23,8 @@ router = APIRouter()
 
 @router.post("/token", response_model=TokenResponse)
 async def login_for_access_token(
+    request: Request,
+    response: Response,
     credentials: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
     _rate: None = Depends(login_rate_limit),
@@ -28,16 +37,19 @@ async def login_for_access_token(
         )
     user = await authenticate_user(db, credentials.username, credentials.password)
     token = create_access_token({"sub": user.username})
+    set_auth_cookies(response, request, token)
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
     credentials: LoginRequest,
+    request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     _rate: None = Depends(login_rate_limit),
 ):
-    """Authenticate and return a JWT access token."""
+    """Authenticate and return a JWT access token, setting the session cookie."""
     if not await local_login_allowed(db):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -45,7 +57,14 @@ async def login(
         )
     user = await authenticate_user(db, credentials.username, credentials.password)
     token = create_access_token({"sub": user.username})
+    set_auth_cookies(response, request, token)
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(request: Request, response: Response):
+    """Clear the session and CSRF cookies."""
+    clear_auth_cookies(response, request)
 
 
 @router.get("/me", response_model=UserResponse)

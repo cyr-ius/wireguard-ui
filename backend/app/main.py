@@ -18,7 +18,7 @@ from .database import engine
 from .exceptions import http_exception_handler, validation_exception_handler
 from .helpers import resolve_safe_path
 from .routers import auth, clients, oidc, server, settings, smtp, status, users
-from .security import SecurityHeadersMiddleware
+from .security import CsrfMiddleware, SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
 from .services.wireguard import WireGuardError, start_service, write_server_config
 
@@ -69,6 +69,7 @@ app = FastAPI(
 
 # ── Middleware ───────────────────────────────────────────────────────────────
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CsrfMiddleware)
 
 # ── Exception handlers ───────────────────────────────────────────────────────
 app.add_exception_handler(RequestValidationError, validation_exception_handler)  # pyright: ignore[reportArgumentType]

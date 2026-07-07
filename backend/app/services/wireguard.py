@@ -31,12 +31,15 @@ async def _run(*args: str, stdin: str | None = None) -> str:
     values (peer keys, IPs, interface names) can never be interpreted by a shell.
     Raises WireGuardError on non-zero exit.
     """
-    proc = await asyncio.create_subprocess_exec(
-        *args,
-        stdin=asyncio.subprocess.PIPE if stdin is not None else None,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *args,
+            stdin=asyncio.subprocess.PIPE if stdin is not None else None,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+    except FileNotFoundError as exc:
+        raise WireGuardError(f"Command not found: {args[0]}") from exc
     stdout, stderr = await proc.communicate(
         stdin.encode() if stdin is not None else None
     )
