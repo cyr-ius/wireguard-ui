@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, effect, input, model, signal } from "@angular/core";
-import { FormValueControl, ValidationError, WithOptionalField } from "@angular/forms/signals";
+import { FormValueControl, ValidationError } from "@angular/forms/signals";
 
 @Component({
   selector: "form-tags-field",
@@ -102,7 +102,7 @@ import { FormValueControl, ValidationError, WithOptionalField } from "@angular/f
 })
 export class FormTagsField implements FormValueControl<string[]> {
   value = model<string[]>([]);
-  errors = input<readonly WithOptionalField<ValidationError>[]>([]);
+  errors = input<readonly ValidationError.WithOptionalFieldTree[]>([]);
   disabled = input<boolean>(false);
   touched = model<boolean>(false);
   required = model<boolean>(false);

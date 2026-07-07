@@ -4,7 +4,7 @@
  */
 
 import { Component, inject, OnInit, signal } from "@angular/core";
-import { form, FormField, FormRoot, min, required } from "@angular/forms/signals";
+import { form, FormField, FormRoot, minLength, required } from "@angular/forms/signals";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
 import { ErrorField } from "../../../core/applets/error-field.component";
@@ -44,8 +44,8 @@ export class LoginComponent implements OnInit {
     (f) => {
       required(f.username, { message: "Username is required" });
       required(f.password, { message: "Password is required" });
-      min(f.username, 3, { message: "Username must be at least 3 characters" });
-      min(f.password, 1, { message: "Password must be at least 1 character" });
+      minLength(f.username, 3, { message: "Username must be at least 3 characters" });
+      minLength(f.password, 1, { message: "Password must be at least 1 character" });
     },
     {
       submission: {
