@@ -42,6 +42,10 @@ class AppSettings(BaseSettings):
     login_rate_limit_window: int = Field(
         default=60, ge=1, validation_alias="LOGIN_RATE_LIMIT_WINDOW"
     )
+    # Comma-separated IPs/CIDRs of reverse proxies whose X-Forwarded-* headers
+    # are trusted. Empty (default) → forwarded headers are ignored, only the
+    # socket peer / real scheme are used.
+    trusted_proxies: str = Field(default="", validation_alias="TRUSTED_PROXIES")
     admin_username: str = Field(default="admin", validation_alias="ADMIN_USERNAME")
     admin_email: str = Field(default="admin@wg.ui", validation_alias="ADMIN_EMAIL")
     mail_from: str = Field(default="no-reply@wg.ui", validation_alias="MAIL_FROM")

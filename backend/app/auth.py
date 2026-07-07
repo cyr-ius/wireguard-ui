@@ -21,6 +21,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from .config import app_settings
 from .database import get_db
 from .models import User
+from .proxy import is_https
 
 SECRET_KEY = app_settings.secret_key
 ALGORITHM = app_settings.jwt_algorithm
@@ -43,12 +44,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=Fals
 
 
 def _cookie_secure(request: Request) -> bool:
-    """Whether cookies should carry the Secure flag for this request.
+    """Set the ``Secure`` flag only when the request is actually over HTTPS.
 
-    Derived from the request scheme, which uvicorn rewrites from the trusted
-    proxy's ``X-Forwarded-Proto`` header, so TLS-terminating proxies are handled.
+    Honours ``X-Forwarded-Proto`` from a trusted proxy so the cookie is marked
+    secure in production, while staying usable on plain-HTTP local dev.
     """
-    return request.url.scheme == "https"
+    return is_https(request)
 
 
 def set_auth_cookies(response: Response, request: Request, token: str) -> None:

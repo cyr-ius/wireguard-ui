@@ -7,6 +7,7 @@ import time
 from fastapi import HTTPException, Request, status
 
 from ..config import app_settings
+from ..proxy import client_ip
 
 
 class SlidingWindowRateLimiter:
@@ -62,13 +63,12 @@ _login_limiter = SlidingWindowRateLimiter(
 
 
 def _client_ip(request: Request) -> str:
-    """Return the peer IP address of the request.
+    """Return the originating client IP address of the request.
 
-    We intentionally trust only the socket peer, not client-supplied headers
-    like X-Forwarded-For. Behind a reverse proxy, configure the proxy/ASGI
-    server (e.g. uvicorn ``--forwarded-allow-ips``) to set the real peer.
+    Delegates to the trusted-proxy aware helper so per-IP throttling targets the
+    real client only when ``X-Forwarded-For`` comes from a trusted proxy.
     """
-    return request.client.host if request.client else "unknown"
+    return client_ip(request)
 
 
 async def login_rate_limit(request: Request) -> None:
