@@ -1,11 +1,11 @@
 {
   "name": "FastAPI + Angular Dev Environment",
-  "build": {
-    "context": ".",
-    "dockerfile": "Dockerfile",
-    "args": {
-      "WORKSPACE": "${containerWorkspaceFolder}"
-    }
+  "image": "mcr.microsoft.com/devcontainers/base:trixie",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {},
+    "ghcr.io/devcontainers-extra/features/prek:1": {},
+    "ghcr.io/devcontainers-extra/features/uv:1": {},
+    "ghcr.io/devcontainers/features/node:2.1.0": {}
   },
   "runArgs": [
     "--cap-add",
@@ -29,14 +29,10 @@
         "ms-python.vscode-pylance",
         "charliermarsh.ruff",
         "angular.ng-template",
-        "ms-vscode.vscode-typescript-next",
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
         "ms-azuretools.vscode-docker",
-        "ms-vscode-remote.remote-containers",
         "streetsidesoftware.code-spell-checker",
-        "streetsidesoftware.code-spell-checker-french",
-        "humao.rest-client",
         "editorconfig.editorconfig",
         "anthropic.claude-code",
         "alexcvzz.vscode-sqlite"
@@ -74,12 +70,6 @@
         "[yaml]": {
           "editor.defaultFormatter": "esbenp.prettier-vscode"
         },
-        "json.schemas": [
-          {
-            "fileMatch": ["homeassistant/components/*/manifest.json"],
-            "url": "${containerWorkspaceFolder}/script/json_schemas/manifest_schema.json"
-          }
-        ],
 
         // ── Général ──────────────────────────────────────────────────────
         "editor.tabSize": 2,
