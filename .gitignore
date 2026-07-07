@@ -21,5 +21,8 @@ venv/
 *.swp
 .ruff_cache/
 
+# Agents
+.claude/settings.local.json
+
 # Temporary data
 .data_env/
