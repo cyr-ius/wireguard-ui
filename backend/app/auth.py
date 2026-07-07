@@ -8,7 +8,7 @@ import base64
 import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import Literal, cast
+from typing import Literal
 
 import bcrypt
 from fastapi import Depends, HTTPException, Request, Response, status
@@ -32,22 +32,28 @@ ACCESS_COOKIE = "access_token"
 CSRF_COOKIE = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
 
+# Cookie security is fixed, not configurable: "lax" blocks cross-site unsafe
+# requests while keeping top-level navigation working, and the CSRF middleware
+# covers the residual cases. "Secure" is derived from the (proxy-aware) scheme.
+COOKIE_SAMESITE: Literal["lax"] = "lax"
+
 # auto_error=False so the Bearer header stays optional: the browser SPA
 # authenticates via the HttpOnly cookie, while API clients may still use Bearer.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=False)
 
 
 def _cookie_secure(request: Request) -> bool:
-    """Whether cookies should carry the Secure flag for this request."""
-    if app_settings.cookie_secure is not None:
-        return app_settings.cookie_secure
+    """Whether cookies should carry the Secure flag for this request.
+
+    Derived from the request scheme, which uvicorn rewrites from the trusted
+    proxy's ``X-Forwarded-Proto`` header, so TLS-terminating proxies are handled.
+    """
     return request.url.scheme == "https"
 
 
 def set_auth_cookies(response: Response, request: Request, token: str) -> None:
     """Set the HttpOnly session cookie and a JS-readable CSRF cookie."""
     secure = _cookie_secure(request)
-    samesite = cast(Literal["lax", "strict", "none"], app_settings.cookie_samesite)
     max_age = EXPIRE_MIN * 60
     response.set_cookie(
         ACCESS_COOKIE,
@@ -55,7 +61,7 @@ def set_auth_cookies(response: Response, request: Request, token: str) -> None:
         max_age=max_age,
         httponly=True,
         secure=secure,
-        samesite=samesite,
+        samesite=COOKIE_SAMESITE,
         path="/",
     )
     response.set_cookie(
@@ -64,7 +70,7 @@ def set_auth_cookies(response: Response, request: Request, token: str) -> None:
         max_age=max_age,
         httponly=False,
         secure=secure,
-        samesite=samesite,
+        samesite=COOKIE_SAMESITE,
         path="/",
     )
 
@@ -72,12 +78,11 @@ def set_auth_cookies(response: Response, request: Request, token: str) -> None:
 def clear_auth_cookies(response: Response, request: Request) -> None:
     """Remove the session and CSRF cookies (used on logout)."""
     secure = _cookie_secure(request)
-    samesite = cast(Literal["lax", "strict", "none"], app_settings.cookie_samesite)
     response.delete_cookie(
-        ACCESS_COOKIE, path="/", httponly=True, secure=secure, samesite=samesite
+        ACCESS_COOKIE, path="/", httponly=True, secure=secure, samesite=COOKIE_SAMESITE
     )
     response.delete_cookie(
-        CSRF_COOKIE, path="/", httponly=False, secure=secure, samesite=samesite
+        CSRF_COOKIE, path="/", httponly=False, secure=secure, samesite=COOKIE_SAMESITE
     )
 
 
