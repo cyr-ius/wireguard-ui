@@ -122,6 +122,7 @@ docker compose up -d --build
 
 - `LOG_LEVEL` : niveau de logs (`INFO`, `DEBUG`, etc.).
 - `APP_VERSION` : version exposée par l’application.
+- `SWAGGER_ENABLED` : expose la documentation Swagger (`/api/docs`) et le schéma OpenAPI (`/api/openapi.json`). Mettre à `false` pour les désactiver (activé par défaut).
 
 ### Base de données
 

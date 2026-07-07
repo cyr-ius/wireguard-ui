@@ -66,30 +66,32 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url=None,  # Custom docs route below serves self-hosted Swagger UI assets.
     redoc_url=None,
-    openapi_url="/api/openapi.json",
+    # Disabling Swagger also hides the OpenAPI schema so the API stays undocumented.
+    openapi_url="/api/openapi.json" if app_settings.swagger_enabled else None,
 )
 
 # ── Self-hosted Swagger UI ────────────────────────────────────────────────────
 # Serve Swagger UI assets locally instead of a third-party CDN (jsdelivr) so the
 # API docs work in air-gapped/offline deployments and respect a strict CSP.
-_SWAGGER_STATIC_DIR = Path(__file__).resolve().parent / "static" / "swagger"
-app.mount(
-    "/api/docs/static",
-    StaticFiles(directory=_SWAGGER_STATIC_DIR),
-    name="swagger-static",
-)
-
-
-@app.get("/api/docs", include_in_schema=False)
-async def swagger_ui_html() -> HTMLResponse:
-    """Swagger UI page loading its JS/CSS from the app itself, not a CDN."""
-    return get_swagger_ui_html(
-        openapi_url=app.openapi_url or "/api/openapi.json",
-        title=f"{app.title} - Swagger UI",
-        swagger_js_url="/api/docs/static/swagger-ui-bundle.js",
-        swagger_css_url="/api/docs/static/swagger-ui.css",
-        swagger_favicon_url="/favicon.ico",
+# Everything below is opt-out via SWAGGER_ENABLED=false.
+if app_settings.swagger_enabled:
+    _SWAGGER_STATIC_DIR = Path(__file__).resolve().parent / "static" / "swagger"
+    app.mount(
+        "/api/docs/static",
+        StaticFiles(directory=_SWAGGER_STATIC_DIR),
+        name="swagger-static",
     )
+
+    @app.get("/api/docs", include_in_schema=False)
+    async def swagger_ui_html() -> HTMLResponse:
+        """Swagger UI page loading its JS/CSS from the app itself, not a CDN."""
+        return get_swagger_ui_html(
+            openapi_url=app.openapi_url or "/api/openapi.json",
+            title=f"{app.title} - Swagger UI",
+            swagger_js_url="/api/docs/static/swagger-ui-bundle.js",
+            swagger_css_url="/api/docs/static/swagger-ui.css",
+            swagger_favicon_url="/favicon.ico",
+        )
 
 
 # ── Middleware ───────────────────────────────────────────────────────────────

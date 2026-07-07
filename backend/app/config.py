@@ -51,6 +51,7 @@ class AppSettings(BaseSettings):
     mail_from: str = Field(default="no-reply@wg.ui", validation_alias="MAIL_FROM")
     mail_name: str = Field(default="WireGuardUI", validation_alias="MAIL_NAME")
     wg_autostart: bool = Field(default=True, validation_alias="WIREGUARD_AUTOSTART")
+    swagger_enabled: bool = Field(default=True, validation_alias="SWAGGER_ENABLED")
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     app_version: str = Field(default="Development", validation_alias="APP_VERSION")
 
