@@ -4,13 +4,18 @@ Database seeding: creates default roles, admin user, and settings on first run.
 
 from __future__ import annotations
 
+import logging
+import secrets
+
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import hash_password
-from ..config import app_settings
+from ..config import DEFAULT_ADMIN_PASSWORD, app_settings
 from ..database import AsyncSessionLocal
 from ..models import GlobalSettings, OidcSettings, Role, SmtpSettings, User
+
+logger = logging.getLogger(__name__)
 
 
 async def seed_initial_data() -> None:
@@ -52,17 +57,36 @@ async def _seed_admin(db: AsyncSession) -> None:
 
     admin_role = (await db.exec(select(Role).where(Role.name == "admin"))).one_or_none()
 
+    password = app_settings.admin_password
+    generated = not password or password == DEFAULT_ADMIN_PASSWORD
+    if generated:
+        password = secrets.token_urlsafe(16)
+
     user = User.model_validate(
         {
             "username": app_settings.admin_username,
             "email": app_settings.admin_email,
             "first_name": "Administrator",
-            "hashed_password": hash_password(app_settings.admin_password),
+            "hashed_password": hash_password(password),
             "active": True,
         }
     )
     user.roles = [admin_role] if admin_role else []
     db.add(user)
+
+    if generated:
+        logger.warning(
+            "\n%s\n"
+            "Initial admin account created — no ADMIN_PASSWORD was provided.\n"
+            "  username: %s\n"
+            "  password: %s\n"
+            "Save this password now; it will not be shown again.\n"
+            "%s",
+            "=" * 64,
+            app_settings.admin_username,
+            password,
+            "=" * 64,
+        )
 
 
 async def _seed_settings(db: AsyncSession) -> None:
