@@ -101,6 +101,7 @@ class UserUpdate(SQLModel):
     last_name: str | None = None
     active: bool | None = None
     role_ids: list[int] | None = None
+    password: str | None = None
 
 
 # ── WireGuard Server ──────────────────────────────────────────────────────────

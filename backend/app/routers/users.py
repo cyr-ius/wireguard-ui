@@ -105,6 +105,16 @@ async def update_user(
 
     if "role_ids" in payload:
         u.roles = await load_roles(db, payload.pop("role_ids"))
+
+    new_password = payload.pop("password", None)
+    if new_password:
+        if len(new_password) < 8:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Password must be at least 8 characters",
+            )
+        u.hashed_password = hash_password(new_password)
+
     u.sqlmodel_update(payload)
 
     db.add(u)

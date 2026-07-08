@@ -51,6 +51,7 @@ export interface UserUpdate {
   last_name?: string;
   active?: boolean;
   role_ids?: number[];
+  password?: string;
 }
 
 // ─── WireGuard Server ─────────────────────────────────────────────────────────

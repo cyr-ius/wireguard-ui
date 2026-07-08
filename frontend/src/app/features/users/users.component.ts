@@ -113,7 +113,9 @@ export class UsersComponent implements OnInit {
         this.loadData();
       } else {
         const id = this.selectedUser()!.id;
-        await firstValueFrom(this.usersService.update(id, f().value() as UserUpdate));
+        const { password, ...rest } = f().value() as UserUpdate & { password?: string };
+        const payload: UserUpdate = password ? { ...rest, password } : rest;
+        await firstValueFrom(this.usersService.update(id, payload));
         this.closeModal();
         this.loadData();
       }

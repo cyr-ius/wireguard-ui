@@ -63,6 +63,10 @@
       }
       <div class="nav-section">
         <span class="nav-section-label">Information</span>
+        <a routerLink="/profile" routerLinkActive="active" class="nav-item">
+          <i class="bi bi-person-circle"></i>
+          <span class="nav-label">Profile</span>
+        </a>
         <a routerLink="/about" routerLinkActive="active" class="nav-item">
           <i class="bi bi-info-circle-fill"></i>
           <span class="nav-label">About</span>
@@ -99,7 +103,7 @@
           </select>
         }
       </div>
-      <div class="user-info">
+      <a class="user-info" routerLink="/profile" title="View profile">
         <div class="user-avatar">
           <i class="bi bi-person-circle"></i>
         </div>
@@ -109,7 +113,7 @@
             {{ auth.isAdmin() ? "Administrator" : "User" }}
           </span>
         </div>
-      </div>
+      </a>
       <button class="btn-logout" (click)="logout()" title="Sign out">
         <i class="bi bi-box-arrow-right"></i>
       </button>

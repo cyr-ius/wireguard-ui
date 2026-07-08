@@ -58,6 +58,10 @@ export const routes: Routes = [
         loadComponent: () => import("./features/smtp/smtp.component").then((m) => m.SmtpComponent),
       },
       {
+        path: "profile",
+        loadComponent: () => import("./features/profile/profile.component").then((m) => m.ProfileComponent),
+      },
+      {
         path: "about",
         loadComponent: () => import("./features/about/about.component").then((m) => m.AboutComponent),
       },

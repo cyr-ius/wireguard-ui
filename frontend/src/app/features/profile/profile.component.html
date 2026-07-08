@@ -1,0 +1,77 @@
+<!-- User profile page - available to all authenticated users -->
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><i class="bi bi-person-circle me-2"></i>Profile</h1>
+      <p class="page-subtitle">Manage your account and password</p>
+    </div>
+  </div>
+
+  <div-error [errorRef]="error()" [successRef]="successMessage()"></div-error>
+
+  <form class="config-form" [formRoot]="passwordForm">
+    <div class="config-card">
+      <h2 class="section-title"><i class="bi bi-person-badge me-2"></i>Account</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-control" [value]="username()" readonly />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <input type="text" class="form-control" [value]="role()" readonly />
+        </div>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h2 class="section-title"><i class="bi bi-key-fill me-2"></i>Change Password</h2>
+      <div class="form-group">
+        <label class="form-label">Current Password</label>
+        <input
+          type="password"
+          class="form-control"
+          autocomplete="current-password"
+          [formField]="passwordForm.current_password"
+        />
+        <form-extra-fields [fieldRef]="passwordForm.current_password" class="form-error"></form-extra-fields>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input
+            type="password"
+            class="form-control"
+            autocomplete="new-password"
+            [formField]="passwordForm.new_password"
+          />
+          <form-extra-fields [fieldRef]="passwordForm.new_password" class="form-error"></form-extra-fields>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input
+            type="password"
+            class="form-control"
+            autocomplete="new-password"
+            [formField]="passwordForm.confirm_password"
+          />
+          <form-extra-fields [fieldRef]="passwordForm.confirm_password" class="form-error"></form-extra-fields>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="passwordForm().invalid() || passwordForm().submitting()"
+        [aria-busy]="passwordForm().submitting()"
+      >
+        @if (passwordForm().submitting()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        <i class="bi bi-floppy me-1"></i>Change Password
+      </button>
+    </div>
+  </form>
+</div>
