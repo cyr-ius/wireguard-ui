@@ -95,6 +95,21 @@ async def update_user(
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User not found")
 
     payload = data.model_dump(exclude_unset=True)
+
+    # Identity fields and password of externally managed (OIDC) accounts are
+    # owned by the identity provider; only local authorization (roles, active
+    # status) may be changed here.
+    if u.auth_source != "local":
+        managed_fields = {"email", "first_name", "last_name", "password"}
+        if managed_fields & payload.keys():
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    "Email, name and password of externally managed accounts "
+                    "cannot be changed here"
+                ),
+            )
+
     if "email" in payload and payload["email"] != u.email:
         if (
             await db.exec(select(User).where(User.email == payload["email"]))

@@ -77,6 +77,11 @@ async def change_password(
     db: AsyncSession = Depends(get_db),
 ):
     """Change the current user's password after verifying the old one."""
+    if current_user.auth_source != "local":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password change is not available for externally managed accounts",
+        )
     if not verify_password(body.current_password, str(current_user.hashed_password)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

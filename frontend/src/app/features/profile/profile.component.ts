@@ -24,6 +24,7 @@ export class ProfileComponent {
 
   readonly username = computed(() => this.authService.username());
   readonly role = computed(() => (this.authService.isAdmin() ? "Administrator" : "User"));
+  readonly isOidc = computed(() => this.authService.isOidc());
 
   private readonly formInit = {
     current_password: "",

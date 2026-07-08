@@ -15,12 +15,14 @@ export interface TokenResponse {
   user: {
     username: string;
     roles: Array<{ name: string }>;
+    auth_source?: string;
   };
 }
 
 export interface CurrentUser {
   username: string;
   role: "admin" | "user";
+  authSource: string;
 }
 
 const STORAGE_KEY = "wg_auth";
@@ -38,6 +40,8 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this._currentUser() !== null);
   readonly isAdmin = computed(() => this._currentUser()?.role === "admin");
   readonly username = computed(() => this._currentUser()?.username ?? "");
+  readonly authSource = computed(() => this._currentUser()?.authSource ?? "local");
+  readonly isOidc = computed(() => this.authSource() === "oidc");
 
   /** Login: exchange credentials for JWT token. */
   login(username: string, password: string) {
@@ -73,6 +77,7 @@ export class AuthService {
     const user: CurrentUser = {
       username: response.user.username,
       role: isAdmin ? "admin" : "user",
+      authSource: response.user.auth_source ?? "local",
     };
     this._currentUser.set(user);
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));

@@ -32,6 +32,7 @@ export class UsersComponent implements OnInit {
   readonly deleteTarget = signal<User | null>(null);
 
   readonly currentUsername = computed(() => this.authService.currentUser()?.username ?? "");
+  readonly isEditingOidc = computed(() => this.modalMode() === "edit" && this.selectedUser()?.auth_source === "oidc");
 
   private readonly userInit = {
     id: "",
@@ -55,6 +56,11 @@ export class UsersComponent implements OnInit {
       minLength(p.username, 3, { message: "String should have at least 3 characters" });
       minLength(p.password, 8, { message: "String should have at least 8 characters" });
       readonly(p.username, () => this.modalMode() === "edit");
+      // Identity fields of OIDC accounts are owned by the identity provider.
+      readonly(p.email, () => this.isEditingOidc());
+      readonly(p.first_name, () => this.isEditingOidc());
+      readonly(p.last_name, () => this.isEditingOidc());
+      readonly(p.password, () => this.isEditingOidc());
     },
     {
       submission: {
@@ -114,7 +120,13 @@ export class UsersComponent implements OnInit {
       } else {
         const id = this.selectedUser()!.id;
         const { password, ...rest } = f().value() as UserUpdate & { password?: string };
-        const payload: UserUpdate = password ? { ...rest, password } : rest;
+        // OIDC identities are managed by the provider: only local authorization
+        // (roles, active status) may be updated.
+        const payload: UserUpdate = this.isEditingOidc()
+          ? { active: rest.active, role_ids: rest.role_ids }
+          : password
+            ? { ...rest, password }
+            : rest;
         await firstValueFrom(this.usersService.update(id, payload));
         this.closeModal();
         this.loadData();
