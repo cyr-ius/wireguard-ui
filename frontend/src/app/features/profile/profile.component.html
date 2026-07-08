@@ -24,54 +24,65 @@
       </div>
     </div>
 
-    <div class="config-card">
-      <h2 class="section-title"><i class="bi bi-key-fill me-2"></i>Change Password</h2>
-      <div class="form-group">
-        <label class="form-label">Current Password</label>
-        <input
-          type="password"
-          class="form-control"
-          autocomplete="current-password"
-          [formField]="passwordForm.current_password"
-        />
-        <form-extra-fields [fieldRef]="passwordForm.current_password" class="form-error"></form-extra-fields>
+    @if (isOidc()) {
+      <div class="config-card">
+        <h2 class="section-title"><i class="bi bi-shield-lock me-2"></i>Change Password</h2>
+        <p class="text-muted mb-0">
+          <i class="bi bi-info-circle me-1"></i>
+          Your account is managed by an external identity provider (OIDC). Your password and profile information are
+          managed there and cannot be changed here.
+        </p>
       </div>
-      <div class="form-row">
+    } @else {
+      <div class="config-card">
+        <h2 class="section-title"><i class="bi bi-key-fill me-2"></i>Change Password</h2>
         <div class="form-group">
-          <label class="form-label">New Password</label>
+          <label class="form-label">Current Password</label>
           <input
             type="password"
             class="form-control"
-            autocomplete="new-password"
-            [formField]="passwordForm.new_password"
+            autocomplete="current-password"
+            [formField]="passwordForm.current_password"
           />
-          <form-extra-fields [fieldRef]="passwordForm.new_password" class="form-error"></form-extra-fields>
+          <form-extra-fields [fieldRef]="passwordForm.current_password" class="form-error"></form-extra-fields>
         </div>
-        <div class="form-group">
-          <label class="form-label">Confirm New Password</label>
-          <input
-            type="password"
-            class="form-control"
-            autocomplete="new-password"
-            [formField]="passwordForm.confirm_password"
-          />
-          <form-extra-fields [fieldRef]="passwordForm.confirm_password" class="form-error"></form-extra-fields>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input
+              type="password"
+              class="form-control"
+              autocomplete="new-password"
+              [formField]="passwordForm.new_password"
+            />
+            <form-extra-fields [fieldRef]="passwordForm.new_password" class="form-error"></form-extra-fields>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input
+              type="password"
+              class="form-control"
+              autocomplete="new-password"
+              [formField]="passwordForm.confirm_password"
+            />
+            <form-extra-fields [fieldRef]="passwordForm.confirm_password" class="form-error"></form-extra-fields>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="form-actions">
-      <button
-        type="submit"
-        class="btn btn-primary"
-        [disabled]="passwordForm().invalid() || passwordForm().submitting()"
-        [aria-busy]="passwordForm().submitting()"
-      >
-        @if (passwordForm().submitting()) {
-          <span class="spinner-border spinner-border-sm me-1"></span>
-        }
-        <i class="bi bi-floppy me-1"></i>Change Password
-      </button>
-    </div>
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="passwordForm().invalid() || passwordForm().submitting()"
+          [aria-busy]="passwordForm().submitting()"
+        >
+          @if (passwordForm().submitting()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-floppy me-1"></i>Change Password
+        </button>
+      </div>
+    }
   </form>
 </div>

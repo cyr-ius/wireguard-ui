@@ -294,6 +294,44 @@ async def generate_unique_username(db: AsyncSession, base: str) -> str:
         candidate = f"{base[: 255 - len(suffix_text)]}{suffix_text}"
 
 
+async def sync_oidc_user(
+    db: AsyncSession, user: User, claims: dict[str, Any], email: str
+) -> User:
+    """Refresh an OIDC user's identity fields from the provider claims.
+
+    Email, first and last name are owned by the identity provider, so they are
+    re-synchronised on every login. The email is only updated when it is free,
+    to avoid violating the unique constraint against another account.
+    """
+    updates: dict[str, Any] = {
+        "first_name": get_name_claim(claims, "given_name"),
+        "last_name": get_name_claim(claims, "family_name"),
+    }
+
+    if email != user.email:
+        conflict = (
+            await db.exec(
+                select(User).where((User.email == email) & (User.id != user.id))
+            )
+        ).first()
+        if conflict is None:
+            updates["email"] = email
+
+    changed = {k: v for k, v in updates.items() if getattr(user, k) != v}
+    if not changed:
+        return user
+
+    user.sqlmodel_update(changed)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    result = await db.exec(
+        select(User).where(User.id == user.id).options(selectinload(User.roles))  # type: ignore[arg-type]
+    )
+    return result.one()
+
+
 async def find_or_create_user(db: AsyncSession, claims: dict[str, Any]) -> User:
     """Return an existing User from OIDC claims or create a new provisioned one."""
     username = safe_username(claims)
@@ -305,7 +343,7 @@ async def find_or_create_user(db: AsyncSession, claims: dict[str, Any]) -> User:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled."
             )
-        return existing
+        return await sync_oidc_user(db, existing, claims, email)
 
     # Keep OIDC identities strictly separate from local accounts: refuse to
     # provision (and thus never authenticate as) an identity that collides with

@@ -92,6 +92,16 @@
         <form [formRoot]="userForm" class="modal-form">
           <div-error [errorRef]="formError()"></div-error>
 
+          @if (isEditingOidc()) {
+            <div class="alert alert-info d-flex align-items-center gap-2" role="alert">
+              <i class="bi bi-shield-lock"></i>
+              <span>
+                This account is managed by an external identity provider (OIDC). Its email, name and password are
+                read-only; only roles and status can be changed here.
+              </span>
+            </div>
+          }
+
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Username *</label>
@@ -116,13 +126,15 @@
               <form-extra-fields [fieldRef]="userForm.last_name" class="form-error"></form-extra-fields>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">{{
-              modalMode() === "create" ? "Password *" : "New Password (leave empty to keep current)"
-            }}</label>
-            <input type="password" class="form-control" [formField]="userForm.password" />
-            <form-extra-fields [fieldRef]="userForm.password" class="form-error"></form-extra-fields>
-          </div>
+          @if (!isEditingOidc()) {
+            <div class="form-group">
+              <label class="form-label">{{
+                modalMode() === "create" ? "Password *" : "New Password (leave empty to keep current)"
+              }}</label>
+              <input type="password" class="form-control" [formField]="userForm.password" />
+              <form-extra-fields [fieldRef]="userForm.password" class="form-error"></form-extra-fields>
+            </div>
+          }
           <div class="form-group">
             <label class="form-label">Roles</label>
             <div class="role-checkboxes">

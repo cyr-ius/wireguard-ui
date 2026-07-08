@@ -32,6 +32,7 @@ export interface User {
   first_name?: string;
   last_name?: string;
   active: boolean;
+  auth_source?: string;
   roles: Role[];
 }
 
