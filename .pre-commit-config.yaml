@@ -1,7 +1,7 @@
 # ─── Pre-commit Configuration ──────────────────────────────────────────────
 # Standards: PEP8 (Ruff + Black), TypeScript (Prettier + ESLint)
-# Install: pre-commit install --install-hooks
-# Run manually: pre-commit run --all-files
+# Install: prek install --install-hooks
+# Run manually: prek run --all-files
 
 repos:
   # ── General ──────────────────────────────────────────────────────────────
@@ -10,20 +10,23 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+        exclude: swagger
       - id: check-yaml
       - id: check-json
-        exclude: .devcontainer|.claude|.agent
+        exclude: .devcontainer|.vscode|tsconfig.*
       - id: check-merge-conflict
       - id: detect-private-key
       - id: mixed-line-ending
         args: [--fix=lf]
+        exclude: .devcontainer|.vscode|.agents
 
   # ── Python: Ruff (formatter + linter + import sort) ──────────────────────────────────
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.15.11
     hooks:
       - id: ruff
         args: [--fix]
+        exclude: .agents
       - id: ruff-format
 
   - repo: https://github.com/codespell-project/codespell
@@ -31,10 +34,11 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=the
+          - --ignore-words-list=mailserver
+          - --skip="./.*,*.csv,*.json,*.ambr"
           - --quiet-level=2
-        exclude_types: [csv, json, yaml]
-        exclude: ./.*|.devcontainer|.claude|.agents|.pre-commit-config.yaml|client_config_es.html|client_config_fr.html|README.md
+        exclude_types: [csv, json, html]
+        exclude: .devcontainer|.agents|swagger
 
   # ── TypeScript / Angular: Prettier ───────────────────────────────────────
   - repo: https://github.com/pre-commit/mirrors-prettier
@@ -43,4 +47,4 @@ repos:
       - id: prettier
         args: ["--print-width=120"]
         types_or: [javascript, html, css, scss, json, yaml, markdown]
-        exclude: "^(backend/|node_modules/)"
+        exclude: node_modules|.agents|swagger
