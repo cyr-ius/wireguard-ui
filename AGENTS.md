@@ -1,48 +1,129 @@
 # AGENTS.md
 
-Instructions pour les agents IA opérant dans ce dépôt.
+Instructions for AI agents operating in this repository.
 
-## Objectif
+## Purpose
 
-Préparer rapidement un environnement local pour **analyser le code**, exécuter les contrôles de base et éviter les erreurs courantes liées aux dépendances.
+This document defines the rules and workflow that AI agents must follow when analyzing, modifying, testing, or deploying this repository.
 
-## Arborescence utile
+The objective is to:
 
-- `backend/` : API FastAPI (Python, `uv`)
-- `frontend/` : UI Angular (Node + npm + @angular/cli)
+- quickly understand the project structure;
+- prepare a consistent local development environment;
+- apply the required development standards;
+- run the appropriate validation checks;
+- avoid common dependency and implementation mistakes.
 
-## Prérequis système
+## Agent behavior
+
+Before making any change, AI agents must:
+
+1. Read and understand the relevant source files.
+2. Identify existing architectural patterns and conventions.
+3. Read and apply the `development-standards` skill.
+4. Make the smallest possible change required.
+5. Run the appropriate verification commands.
+6. Clearly report performed changes and validation results.
+
+AI agents must not:
+
+- introduce new dependencies without justification;
+- replace existing technologies or patterns without approval;
+- manually modify generated files;
+- ignore existing conventions;
+- bypass failing validation checks;
+- create duplicated implementations when an existing component can be extended.
+
+## Development standards
+
+All coding conventions, architectural rules, security practices, and development guidelines are defined in the `development-standards` skill.
+
+AI agents **must read and follow the `development-standards` skill before making any code changes**.
+
+The rules defined in this skill are mandatory and apply to:
+
+- code style and formatting;
+- naming conventions;
+- project architecture;
+- framework usage;
+- error handling;
+- security requirements;
+- testing practices;
+- dependency management;
+- documentation standards.
+
+Any implementation, modification, or code review performed in this repository must comply with the `development-standards` skill.
+
+## Technology stack
+
+### Backend
 
 - Python `>= 3.14`
-- `uv` installé (https://docs.astral.sh/uv/)
+- FastAPI
+- Pydantic 2
+- Managed with `uv`
+
+### Frontend
+
+- Angular
+- TypeScript
+- Node.js `>= 22`
+- npm
+- Angular CLI
+
+## Project structure
+
+```
+.
+├── backend/          # FastAPI backend
+├── frontend/         # Angular frontend
+├── scripts/          # Automation and deployment scripts
+└── AGENTS.md         # AI agent instructions
+```
+
+## System requirements
+
+The development environment requires:
+
+- Python `>= 3.14`
+- `uv` installed: https://docs.astral.sh/uv/
 - Node.js `>= 22`
 - npm
 
-## Installation des dépendances
+## Dependency installation
 
 ### Backend
 
 ```bash
 cd backend
-uv sync --extra dev
+uv sync
 ```
+
+Do not use `pip install -r requirements.txt`.
+
+The Python project is managed through:
+
+- `pyproject.toml`
+- `uv.lock`
 
 ### Frontend
 
 ```bash
 cd frontend
-npm install @angular/cli@21
 npm ci
 ```
 
-## Commandes de vérification (analyse)
+Prefer `npm ci` over `npm install` to respect `package-lock.json`.
+
+## Verification commands
 
 ### Backend
 
 ```bash
 cd backend
-uv run ruff check src
-uv run mypy src
+uv run ruff check app
+uv run ruff format --check app
+uv run mypy app
 ```
 
 ### Frontend
@@ -52,13 +133,13 @@ cd frontend
 npm run build
 ```
 
-## Lancement en mode développement
+## Running in development mode
 
 ### Backend
 
 ```bash
 cd backend
-uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Frontend
@@ -68,8 +149,32 @@ cd frontend
 npm start
 ```
 
-## Notes importantes
+## Error reporting
 
-- Ne pas utiliser `pip install -r requirements.txt` : le projet Python est géré via `pyproject.toml` + `uv.lock`.
-- Préférer `npm ci` à `npm install` pour respecter le verrouillage de `package-lock.json`.
-- Si un outil manque (ex: `uv`, `node`), signaler clairement la limitation d’environnement dans le compte-rendu.
+If a required tool is missing:
+
+- clearly report the environment limitation;
+- do not use unsupported workarounds.
+
+If a command fails:
+
+- report the failing command;
+- explain the cause when identifiable;
+- do not hide validation failures.
+
+## Deployment
+
+Production releases must use:
+
+```bash
+scripts/release.sh
+```
+
+## References
+
+For consistent development practices, use the following GitHub repositories as inspiration:
+
+- cyr-ius/powerdns-ui
+- cyr-ius/portalcrane
+- cyr-ius/wireguard-ui
+- cyr-ius/verifid

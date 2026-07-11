@@ -6,11 +6,22 @@
 
 ## Versions imposées
 
-FastAPI **0.135.1** · Python **3.14** · Pydantic **v2** · async/await partout.
+FastAPI **0.139.0 ou supérieur** · Python **3.14 ou supérieur** · Pydantic **v2 ou supérieur** · async/await partout.
 
 ## Règles projet (non négociables)
 
-### 1. Aucune fuite d'information vers le client
+### 1. Architecture des dossiers
+
+backend/app
+├── statics # héberge les assets statiques
+├── routers # héberge les routers ou endpoints
+├── services # les services mis à dispositions des différents routers
+├── config.py # ensemble des variables et contstantes (voir chapitre 4)
+├── main.py # fichier principale
+├── security.py # héberge les middlewares de sécurité ratelimiting, csrf, security policies , etc...
+├── depends.py # héberge les dépendances de Fastapi Depend() ou Security()
+
+### 2. Aucune fuite d'information vers le client
 
 Ne **jamais** renvoyer de backtrace ni l'objet exception au client. Logger le détail côté serveur, renvoyer un message générique.
 
@@ -22,7 +33,7 @@ except Exception as exc:
     raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Operation failed")
 ```
 
-### 2. Exceptions typées + handlers
+### 3. Exceptions typées + handlers
 
 Hiérarchie d'exceptions applicatives plutôt que des `HTTPException` éparpillées.
 
@@ -42,7 +53,7 @@ async def not_found_handler(request, exc):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 ```
 
-### 3. Configuration & secrets via `BaseSettings`
+### 4. Configuration & secrets via `BaseSettings`
 
 **Rien en dur.** Tout passe par `pydantic_settings.BaseSettings` (`.env`). Variables propres au projet :
 
@@ -65,11 +76,16 @@ class Settings(BaseSettings):
     model_config = {"env_file": ".env", "case_sensitive": False}
 ```
 
-### 4. Architecture conteneur unique
+### 5. Architecture conteneur unique
 
-L'application entière (frontend + backend) est déployée dans **un seul conteneur Docker** multi-stage : build frontend Node → install deps backend (`python:3.14-slim`) → runtime servant le SPA statique via Uvicorn, port **8080**, avec `HEALTHCHECK` sur `/api/health`.
+L'application entière (frontend + backend) est déployée dans **un seul conteneur Docker** multi-stage : build frontend Node → install deps backend (`python:3.14-slim`) → runtime servant le SPA statique via Uvicorn, port **8000**, avec `HEALTHCHECK` sur `/api/health`.
 
-### 5. Rappels appliqués partout
+### 6. Swagger
+
+Les pages Swagger **ne doivent pas dépendre** d'un cdn ou d'un hébergement internet.
+Swagger doit être **désactivable** via une varaibel d'envrionnement
+
+### 6. Rappels appliqués partout
 
 - **Toutes** les routes `async` ; I/O en `await` (DB, HTTP).
 - Validation par **modèles Pydantic v2** (syntaxe moderne `str | None`, `list[…]`, `field_validator`, `model_config`).
