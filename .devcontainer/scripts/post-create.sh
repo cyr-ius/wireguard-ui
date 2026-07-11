@@ -82,10 +82,26 @@ if [ -d "$WORKSPACE/.agents" ]; then
   echo ""
   echo "🧠  Skill — installation des dépendances..."
   cd "$WORKSPACE"
-  npx --yes skills add https://github.com/fastapi/fastapi --skill fastapi  -p -y
-  npx --yes skills add https://github.com/bilalmk/todo_correct --skill sqlmodel-expert  -p -y
-  npx --yes skills add https://github.com/angular/angular --skill angular-developer  -p -y
-  npx --yes skills add https://github.com/cyr-ius/angular-fastapi-scaffold --skill development-standards  -p -y
+  if [ -d "$WORKSPACE/.agents/fastapi" ]; then
+    npx --yes skills update https://github.com/fastapi/fastapi --skill fastapi -p -y
+  else
+      npx --yes skills add https://github.com/fastapi/fastapi --skill fastapi -p -y
+  fi
+  if [ -d "$WORKSPACE/.agents/sqlmodel-expert" ]; then
+    npx --yes skills update https://github.com/bilalmk/todo_correct --skill sqlmodel-expert -p -y
+  else
+    npx --yes skills add https://github.com/bilalmk/todo_correct --skill sqlmodel-expert -p -y
+  fi
+  if [ -d "$WORKSPACE/.agents/angular-developer" ]; then
+    npx --yes skills update https://github.com/angular/angular --skill angular-developer -p -y
+  else
+    npx --yes skills add https://github.com/angular/angular --skill angular-developer -p -y
+  fi
+  if [ -d "$WORKSPACE/.agents/development-standards" ]; then
+    npx --yes skills update https://github.com/cyr-ius/angular-fastapi-scaffold --skill development-standards -p -y
+  else
+    npx --yes skills add https://github.com/cyr-ius/angular-fastapi-scaffold --skill development-standards -p -y
+  fi
   echo "  ✅  Skills installed"
 fi
 

@@ -1,7 +1,6 @@
 """
 Example SQLModel models demonstrating best practices and common patterns
 """
-
 from sqlmodel import Field, Relationship, SQLModel
 from typing import Optional, List
 from datetime import datetime
@@ -24,7 +23,6 @@ class TaskPriority(str, Enum):
 # Mixins for common fields
 class TimestampMixin(SQLModel):
     """Add created_at and updated_at timestamps"""
-
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
@@ -32,7 +30,6 @@ class TimestampMixin(SQLModel):
 # Base models (shared fields)
 class UserBase(SQLModel):
     """Base user fields"""
-
     username: str = Field(index=True, unique=True, min_length=3, max_length=50)
     email: str = Field(unique=True)
     full_name: str
@@ -41,7 +38,6 @@ class UserBase(SQLModel):
 # Database models
 class User(UserBase, TimestampMixin, table=True):
     """User table model"""
-
     __tablename__ = "users"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -51,14 +47,11 @@ class User(UserBase, TimestampMixin, table=True):
 
     # Relationships
     tasks: List["Task"] = Relationship(back_populates="owner")
-    teams: List["Team"] = Relationship(
-        back_populates="members", link_model="UserTeamLink"
-    )
+    teams: List["Team"] = Relationship(back_populates="members", link_model="UserTeamLink")
 
 
 class Task(TimestampMixin, table=True):
     """Task table model"""
-
     __tablename__ = "tasks"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -79,7 +72,6 @@ class Task(TimestampMixin, table=True):
 
 class Team(TimestampMixin, table=True):
     """Team table model"""
-
     __tablename__ = "teams"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -87,14 +79,11 @@ class Team(TimestampMixin, table=True):
     description: Optional[str] = None
 
     # Relationships
-    members: List[User] = Relationship(
-        back_populates="teams", link_model="UserTeamLink"
-    )
+    members: List[User] = Relationship(back_populates="teams", link_model="UserTeamLink")
 
 
 class Tag(SQLModel, table=True):
     """Tag table model"""
-
     __tablename__ = "tags"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -108,7 +97,6 @@ class Tag(SQLModel, table=True):
 # Link tables for many-to-many relationships
 class UserTeamLink(SQLModel, table=True):
     """Link table for User-Team many-to-many relationship"""
-
     __tablename__ = "user_team_link"
 
     user_id: int = Field(foreign_key="users.id", primary_key=True)
@@ -119,7 +107,6 @@ class UserTeamLink(SQLModel, table=True):
 
 class TaskTagLink(SQLModel, table=True):
     """Link table for Task-Tag many-to-many relationship"""
-
     __tablename__ = "task_tag_link"
 
     task_id: int = Field(foreign_key="tasks.id", primary_key=True)
@@ -129,13 +116,11 @@ class TaskTagLink(SQLModel, table=True):
 # API models (separate from database models)
 class UserCreate(UserBase):
     """Model for creating a new user"""
-
     password: str = Field(min_length=8)
 
 
 class UserRead(UserBase):
     """Model for reading user data (excludes password)"""
-
     id: int
     is_active: bool
     created_at: datetime
@@ -143,7 +128,6 @@ class UserRead(UserBase):
 
 class UserUpdate(SQLModel):
     """Model for updating user (all fields optional)"""
-
     username: Optional[str] = None
     email: Optional[str] = None
     full_name: Optional[str] = None
@@ -152,7 +136,6 @@ class UserUpdate(SQLModel):
 
 class TaskCreate(SQLModel):
     """Model for creating a new task"""
-
     title: str
     description: Optional[str] = None
     priority: TaskPriority = TaskPriority.MEDIUM
@@ -161,7 +144,6 @@ class TaskCreate(SQLModel):
 
 class TaskRead(SQLModel):
     """Model for reading task data"""
-
     id: int
     title: str
     description: Optional[str]
@@ -175,7 +157,6 @@ class TaskRead(SQLModel):
 
 class TaskUpdate(SQLModel):
     """Model for updating task"""
-
     title: Optional[str] = None
     description: Optional[str] = None
     completed: Optional[bool] = None
