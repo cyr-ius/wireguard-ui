@@ -1,8 +1,5 @@
 # Async Reactivity with `resource`
 
-> [!IMPORTANT]
-> The `resource` API is currently experimental in Angular.
-
 A `Resource` incorporates asynchronous data fetching into Angular's signal-based reactivity. It executes an async loader function whenever its dependencies change, exposing the status and result as synchronous signals.
 
 ## Basic Usage
@@ -17,9 +14,9 @@ import { Component, resource, signal, computed } from '@angular/core';
 
 @Component({...})
 export class UserProfile {
-  userId = signal('123');
+  protected readonly userId = signal('123');
 
-  userResource = resource({
+  protected readonly userResource = resource({
     // Reactively tracking userId
     params: () => ({ id: this.userId() }),
 
@@ -32,7 +29,7 @@ export class UserProfile {
   });
 
   // Use the resource value in computed signals
-  userName = computed(() => {
+  protected readonly userName = computed(() => {
     if (this.userResource.hasValue()) {
       return this.userResource.value()?.name;
     } else {
@@ -69,7 +66,7 @@ The `Resource` object provides several signals to read its current state:
 You can optimistically update the resource's value directly. This changes the status to `'local'`.
 
 ```ts
-this.userResource.value.set({ name: "Optimistic Update" });
+this.userResource.value.set({name: 'Optimistic Update'});
 ```
 
 ## Reactive Data Fetching with `httpResource`

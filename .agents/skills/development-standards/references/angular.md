@@ -1,4 +1,4 @@
-# 📘 Angular — Spécificités Portalcrane
+# 📘 Angular — Spécificités
 
 > **Best practices génériques Angular** (signals, `linkedSignal`, `resource`, forms, DI, routing, SSR, ARIA, testing, control flow) : voir le skill **`angular-developer`**.
 > Ce fichier ne contient que les **écarts propres à ce dépôt**.

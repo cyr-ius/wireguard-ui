@@ -17,14 +17,14 @@ Angular Router emits events through the `Router.events` observable, allowing you
 Inject the `Router` and filter the `events` observable.
 
 ```ts
-import { Router, NavigationStart, NavigationEnd } from "@angular/router";
+import {Router, NavigationStart, NavigationEnd} from '@angular/router';
 
 export class MyService {
   private router = inject(Router);
 
   constructor() {
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((event) => {
-      console.log("Navigated to:", event.url);
+      console.log('Navigated to:', event.url);
     });
   }
 }

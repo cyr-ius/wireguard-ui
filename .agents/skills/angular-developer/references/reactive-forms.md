@@ -9,36 +9,36 @@ Reactive forms are built using these fundamental classes from `@angular/forms`:
 - `FormControl`: Manages the value and validity of an individual input.
 - `FormGroup`: Manages a group of controls (an object-like structure).
 - `FormArray`: Manages a numerically indexed array of controls.
-- `FormBuilder`: A service that provides factory methods for creating control instances.
+- `FormBuilder`/`NonNullableFormBuilder`: A service that provides factory methods for creating control instances.
 
 ## Setup
 
 Import `ReactiveFormsModule` into your component.
 
 ```ts
-import { Component, inject } from "@angular/core";
-import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder } from "@angular/forms";
+import {Component, inject} from '@angular/core';
+import {ReactiveFormsModule, NonNullableFormBuilder, Validators} from '@angular/forms';
 
 @Component({
-  selector: "app-profile-editor",
+  selector: 'app-profile-editor',
   imports: [ReactiveFormsModule],
-  templateUrl: "./profile-editor.component.html",
+  templateUrl: './profile-editor.component.html',
 })
 export class ProfileEditor {
-  private fb = inject(FormBuilder);
+  private readonly fb = inject(NonNullableFormBuilder);
 
   // Using FormBuilder for concise definition
-  profileForm = this.fb.group({
-    firstName: ["", Validators.required],
-    lastName: [""],
+  protected readonly profileForm = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: '',
     address: this.fb.group({
-      street: [""],
-      city: [""],
+      street: '',
+      city: '',
     }),
-    aliases: this.fb.array([this.fb.control("")]),
+    aliases: this.fb.array([this.fb.control('')]),
   });
 
-  onSubmit() {
+  protected onSubmit() {
     console.warn(this.profileForm.value);
   }
 }
@@ -63,7 +63,7 @@ Use directives to bind the model to the view:
   </div>
 
   <div formArrayName="aliases">
-    @for (alias of aliases.controls; track $index) {
+    @for (alias of profileForm.controls.aliases.controls; track alias) {
     <input type="text" [formControlName]="$index" />
     }
   </div>
@@ -74,15 +74,11 @@ Use directives to bind the model to the view:
 
 ## Accessing Controls
 
-Use getters for easy access to controls, especially for `FormArray`.
+Use `.controls` for easy access to controls.
 
 ```ts
-get aliases() {
-  return this.profileForm.get('aliases') as FormArray;
-}
-
 addAlias() {
-  this.aliases.push(this.fb.control(''));
+  this.profileForm.controls.aliases.push(this.fb.control(''));
 }
 ```
 
@@ -105,11 +101,11 @@ updateProfile() {
 Modern Angular (v18+) provides a single `events` observable on all controls to track value, status, pristine, touched, reset, and submit events.
 
 ```ts
-import { ValueChangeEvent, StatusChangeEvent } from "@angular/forms";
+import {ValueChangeEvent, StatusChangeEvent} from '@angular/forms';
 
 this.profileForm.events.subscribe((event) => {
   if (event instanceof ValueChangeEvent) {
-    console.log("New value:", event.value);
+    console.log('New value:', event.value);
   }
 });
 ```

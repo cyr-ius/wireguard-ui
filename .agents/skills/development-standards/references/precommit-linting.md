@@ -100,47 +100,6 @@ cd frontend && npm run test && cd ..
 git add . && git commit -m "feat(scope): description"
 ```
 
-## ⚠️ Commit sûr — lancer les hooks AVANT `git commit`
-
-Au `git commit`, `prek`/`pre-commit` relance les hooks. Si un hook **auto-corrige**
-un fichier à ce moment-là, le commit échoue (le fichier a été modifié après le staging).
-Pour éviter cette surprise, on relance les correcteurs **avant** de committer, puis on
-re-stage, de sorte que la passe au commit ne trouve plus rien à modifier :
-
-```bash
-# 1. Auto-fix uniquement sur les fichiers concernés (rapide)
-prek run --files <fichiers…>          # ou: pre-commit run --files <fichiers…>
-# 2. Re-stager ce que les hooks ont corrigé
-git add <fichiers…>
-# 3. Committer — la passe pre-commit est alors un no-op
-git commit -m "feat(scope): description"
-```
-
-### Piège du staging partiel (le plus fréquent)
-
-Si on n'indexe qu'**une partie** des changements d'un fichier (staging par hunks, ou
-mélange « mes lignes + lignes d'une autre feature » dans le même fichier), `prek` met
-de côté (stash) la partie non indexée, lance les hooks sur le snapshot indexé, puis
-tente de ré-appliquer le stash. Si un hook a modifié le fichier entre-temps, la
-ré-application **entre en conflit** → les corrections sont annulées et le commit avorte.
-
-Pour un commit qui ne mélange que des fichiers **partiellement** indexés :
-
-```bash
-# Option A — pré-corriger tout le fichier puis re-stager le sous-ensemble voulu
-prek run --files <fichiers…>
-git add -p <fichiers…>                 # ou git apply --cached <patch> pour un sous-ensemble
-
-# Option B — isoler les changements non liés le temps du commit
-git stash push --keep-index            # met de côté ce qui n'est PAS indexé
-git commit -m "…"                      # working tree == index : plus de conflit possible
-git stash pop                          # restaure les changements non liés
-```
-
-> Règle : **relancer un commit qui a échoué sur un hook** est souvent suffisant (les
-> auto-fix ont déjà été appliqués au 1er essai) ; mais pré-lancer les hooks reste la
-> façon fiable d'éviter l'aller-retour, surtout en staging partiel.
-
 ## Config IDE (auto-format)
 
 `.vscode/settings.json` : `formatOnSave: true` partout ; formatter Python = `charliermarsh.ruff` (avec `source.fixAll` + `source.organizeImports`), reste = `esbenp.prettier-vscode`.

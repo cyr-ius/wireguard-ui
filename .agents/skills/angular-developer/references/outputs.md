@@ -7,18 +7,18 @@ Outputs allow a child component to emit custom events that a parent component ca
 Declare outputs using the `output()` function. This returns an `OutputEmitterRef`.
 
 ```ts
-import { Component, output } from "@angular/core";
+import {Component, output} from '@angular/core';
 
 @Component({
-  selector: "custom-slider",
+  selector: 'custom-slider',
   template: `<button (click)="changeValue(50)">Set to 50</button>`,
 })
 export class CustomSlider {
   // Output without event data
-  panelClosed = output<void>();
+  readonly panelClosed = output<void>();
 
   // Output with event data (number)
-  valueChanged = output<number>();
+  readonly valueChanged = output<number>();
 
   changeValue(newValue: number) {
     this.valueChanged.emit(newValue);
@@ -43,7 +43,7 @@ The `output` function accepts a config object to specify an alias.
 export class CustomSlider {
   // The event is named 'valueChanged' in the template,
   // but accessed as 'changed' in the component class.
-  changed = output<number>({ alias: 'valueChanged' });
+  readonly changed = output<number>({ alias: 'valueChanged' });
 }
 ```
 
@@ -55,7 +55,7 @@ When creating components dynamically, you can subscribe to outputs programmatica
 const componentRef = viewContainerRef.createComponent(CustomSlider);
 
 const subscription = componentRef.instance.valueChanged.subscribe((val) => {
-  console.log("Value changed:", val);
+  console.log('Value changed:', val);
 });
 
 // Clean up manually if needed (Angular cleans up destroyed components automatically)
@@ -71,10 +71,10 @@ import { Component, Output, EventEmitter } from '@angular/core';
 
 @Component({...})
 export class LegacyExample {
-  @Output() valueChanged = new EventEmitter<number>();
+  @Output() readonly valueChanged = new EventEmitter<number>();
 
   // With alias
-  @Output('customEventName') changed = new EventEmitter<void>();
+  @Output('customEventName') readonly changed = new EventEmitter<void>();
 }
 ```
 

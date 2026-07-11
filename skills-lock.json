@@ -2,9 +2,28 @@
   "version": 1,
   "skills": {
     "angular-developer": {
-      "source": "angular/skills",
+      "source": "angular/angular",
       "sourceType": "github",
-      "computedHash": "b7764c591c965d85f95f1d4f6d3620b6ab92a1b1fedbcdead7d59e946fc3fd2e"
+      "skillPath": "skills/dev-skills/angular-developer/SKILL.md",
+      "computedHash": "400d674a14120ccaa435a263cd6551e5f5ddb84d99df8622689da46fe9e5902c"
+    },
+    "development-standards": {
+      "source": "cyr-ius/angular-fastapi-scaffold",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/development-standards/SKILL.md",
+      "computedHash": "878173767d44529a9a1ab24c41f8373142f9b4a5d75713f119e7d31f053ff93e"
+    },
+    "fastapi": {
+      "source": "fastapi/fastapi",
+      "sourceType": "github",
+      "skillPath": "fastapi/.agents/skills/fastapi/SKILL.md",
+      "computedHash": "e85d9e223fbc3183b1a599bbe8b02d2edf275d046ff5bcfd14352c92cdff52b3"
+    },
+    "sqlmodel-expert": {
+      "source": "bilalmk/todo_correct",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/custom/sqlmodel-expert/SKILL.md",
+      "computedHash": "1c1522cc9d347eb8dc6aeff240da1f2ba613f0a73e376c5a0922d770e5ce7ebf"
     }
   }
 }
