@@ -25,41 +25,29 @@ class AppSettings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
-    db_path: str = Field(default=DEFAULT_DATABASE_URL, validation_alias="DB_PATH")
-    db_echo: bool = Field(default=False, validation_alias="DB_ECHO")
-    secret_key: str = Field(
-        default=DEFAULT_SECRET_KEY,
-        validation_alias="SECRET_KEY",
-    )
-    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
-    access_token_expire_minutes: int = Field(
-        default=60, ge=1, validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES"
-    )
+    access_token_expire_minutes: int = 60
+    admin_email: str = "admin@wg.ui"
+    admin_username: str = "admin"
+    app_version: str = "Development"
     bcrypt_rounds: int = Field(default=12, ge=4, validation_alias="BCRYPT_ROUNDS")
-    rate_limit_enabled: bool = Field(
-        default=True, validation_alias="RATE_LIMIT_ENABLED"
-    )
-    rate_limit_window: int = Field(
-        default=60, ge=1, validation_alias="RATE_LIMIT_WINDOW_SECONDS"
-    )
-    rate_limit_max: int = Field(
-        default=100, ge=1, validation_alias="RATE_LIMIT_MAX_REQUESTS"
-    )
-    rate_limit_auth_max: int = Field(
-        default=5, ge=1, validation_alias="RATE_LIMIT_AUTH_MAX_REQUESTS"
-    )
+    db_echo: bool = False
+    db_path: str = DEFAULT_DATABASE_URL
+    jwt_algorithm: str = "HS256"
+    log_level: str = "INFO"
+    mail_from: str = "no-reply@wg.ui"
+    mail_name: str = "WireGuardUI"
+    secret_key: str = DEFAULT_SECRET_KEY
+    swagger_enabled: bool = False
+    wg_autostart: bool = True
+
     # Comma-separated IPs/CIDRs of reverse proxies whose X-Forwarded-* headers
     # are trusted. Empty (default) → forwarded headers are ignored, only the
     # socket peer / real scheme are used.
-    trusted_proxies: str = Field(default="", validation_alias="TRUSTED_PROXIES")
-    admin_username: str = Field(default="admin", validation_alias="ADMIN_USERNAME")
-    admin_email: str = Field(default="admin@wg.ui", validation_alias="ADMIN_EMAIL")
-    mail_from: str = Field(default="no-reply@wg.ui", validation_alias="MAIL_FROM")
-    mail_name: str = Field(default="WireGuardUI", validation_alias="MAIL_NAME")
-    wg_autostart: bool = Field(default=True, validation_alias="WIREGUARD_AUTOSTART")
-    swagger_enabled: bool = Field(default=True, validation_alias="SWAGGER_ENABLED")
-    log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
-    app_version: str = Field(default="Development", validation_alias="APP_VERSION")
+    trusted_proxies: str = ""
+    rate_limit_enabled: bool = True
+    rate_limit_window: int = 60
+    rate_limit_max: int = 100
+    rate_limit_auth_max: int = 5
 
     @field_validator("db_path", mode="before")
     @classmethod
