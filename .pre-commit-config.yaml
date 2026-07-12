@@ -46,6 +46,6 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        args: ["--print-width=120"]
+        args: ["--print-width=100"]
         types_or: [javascript, html, css, scss, json, yaml, markdown]
         exclude: node_modules|.agents|swagger
