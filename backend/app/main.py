@@ -60,44 +60,18 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="WireGuard UI API",
-    description="REST API for WireGuard management",
+    title="WireGuard UI",
+    description="API for WireGuard management",
     version=app_settings.app_version,
     lifespan=lifespan,
-    docs_url=None,  # Custom docs route below serves self-hosted Swagger UI assets.
+    docs_url=None,
     redoc_url=None,
-    # Disabling Swagger also hides the OpenAPI schema so the API stays undocumented.
     openapi_url="/api/openapi.json" if app_settings.swagger_enabled else None,
 )
-
-# ── Self-hosted Swagger UI ────────────────────────────────────────────────────
-# Serve Swagger UI assets locally instead of a third-party CDN (jsdelivr) so the
-# API docs work in air-gapped/offline deployments and respect a strict CSP.
-# Everything below is opt-out via SWAGGER_ENABLED=false.
-if app_settings.swagger_enabled:
-    _SWAGGER_STATIC_DIR = Path(__file__).resolve().parent / "static" / "swagger"
-    app.mount(
-        "/api/docs/static",
-        StaticFiles(directory=_SWAGGER_STATIC_DIR),
-        name="swagger-static",
-    )
-
-    @app.get("/api/docs", include_in_schema=False)
-    async def swagger_ui_html() -> HTMLResponse:
-        """Swagger UI page loading its JS/CSS from the app itself, not a CDN."""
-        return get_swagger_ui_html(
-            openapi_url=app.openapi_url or "/api/openapi.json",
-            title=f"{app.title} - Swagger UI",
-            swagger_js_url="/api/docs/static/swagger-ui-bundle.js",
-            swagger_css_url="/api/docs/static/swagger-ui.css",
-            swagger_favicon_url="/favicon.ico",
-        )
-
 
 # ── Middleware ───────────────────────────────────────────────────────────────
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CsrfMiddleware)
-# Added last → outermost: throttles per IP before any heavier processing runs.
 app.add_middleware(RateLimitMiddleware)
 
 # ── Exception handlers ───────────────────────────────────────────────────────
@@ -114,12 +88,30 @@ app.include_router(status.router, prefix="/api/status", tags=["Status"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(smtp.router, prefix="/api/smtp", tags=["SMTP"])
 
+# ── Self-hosted static assets (Swagger UI, no Internet dependency) ─────────────
+static_dir = Path(__file__).resolve().parent / "static"
+app.mount("/api/static", StaticFiles(directory=static_dir), name="static")
+
+
+# ── Self-hosted Swagger UI ────────────────────────────────────────────────────
+@app.get("/api/docs", include_in_schema=False)
+async def swagger_ui() -> HTMLResponse:
+    if not app_settings.swagger_enabled:
+        raise HTTPException(status_code=404, detail="Not Found")
+    return get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title=f"{app.title} - Swagger UI",
+        swagger_js_url="/api/static/swagger/swagger-ui-bundle.js",
+        swagger_css_url="/api/static/swagger/swagger-ui.css",
+        swagger_favicon_url="/api/static/favicon.ico",
+    )
+
 
 # ── Health check ──────────────────────────────────────────────────────────────
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "app": "WireGuardUI"}
+    return {"status": "healthy", "app": app.title, "version": app.version}
 
 
 # ── Serve Angular SPA (must be last) ─────────────────────────────────────────
