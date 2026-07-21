@@ -17,7 +17,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "fastapi-mail>=1.6.2",
     "qrcode>=8.2",
-    "pillow>=12.2.0",
+    "pillow>=12.3.0",
 ]
 
 [tool.setuptools]
