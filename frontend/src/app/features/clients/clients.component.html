@@ -14,7 +14,11 @@
         class="btn btn-primary"
         (click)="openCreateModal()"
         [disabled]="setupLoading() || !canCreateClients()"
-        [title]="!canCreateClients() ? 'Complete WireGuard setup before creating clients' : 'Create a new client'"
+        [title]="
+          !canCreateClients()
+            ? 'Complete WireGuard setup before creating clients'
+            : 'Create a new client'
+        "
       >
         <i class="bi bi-plus-lg me-1"></i> New Client
       </button>
@@ -28,7 +32,9 @@
       <div>
         <strong>Complete the WireGuard setup before creating clients.</strong>
         Missing: {{ missingSetupItems().join(" and ") }}.
-        <a routerLink="/settings" class="alert-link ms-2"> <i class="bi bi-gear me-1"></i>Open Global Settings </a>
+        <a routerLink="/settings" class="alert-link ms-2">
+          <i class="bi bi-gear me-1"></i>Open Global Settings
+        </a>
         <a routerLink="/server" class="alert-link ms-2">
           <i class="bi bi-hdd-network me-1"></i>Open Interface Settings
         </a>
@@ -68,7 +74,11 @@
                 <h3 class="client-name">{{ client.name }}</h3>
                 <span class="client-email">{{ client.email }}</span>
               </div>
-              <span class="status-pill" [class.active]="client.enabled" [class.inactive]="!client.enabled">
+              <span
+                class="status-pill"
+                [class.active]="client.enabled"
+                [class.inactive]="!client.enabled"
+              >
                 {{ client.enabled ? "Enabled" : "Disabled" }}
               </span>
             </div>
@@ -84,7 +94,9 @@
               </div>
               <div class="detail-row">
                 <span class="detail-label">DNS</span>
-                <span class="detail-value">{{ client.use_server_dns ? "Server DNS" : "Custom" }}</span>
+                <span class="detail-value">{{
+                  client.use_server_dns ? "Server DNS" : "Custom"
+                }}</span>
               </div>
             </div>
 
@@ -115,7 +127,11 @@
                 [title]="client.enabled ? 'Disable' : 'Enable'"
                 (click)="toggleEnabled(client)"
               >
-                <i class="bi" [class.bi-pause-circle]="client.enabled" [class.bi-play-circle]="!client.enabled"></i>
+                <i
+                  class="bi"
+                  [class.bi-pause-circle]="client.enabled"
+                  [class.bi-play-circle]="!client.enabled"
+                ></i>
               </button>
               <!-- Delete -->
               <button class="action-btn danger" title="Delete" (click)="openDeleteConfirm(client)">
@@ -146,8 +162,16 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Name *</label>
-              <input type="text" class="form-control" [formField]="clientForm.name" placeholder="Client name" />
-              <form-extra-fields [fieldRef]="clientForm.name" class="form-error"></form-extra-fields>
+              <input
+                type="text"
+                class="form-control"
+                [formField]="clientForm.name"
+                placeholder="Client name"
+              />
+              <form-extra-fields
+                [fieldRef]="clientForm.name"
+                class="form-error"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Email *</label>
@@ -157,7 +181,10 @@
                 [formField]="clientForm.email"
                 placeholder="client@example.com"
               />
-              <form-extra-fields [fieldRef]="clientForm.email" class="form-error"></form-extra-fields>
+              <form-extra-fields
+                [fieldRef]="clientForm.email"
+                class="form-error"
+              ></form-extra-fields>
             </div>
           </div>
 
@@ -166,7 +193,11 @@
               <label class="form-label">
                 Allocated IP *
                 @if (suggestedIp()) {
-                  <span class="ip-suggestion-badge" style="cursor: pointer" (click)="getSuggestIp()">
+                  <span
+                    class="ip-suggestion-badge"
+                    style="cursor: pointer"
+                    (click)="getSuggestIp()"
+                  >
                     <i class="bi bi-magic me-1"></i>Suggested
                   </span>
                 }
@@ -183,7 +214,10 @@
                   Next available IP in the server network
                 </small>
               }
-              <form-extra-fields [fieldRef]="clientForm.allocated_ips" class="form-error"></form-extra-fields>
+              <form-extra-fields
+                [fieldRef]="clientForm.allocated_ips"
+                class="form-error"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Allowed IPs *</label>
@@ -193,7 +227,10 @@
                 [formField]="clientForm.allowed_ips"
                 [selectOptions]="clientForm.allowed_ips().value()"
               ></form-tags-field>
-              <form-extra-fields [fieldRef]="clientForm.allowed_ips" class="form-error"></form-extra-fields>
+              <form-extra-fields
+                [fieldRef]="clientForm.allowed_ips"
+                class="form-error"
+              ></form-extra-fields>
             </div>
           </div>
 
@@ -205,16 +242,28 @@
               [formField]="clientForm.preshared_key"
               placeholder="Leave empty to skip"
             />
-            <form-extra-fields [fieldRef]="clientForm.preshared_key" class="form-error"></form-extra-fields>
+            <form-extra-fields
+              [fieldRef]="clientForm.preshared_key"
+              class="form-error"
+            ></form-extra-fields>
           </div>
 
           <div class="form-checks">
             <div class="form-check">
-              <input type="checkbox" class="form-check-input" [formField]="clientForm.use_server_dns" />
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [formField]="clientForm.use_server_dns"
+              />
               <label class="form-check-label" for="useDns">Use server DNS</label>
             </div>
             <div class="form-check">
-              <input type="checkbox" class="form-check-input" [formField]="clientForm.enabled" id="enabled" />
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [formField]="clientForm.enabled"
+                id="enabled"
+              />
               <label class="form-check-label" for="enabled">Enable client</label>
             </div>
           </div>
@@ -223,7 +272,11 @@
           @if (modalMode() === "create") {
             <div class="email-option-card">
               <div class="form-check mb-2">
-                <input type="checkbox" class="form-check-input" [formField]="clientForm.send_email" />
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  [formField]="clientForm.send_email"
+                />
                 <label class="form-check-label fw-semibold" for="sendEmail">
                   <i class="bi bi-envelope me-1"></i>
                   Send configuration by email after creation
@@ -281,7 +334,9 @@
     <div class="modal-overlay" (click)="closeQrModal()">
       <div class="modal-panel qr-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title"><i class="bi bi-qr-code me-2"></i>QR Code — {{ qrClient()!.name }}</h2>
+          <h2 class="modal-title">
+            <i class="bi bi-qr-code me-2"></i>QR Code — {{ qrClient()!.name }}
+          </h2>
           <button class="modal-close" (click)="closeQrModal()">
             <i class="bi bi-x-lg"></i>
           </button>
@@ -294,7 +349,11 @@
             </div>
           } @else if (qrCodeBase64()) {
             <div class="qr-image-wrap">
-              <img [src]="'data:image/png;base64,' + qrCodeBase64()" alt="WireGuard QR Code" class="qr-image" />
+              <img
+                [src]="'data:image/png;base64,' + qrCodeBase64()"
+                alt="WireGuard QR Code"
+                class="qr-image"
+              />
             </div>
             <p class="qr-hint">
               <i class="bi bi-phone me-1"></i>
@@ -308,7 +367,9 @@
               <button class="btn btn-outline-primary btn-sm" (click)="downloadQrCode()">
                 <i class="bi bi-download me-1"></i>Download QR
               </button>
-              <button class="btn btn-outline-secondary btn-sm" (click)="closeQrModal()">Close</button>
+              <button class="btn btn-outline-secondary btn-sm" (click)="closeQrModal()">
+                Close
+              </button>
             </div>
           }
         </div>
@@ -321,14 +382,18 @@
     <div class="modal-overlay" (click)="closeEmailModal()">
       <div class="modal-panel email-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title"><i class="bi bi-envelope me-2"></i>Send Configuration by Email</h2>
+          <h2 class="modal-title">
+            <i class="bi bi-envelope me-2"></i>Send Configuration by Email
+          </h2>
           <button class="modal-close" (click)="closeEmailModal()">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
         <div class="email-modal-body">
           @if (emailSuccess()) {
-            <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>{{ emailSuccess() }}</div>
+            <div class="alert alert-success">
+              <i class="bi bi-check-circle-fill me-2"></i>{{ emailSuccess() }}
+            </div>
           } @else {
             <p class="email-description">
               An email with the WireGuard configuration file and QR code will be sent to

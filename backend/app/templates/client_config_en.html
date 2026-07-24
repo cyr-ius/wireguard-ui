@@ -188,10 +188,9 @@
       <div class="body">
         <p class="greeting">Hello {{ client_name }},</p>
         <p class="description">
-          Your WireGuard VPN configuration has been created and is ready to use.
-          You will find your configuration file attached to this email. You can
-          import it directly into the WireGuard application or scan the QR code
-          below.
+          Your WireGuard VPN configuration has been created and is ready to use. You will find your
+          configuration file attached to this email. You can import it directly into the WireGuard
+          application or scan the QR code below.
         </p>
 
         <!-- Client Info -->
@@ -221,10 +220,7 @@
         {% if qr_code_base64 %}
         <div class="qr-section">
           <h3>📱 Scan with WireGuard Mobile App</h3>
-          <img
-            src="data:image/png;base64,{{ qr_code_base64 }}"
-            alt="WireGuard QR Code"
-          />
+          <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="WireGuard QR Code" />
           <p class="qr-caption">Open WireGuard → Add Tunnel → Scan QR Code</p>
         </div>
         {% endif %}
@@ -235,37 +231,32 @@
           <div class="step">
             <div class="step-num">1</div>
             <div class="step-text">
-              Download the WireGuard app for your platform (Windows, macOS,
-              Linux, iOS, Android)
+              Download the WireGuard app for your platform (Windows, macOS, Linux, iOS, Android)
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-text">
-              <strong>Mobile:</strong> Open the app, tap "+" and scan the QR
-              code above
+              <strong>Mobile:</strong> Open the app, tap "+" and scan the QR code above
             </div>
           </div>
           <div class="step">
             <div class="step-num">3</div>
             <div class="step-text">
-              <strong>Desktop:</strong> Import the attached
-              <code>.conf</code> file via "Import tunnel(s) from file"
+              <strong>Desktop:</strong> Import the attached <code>.conf</code> file via "Import
+              tunnel(s) from file"
             </div>
           </div>
           <div class="step">
             <div class="step-num">4</div>
-            <div class="step-text">
-              Activate the tunnel and you're connected!
-            </div>
+            <div class="step-text">Activate the tunnel and you're connected!</div>
           </div>
         </div>
 
         <!-- Attachment Notice -->
         <div class="attachment-notice">
-          <strong>📎 Attachment included:</strong> The file
-          <code>{{ client_name }}.conf</code> is attached to this email. Keep it
-          safe and do not share it with anyone.
+          <strong>📎 Attachment included:</strong> The file <code>{{ client_name }}.conf</code> is
+          attached to this email. Keep it safe and do not share it with anyone.
         </div>
       </div>
 

@@ -48,12 +48,18 @@
                 <td>
                   <div class="role-tags">
                     @for (role of user.roles; track role.id) {
-                      <span class="role-tag" [class.role-admin]="role.name === 'admin'">{{ role.name }}</span>
+                      <span class="role-tag" [class.role-admin]="role.name === 'admin'">{{
+                        role.name
+                      }}</span>
                     }
                   </div>
                 </td>
                 <td>
-                  <span class="status-pill" [class.active]="user.active" [class.inactive]="!user.active">
+                  <span
+                    class="status-pill"
+                    [class.active]="user.active"
+                    [class.inactive]="!user.active"
+                  >
                     {{ user.active ? "Active" : "Inactive" }}
                   </span>
                 </td>
@@ -63,7 +69,11 @@
                       <i class="bi bi-pencil"></i>
                     </button>
                     @if (user.username !== currentUsername()) {
-                      <button class="action-btn danger" (click)="deleteTarget.set(user)" title="Delete">
+                      <button
+                        class="action-btn danger"
+                        (click)="deleteTarget.set(user)"
+                        title="Delete"
+                      >
                         <i class="bi bi-trash3"></i>
                       </button>
                     }
@@ -96,8 +106,8 @@
             <div class="alert alert-info d-flex align-items-center gap-2" role="alert">
               <i class="bi bi-shield-lock"></i>
               <span>
-                This account is managed by an external identity provider (OIDC). Its email, name and password are
-                read-only; only roles and status can be changed here.
+                This account is managed by an external identity provider (OIDC). Its email, name and
+                password are read-only; only roles and status can be changed here.
               </span>
             </div>
           }
@@ -106,7 +116,10 @@
             <div class="form-group">
               <label class="form-label">Username *</label>
               <input type="text" class="form-control" [formField]="userForm.username" />
-              <form-extra-fields [fieldRef]="userForm.username" class="form-error"></form-extra-fields>
+              <form-extra-fields
+                [fieldRef]="userForm.username"
+                class="form-error"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Email *</label>
@@ -118,28 +131,43 @@
             <div class="form-group">
               <label class="form-label">First Name</label>
               <input type="text" class="form-control" [formField]="userForm.first_name" />
-              <form-extra-fields [fieldRef]="userForm.first_name" class="form-error"></form-extra-fields>
+              <form-extra-fields
+                [fieldRef]="userForm.first_name"
+                class="form-error"
+              ></form-extra-fields>
             </div>
             <div class="form-group">
               <label class="form-label">Last Name</label>
               <input type="text" class="form-control" [formField]="userForm.last_name" />
-              <form-extra-fields [fieldRef]="userForm.last_name" class="form-error"></form-extra-fields>
+              <form-extra-fields
+                [fieldRef]="userForm.last_name"
+                class="form-error"
+              ></form-extra-fields>
             </div>
           </div>
           @if (!isEditingOidc()) {
             <div class="form-group">
               <label class="form-label">{{
-                modalMode() === "create" ? "Password *" : "New Password (leave empty to keep current)"
+                modalMode() === "create"
+                  ? "Password *"
+                  : "New Password (leave empty to keep current)"
               }}</label>
               <input type="password" class="form-control" [formField]="userForm.password" />
-              <form-extra-fields [fieldRef]="userForm.password" class="form-error"></form-extra-fields>
+              <form-extra-fields
+                [fieldRef]="userForm.password"
+                class="form-error"
+              ></form-extra-fields>
             </div>
           }
           <div class="form-group">
             <label class="form-label">Roles</label>
             <div class="role-checkboxes">
               @for (role of roles(); track role.id) {
-                <label class="role-checkbox" [class.selected]="isRoleSelected(role.id)" (click)="toggleRole(role.id)">
+                <label
+                  class="role-checkbox"
+                  [class.selected]="isRoleSelected(role.id)"
+                  (click)="toggleRole(role.id)"
+                >
                   <i
                     class="bi"
                     [class.bi-check-square-fill]="isRoleSelected(role.id)"
@@ -152,7 +180,10 @@
                 </label>
               }
             </div>
-            <form-extra-fields [fieldRef]="userForm.role_ids" class="form-error"></form-extra-fields>
+            <form-extra-fields
+              [fieldRef]="userForm.role_ids"
+              class="form-error"
+            ></form-extra-fields>
           </div>
           <div class="form-check mb-3">
             <input type="checkbox" class="form-check-input" [formField]="userForm.active" />
@@ -160,7 +191,11 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="userForm().invalid() || userForm().submitting()">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="userForm().invalid() || userForm().submitting()"
+            >
               @if (userForm().submitting()) {
                 <span class="spinner-border spinner-border-sm me-1"></span>
               }
