@@ -185,10 +185,9 @@
       <div class="body">
         <p class="greeting">Bonjour {{ client_name }},</p>
         <p class="description">
-          Votre configuration VPN WireGuard a été créée et est prête à utiliser.
-          Vous trouverez votre fichier de configuration en pièce jointe de cet
-          email. Vous pouvez l'importer directement dans l'application WireGuard
-          ou scanner le QR code ci-dessous.
+          Votre configuration VPN WireGuard a été créée et est prête à utiliser. Vous trouverez
+          votre fichier de configuration en pièce jointe de cet email. Vous pouvez l'importer
+          directement dans l'application WireGuard ou scanner le QR code ci-dessous.
         </p>
         <div class="info-card">
           <h3>📋 Détails de la configuration</h3>
@@ -214,13 +213,8 @@
         {% if qr_code_base64 %}
         <div class="qr-section">
           <h3>📱 Scanner avec l'application WireGuard Mobile</h3>
-          <img
-            src="data:image/png;base64,{{ qr_code_base64 }}"
-            alt="QR Code WireGuard"
-          />
-          <p class="qr-caption">
-            Ouvrir WireGuard → Ajouter un tunnel → Scanner le QR Code
-          </p>
+          <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code WireGuard" />
+          <p class="qr-caption">Ouvrir WireGuard → Ajouter un tunnel → Scanner le QR Code</p>
         </div>
         {% endif %}
         <div class="steps">
@@ -228,36 +222,32 @@
           <div class="step">
             <div class="step-num">1</div>
             <div class="step-text">
-              Téléchargez l'application WireGuard pour votre plateforme
-              (Windows, macOS, Linux, iOS, Android)
+              Téléchargez l'application WireGuard pour votre plateforme (Windows, macOS, Linux, iOS,
+              Android)
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-text">
-              <strong>Mobile :</strong> Ouvrez l'app, appuyez sur "+" et scannez
-              le QR code ci-dessus
+              <strong>Mobile :</strong> Ouvrez l'app, appuyez sur "+" et scannez le QR code
+              ci-dessus
             </div>
           </div>
           <div class="step">
             <div class="step-num">3</div>
             <div class="step-text">
-              <strong>Bureau :</strong> Importez le fichier
-              <code>.conf</code> joint via "Importer un tunnel depuis un
-              fichier"
+              <strong>Bureau :</strong> Importez le fichier <code>.conf</code> joint via "Importer
+              un tunnel depuis un fichier"
             </div>
           </div>
           <div class="step">
             <div class="step-num">4</div>
-            <div class="step-text">
-              Activez le tunnel et vous êtes connecté !
-            </div>
+            <div class="step-text">Activez le tunnel et vous êtes connecté !</div>
           </div>
         </div>
         <div class="attachment-notice">
-          <strong>📎 Pièce jointe :</strong> Le fichier
-          <code>{{ client_name }}.conf</code> est joint à cet email. Gardez-le
-          en sécurité et ne le partagez avec personne.
+          <strong>📎 Pièce jointe :</strong> Le fichier <code>{{ client_name }}.conf</code> est
+          joint à cet email. Gardez-le en sécurité et ne le partagez avec personne.
         </div>
       </div>
       <div class="footer">

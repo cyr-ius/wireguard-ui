@@ -20,7 +20,11 @@
           <span>Interface</span>
         </div>
         <div class="status-value">{{ s.interface }}</div>
-        <div class="status-badge" [class.badge-green]="s.is_running" [class.badge-red]="!s.is_running">
+        <div
+          class="status-badge"
+          [class.badge-green]="s.is_running"
+          [class.badge-red]="!s.is_running"
+        >
           <span class="badge-dot"></span>
           {{ s.is_running ? "Running" : "Stopped" }}
         </div>
