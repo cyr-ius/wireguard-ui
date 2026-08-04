@@ -15,7 +15,7 @@ dependencies = [
     "python-multipart",
     "aiosqlite>=0.22.1",
     "bcrypt>=5.0.0",
-    "fastapi-mail>=1.6.2",
+    "fastapi-mail>=1.6.5",
     "qrcode>=8.2",
     "pillow>=12.3.0",
 ]
