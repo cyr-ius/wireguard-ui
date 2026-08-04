@@ -114,8 +114,12 @@ Sans `SECRET_KEY` défini explicitement, l'application en génère une automatiq
 Une fois l'interface accessible, la première configuration côté administrateur consiste à :
 
 1. Se connecter avec le compte admin.
-2. Configurer le **serveur WireGuard** (adresse, port d'écoute, clés) — page _Serveur_.
-3. Créer les premiers **pairs (clients)** — page _Clients_.
-4. Éventuellement configurer **SMTP** (envoi de la config par email) et **OIDC** (SSO).
+2. Configurer le **serveur WireGuard** — page _Serveur_ : adresse réseau (CIDR), port d'écoute, puis cliquer sur **Generate Key Pair** pour générer la paire de clés (privée/publique) du serveur. Cette étape est indispensable : tant qu'aucune clé n'est générée (ou renseignée manuellement), la configuration ne peut pas être enregistrée ni appliquée.
+3. Renseigner l'**adresse d'endpoint** — page _Global Settings_, champ **Endpoint Address** : il s'agit du nom d'hôte public (ex. `vpn.exemple.com`) ou de l'adresse IP publique par laquelle les clients WireGuard joindront le serveur. Sans cette valeur, les fichiers de configuration générés pour les clients seront incorrects et ces derniers ne pourront pas se connecter — pensez-y avant de créer des pairs.
+4. Créer les premiers **pairs (clients)** — page _Clients_.
+5. Éventuellement configurer **SMTP** (envoi de la config par email) et **OIDC** (SSO).
 
-Ces écrans correspondent aux routers documentés dans [Routers (endpoints)](../fonctions/routers.md).
+!!! warning "Ordre important"
+Générez toujours les **clés du serveur** et renseignez l'**adresse d'endpoint** avant de créer des clients. Un pair créé avant que ces deux éléments soient définis produira une configuration `.conf`/QR code invalide (clé publique du serveur ou endpoint manquants), qu'il faudra régénérer et renvoyer au client une fois le serveur correctement configuré.
+
+Ces écrans correspondent aux routers documentés dans [Routers (endpoints)](../fonctions/routers.md) (`server.py` pour les clés, `settings.py` pour l'endpoint).
