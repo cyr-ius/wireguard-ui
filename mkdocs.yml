@@ -1,0 +1,71 @@
+site_name: WireGuard UI — Documentation
+site_description: Documentation technique de WireGuard UI (backend FastAPI + frontend Angular)
+site_author: cyr-ius
+repo_url: https://github.com/cyr-ius/wireguard-ui
+repo_name: cyr-ius/wireguard-ui
+docs_dir: docs
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Passer en mode sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Passer en mode clair
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+    - search.suggest
+    - search.highlight
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+nav:
+  - Accueil: index.md
+  - Démarrage:
+      - Démarrage rapide (Docker): demarrage/quickstart-docker.md
+      - Installation locale (dev): demarrage/installation-locale.md
+      - Variables d'environnement: demarrage/variables-environnement.md
+  - Architecture:
+      - Backend (FastAPI): architecture/backend.md
+      - Frontend (Angular): architecture/frontend.md
+      - Base de données & migrations: architecture/base-de-donnees.md
+  - Fonctions & API:
+      - Routers (endpoints): fonctions/routers.md
+      - Services métier: fonctions/services.md
+      - Authentification & sécurité: fonctions/authentification.md
+  - Déploiement:
+      - Docker & Docker Compose: deploiement/docker.md
+      - Recommandations production: deploiement/production.md
