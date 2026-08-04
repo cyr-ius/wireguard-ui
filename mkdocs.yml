@@ -1,5 +1,5 @@
 site_name: WireGuard UI — Documentation
-site_description: Documentation technique de WireGuard UI (backend FastAPI + frontend Angular)
+site_description: Technical documentation for WireGuard UI (FastAPI backend + Angular frontend)
 site_author: cyr-ius
 repo_url: https://github.com/cyr-ius/wireguard-ui
 repo_name: cyr-ius/wireguard-ui
@@ -7,7 +7,7 @@ docs_dir: docs
 
 theme:
   name: material
-  language: fr
+  language: en
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -15,14 +15,14 @@ theme:
       accent: indigo
       toggle:
         icon: material/weather-night
-        name: Passer en mode sombre
+        name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: indigo
       accent: indigo
       toggle:
         icon: material/weather-sunny
-        name: Passer en mode clair
+        name: Switch to light mode
   features:
     - navigation.tabs
     - navigation.sections
@@ -33,6 +33,38 @@ theme:
     - toc.follow
     - search.suggest
     - search.highlight
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          name: English
+          build: true
+          default: true
+        - locale: fr
+          name: Français
+          build: true
+          nav_translations:
+            Home: Accueil
+            Getting started: Démarrage
+            Quick start (Docker): Démarrage rapide (Docker)
+            Local installation (dev): Installation locale (dev)
+            Environment variables: Variables d'environnement
+            Architecture: Architecture
+            Backend (FastAPI): Backend (FastAPI)
+            Frontend (Angular): Frontend (Angular)
+            Database & migrations: Base de données & migrations
+            Functions & API: Fonctions & API
+            Routers (endpoints): Routers (endpoints)
+            Business services: Services métier
+            Authentication & security: Authentification & sécurité
+            Deployment: Déploiement
+            Docker & Docker Compose: Docker & Docker Compose
+            Production recommendations: Recommandations production
 
 markdown_extensions:
   - admonition
@@ -53,19 +85,19 @@ markdown_extensions:
       toc_depth: 3
 
 nav:
-  - Accueil: index.md
-  - Démarrage:
-      - Démarrage rapide (Docker): demarrage/quickstart-docker.md
-      - Installation locale (dev): demarrage/installation-locale.md
-      - Variables d'environnement: demarrage/variables-environnement.md
+  - Home: index.md
+  - Getting started:
+      - Quick start (Docker): demarrage/quickstart-docker.md
+      - Local installation (dev): demarrage/installation-locale.md
+      - Environment variables: demarrage/variables-environnement.md
   - Architecture:
       - Backend (FastAPI): architecture/backend.md
       - Frontend (Angular): architecture/frontend.md
-      - Base de données & migrations: architecture/base-de-donnees.md
-  - Fonctions & API:
+      - Database & migrations: architecture/base-de-donnees.md
+  - Functions & API:
       - Routers (endpoints): fonctions/routers.md
-      - Services métier: fonctions/services.md
-      - Authentification & sécurité: fonctions/authentification.md
-  - Déploiement:
+      - Business services: fonctions/services.md
+      - Authentication & security: fonctions/authentification.md
+  - Deployment:
       - Docker & Docker Compose: deploiement/docker.md
-      - Recommandations production: deploiement/production.md
+      - Production recommendations: deploiement/production.md

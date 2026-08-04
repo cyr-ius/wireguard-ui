@@ -1,27 +1,27 @@
-# Architecture frontend (Angular)
+# Frontend architecture (Angular)
 
-Application Angular moderne : **composants standalone**, **Signals**, **Signal Forms**, et **zoneless** (pas de `zone.js`).
+A modern Angular application: **standalone components**, **Signals**, **Signal Forms**, and **zoneless** (no `zone.js`).
 
 ```
 frontend/src/app/
 ├── app.component.ts, app.config.ts, app.routes.ts
 ├── core/
-│   ├── applets/          # champs de formulaire réutilisables
+│   ├── applets/          # reusable form fields
 │   ├── guards/            # auth.guard.ts, admin.guard.ts
 │   ├── interceptors/      # auth.interceptor.ts, error.interceptor.ts
-│   ├── models/            # api.models.ts (miroir des schémas backend)
+│   ├── models/            # api.models.ts (mirrors backend schemas)
 │   └── services/          # api.service.ts, auth.service.ts, theme.service.ts, ...
-├── features/               # un dossier par écran/domaine fonctionnel
+├── features/               # one folder per screen/functional domain
 │   ├── about/, audit/, auth/login/, auth/oidc-callback/,
 │   │   clients/, oidc/, profile/, server/, settings/,
 │   │   smtp/, status/, users/
 └── shared/components/
-    ├── healthly/           # indicateur de santé backend
-    ├── layout/              # shell applicatif (navigation, header)
+    ├── healthly/           # backend health indicator
+    ├── layout/              # application shell (navigation, header)
     └── session-expired-modal/
 ```
 
-## Configuration applicative — `app.config.ts`
+## Application configuration — `app.config.ts`
 
 ```ts
 export const appConfig: ApplicationConfig = {
@@ -34,19 +34,19 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-- **`provideZonelessChangeDetection()`** : la détection de changement ne repose pas sur `zone.js`, mais sur les Signals — meilleures performances, code plus explicite.
-- **`withFetch()`** : `HttpClient` utilise l'API `fetch` native.
-- **Intercepteurs** : `authInterceptor` (gestion des en-têtes CSRF/authentification) et `errorInterceptor` (normalisation des erreurs API, déclenchement de la modale de session expirée sur 401).
-- **`provideSignalFormsConfig`** : configure les classes CSS (`is-invalid`/`is-valid`) appliquées automatiquement par les Signal Forms selon l'état de validation des champs.
+- **`provideZonelessChangeDetection()`**: change detection does not rely on `zone.js`, but on Signals — better performance, more explicit code.
+- **`withFetch()`**: `HttpClient` uses the native `fetch` API.
+- **Interceptors**: `authInterceptor` (CSRF/authentication header handling) and `errorInterceptor` (API error normalization, triggering the expired-session modal on 401).
+- **`provideSignalFormsConfig`**: configures the CSS classes (`is-invalid`/`is-valid`) automatically applied by Signal Forms based on field validation state.
 
 ## Routing — `app.routes.ts`
 
 ```mermaid
 flowchart TD
-    Root["/"] -->|"non protégé"| Login["/login"]
-    Root -->|"non protégé"| Callback["/auth/callback (OIDC)"]
+    Root["/"] -->|"unprotected"| Login["/login"]
+    Root -->|"unprotected"| Callback["/auth/callback (OIDC)"]
     Root -->|"authGuard"| Layout["Layout (shell)"]
-    Layout --> Status["/status (tous les utilisateurs)"]
+    Layout --> Status["/status (all users)"]
     Layout --> Profile["/profile"]
     Layout --> About["/about"]
     Layout -->|"adminGuard"| Clients["/clients"]
@@ -58,41 +58,41 @@ flowchart TD
     Layout -->|"adminGuard"| Smtp["/smtp"]
 ```
 
-Toutes les pages sont chargées en **lazy-loading** (`loadComponent`). Les gardes `authGuard`/`adminGuard` reproduisent côté client les mêmes restrictions que le backend (`get_current_user`/`get_current_admin`) — mais l'autorité reste toujours le backend, qui revalide chaque requête API.
+All pages are **lazy-loaded** (`loadComponent`). The `authGuard`/`adminGuard` guards reproduce the same restrictions client-side as the backend (`get_current_user`/`get_current_admin`) — but the backend always remains the authority, revalidating every API request.
 
-## Couche `core/`
+## `core/` layer
 
 ### Services (`core/services/`)
 
-| Fichier                      | Rôle                                                                                                                                                                                                                                                                                                |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api.service.ts`             | `ApiService` central : une méthode par endpoint backend, puis des façades par domaine (`ClientsService`, `ServerService`, `SettingsService`, `SmtpService`, `UsersService`, `OidcService`, `AuditService`, `PatService`) qui encapsulent `ApiService` pour un usage sémantique dans les composants. |
-| `auth.service.ts`            | État réactif (Signals) de l'utilisateur courant : `isAuthenticated`, `isAdmin`, `authSource`, `isOidc`. Le JWT lui-même reste dans un cookie `HttpOnly` (jamais accessible en JS) ; seul un résumé non sensible est mis en cache côté client. Expose `login()`/`logout()`.                          |
-| `health.service.ts`          | Interroge `GET /api/health` pour piloter l'indicateur de santé (`shared/components/healthly`).                                                                                                                                                                                                      |
-| `session-expired.service.ts` | Déclenche la modale de session expirée lorsqu'une réponse 401 est interceptée.                                                                                                                                                                                                                      |
-| `theme.service.ts`           | Gestion du thème clair/sombre de l'interface.                                                                                                                                                                                                                                                       |
+| File                         | Role                                                                                                                                                                                                                                                                          |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api.service.ts`             | Central `ApiService`: one method per backend endpoint, then domain-specific facades (`ClientsService`, `ServerService`, `SettingsService`, `SmtpService`, `UsersService`, `OidcService`, `AuditService`, `PatService`) that wrap `ApiService` for semantic use in components. |
+| `auth.service.ts`            | Reactive (Signals) state of the current user: `isAuthenticated`, `isAdmin`, `authSource`, `isOidc`. The JWT itself stays in an `HttpOnly` cookie (never accessible from JS); only a non-sensitive summary is cached client-side. Exposes `login()`/`logout()`.                |
+| `health.service.ts`          | Polls `GET /api/health` to drive the health indicator (`shared/components/healthly`).                                                                                                                                                                                         |
+| `session-expired.service.ts` | Triggers the expired-session modal when a 401 response is intercepted.                                                                                                                                                                                                        |
+| `theme.service.ts`           | Manages the light/dark theme of the interface.                                                                                                                                                                                                                                |
 
-### Modèles (`core/models/api.models.ts`)
+### Models (`core/models/api.models.ts`)
 
-Interfaces TypeScript miroir des schémas Pydantic backend : `User`, `Role`, `WireGuardClient`/`ClientCreate`/`ClientUpdate`, `WireGuardServer`/`ServerCreate`, `GlobalSettings`/`SettingsUpdate`, `SmtpSettings`, `OidcAdminSettings`/`OidcPublicConfig`, `WireGuardStatus`/`PeerStatus`, `AuditLogEntry`/`AuditLogPage`, `Pat`/`PatCreate`/`PatCreateResponse`, `AppConfigResponse`.
+TypeScript interfaces mirroring the backend Pydantic schemas: `User`, `Role`, `WireGuardClient`/`ClientCreate`/`ClientUpdate`, `WireGuardServer`/`ServerCreate`, `GlobalSettings`/`SettingsUpdate`, `SmtpSettings`, `OidcAdminSettings`/`OidcPublicConfig`, `WireGuardStatus`/`PeerStatus`, `AuditLogEntry`/`AuditLogPage`, `Pat`/`PatCreate`/`PatCreateResponse`, `AppConfigResponse`.
 
-### Intercepteurs (`core/interceptors/`)
+### Interceptors (`core/interceptors/`)
 
-- **`auth.interceptor.ts`** : ajoute le header CSRF (`X-CSRF-Token`) sur les requêtes non sûres, en s'appuyant sur le cookie `csrf_token` lisible en JS.
-- **`error.interceptor.ts`** : normalise les erreurs HTTP renvoyées par le backend (format `{code, message, details}`) et déclenche la déconnexion/modale de session expirée sur une 401.
+- **`auth.interceptor.ts`**: adds the CSRF header (`X-CSRF-Token`) on unsafe requests, based on the JS-readable `csrf_token` cookie.
+- **`error.interceptor.ts`**: normalizes HTTP errors returned by the backend (`{code, message, details}` format) and triggers logout/expired-session modal on a 401.
 
-### Gardes (`core/guards/`)
+### Guards (`core/guards/`)
 
-- **`auth.guard.ts`** : bloque l'accès aux routes protégées si l'utilisateur n'est pas authentifié → redirection vers `/login`.
-- **`admin.guard.ts`** : bloque l'accès aux pages d'administration si le rôle courant n'est pas `admin`.
+- **`auth.guard.ts`**: blocks access to protected routes if the user is not authenticated → redirects to `/login`.
+- **`admin.guard.ts`**: blocks access to admin pages if the current role is not `admin`.
 
 ## Features (`features/`)
 
-Un dossier par écran, chacun avec son composant standalone, son template et ses styles. Correspondance directe avec les routers backend :
+One folder per screen, each with its standalone component, template and styles. Direct correspondence with backend routers:
 
-| Feature                              | Router backend correspondant         | Accès                           |
+| Feature                              | Corresponding backend router         | Access                          |
 | ------------------------------------ | ------------------------------------ | ------------------------------- |
-| `status/`                            | `status.py`                          | Tous les utilisateurs connectés |
+| `status/`                            | `status.py`                          | All logged-in users             |
 | `clients/`                           | `clients.py`                         | Admin                           |
 | `server/`                            | `server.py`                          | Admin                           |
 | `settings/`                          | `settings.py`                        | Admin                           |
@@ -100,17 +100,17 @@ Un dossier par écran, chacun avec son composant standalone, son template et ses
 | `audit/`                             | `audit.py`                           | Admin                           |
 | `oidc/`                              | `oidc.py`                            | Admin (config) / public (login) |
 | `smtp/`                              | `smtp.py`                            | Admin                           |
-| `profile/`                           | `auth.py`, `pat.py`                  | Utilisateur connecté            |
+| `profile/`                           | `auth.py`, `pat.py`                  | Logged-in user                  |
 | `auth/login/`, `auth/oidc-callback/` | `auth.py`, `oidc.py`                 | Public                          |
-| `about/`                             | `status.py` (version/latest-release) | Utilisateur connecté            |
+| `about/`                             | `status.py` (version/latest-release) | Logged-in user                  |
 
-## Build et intégration avec le backend
+## Build and integration with the backend
 
 ```bash
 npm run build   # ng build --configuration production
-# → sortie dans frontend/dist/wireguard-ui/browser
+# → output in frontend/dist/wireguard-ui/browser
 ```
 
-En production, le `Dockerfile` copie ce dossier `browser` vers `/app/frontend`, et c'est FastAPI (route catch-all `serve_spa` dans `main.py`) qui le sert directement — un seul port (`8000`) suffit alors, backend et frontend étant servis par le même processus.
+In production, the `Dockerfile` copies this `browser` folder to `/app/frontend`, and FastAPI (the `serve_spa` catch-all route in `main.py`) serves it directly — a single port (`8000`) is then enough, with backend and frontend served by the same process.
 
-En développement, les deux applications tournent séparément : Angular sur `:4200` (avec `proxy.conf.json` qui relaie `/api/*` vers `:8000`), FastAPI sur `:8000`. Voir [Installation locale](../demarrage/installation-locale.md).
+In development, the two applications run separately: Angular on `:4200` (with `proxy.conf.json` relaying `/api/*` to `:8000`), FastAPI on `:8000`. See [Local installation](../demarrage/installation-locale.md).

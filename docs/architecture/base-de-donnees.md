@@ -1,15 +1,15 @@
-# Base de données & migrations
+# Database & migrations
 
-L'ORM utilisé est **SQLModel** (Pydantic v2 + SQLAlchemy), avec un accès **100% asynchrone** (`database.py`). Les migrations de schéma sont gérées par **Alembic**.
+The ORM used is **SQLModel** (Pydantic v2 + SQLAlchemy), with **100% asynchronous** access (`database.py`). Schema migrations are handled by **Alembic**.
 
-## Modèles (`backend/app/models.py`)
+## Models (`backend/app/models.py`)
 
 ```mermaid
 erDiagram
-    User ||--o{ UserRoleLink : a
-    Role ||--o{ UserRoleLink : a
-    User ||--o{ PersonalAccessToken : possede
-    WireGuardServer ||--o{ WireGuardClient : "sert de referentiel a"
+    User ||--o{ UserRoleLink : has
+    Role ||--o{ UserRoleLink : has
+    User ||--o{ PersonalAccessToken : owns
+    WireGuardServer ||--o{ WireGuardClient : "acts as reference for"
 
     User {
         int id PK
@@ -87,51 +87,51 @@ erDiagram
     }
 ```
 
-### Points notables
+### Notable points
 
-- **`User`** : `auth_source` distingue les comptes `local` (mot de passe géré par l'app) des comptes `oidc` (délégués à l'IdP — email/nom/mot de passe non modifiables depuis l'UI, voir [`users.py`](../fonctions/routers.md#userspy-apiusers-admin)). `fs_uniquifier` est un identifiant stable indépendant de l'`id`, utile pour invalider une session sans dépendre de la clé primaire.
-- **`Role`** : les permissions sont stockées en **CSV** dans une colonne texte (`"admin-read,admin-write"`), lues via `Role.has_permission()`.
-- **`WireGuardServer`** / **`WireGuardClient`** : une seule ligne serveur (référentiel de l'interface `wg0`), plusieurs lignes clients (un pair = une ligne). `allowed_ips` et `dns_servers` (sur `GlobalSettings`) sont stockés en JSON natif.
-- **`OidcSettings`**, **`SmtpSettings`**, **`GlobalSettings`** : tables _singleton_ (une seule ligne), portant chacune un domaine de configuration distinct — historiquement fusionnées, elles ont été séparées par la migration `0002_split_settings_tables`.
-- **`AuditLog`** : table **append-only** (jamais modifiée après insertion), avec purge automatique selon `AUDIT_MAX_EVENTS`/`AUDIT_RETENTION_DAYS` — voir [`services/audit.py`](../fonctions/services.md#auditpy).
-- **`PersonalAccessToken`** : seul le **hash SHA-256** du token est stocké (`token_hash`), jamais le token en clair — celui-ci n'est renvoyé qu'une fois, à la création.
+- **`User`**: `auth_source` distinguishes `local` accounts (password managed by the app) from `oidc` accounts (delegated to the IdP — email/name/password not editable from the UI, see [`users.py`](../fonctions/routers.md#userspy-apiusers-admin)). `fs_uniquifier` is a stable identifier independent of `id`, useful for invalidating a session without depending on the primary key.
+- **`Role`**: permissions are stored as **CSV** in a text column (`"admin-read,admin-write"`), read via `Role.has_permission()`.
+- **`WireGuardServer`** / **`WireGuardClient`**: a single server row (the `wg0` interface's reference data), multiple client rows (one peer = one row). `allowed_ips` and `dns_servers` (on `GlobalSettings`) are stored as native JSON.
+- **`OidcSettings`**, **`SmtpSettings`**, **`GlobalSettings`**: _singleton_ tables (a single row each), each carrying a distinct configuration domain — historically merged, they were split apart by the `0002_split_settings_tables` migration.
+- **`AuditLog`**: an **append-only** table (never modified after insertion), with automatic purging according to `AUDIT_MAX_EVENTS`/`AUDIT_RETENTION_DAYS` — see [`services/audit.py`](../fonctions/services.md#auditpy).
+- **`PersonalAccessToken`**: only the **SHA-256 hash** of the token is stored (`token_hash`), never the token in clear text — it is returned only once, at creation.
 
-## Migrations Alembic (`backend/alembic/`)
+## Alembic migrations (`backend/alembic/`)
 
-| Révision                     | Contenu                                                                                          |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| `0001_initial_schema`        | Schéma initial : `users`, `roles`, `user_roles`, `wg_server`, `wg_clients`, réglages initiaux.   |
-| `0002_split_settings_tables` | Séparation des réglages en tables dédiées (`oidc_settings`, `smtp_settings`, `global_settings`). |
-| `003_auth_source`            | Ajout de la colonne `auth_source` sur `users` (support OIDC).                                    |
-| `0004_audit_and_pat`         | Ajout des tables `audit_log` et `personal_access_tokens`.                                        |
+| Revision                     | Content                                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `0001_initial_schema`        | Initial schema: `users`, `roles`, `user_roles`, `wg_server`, `wg_clients`, initial settings.   |
+| `0002_split_settings_tables` | Split of settings into dedicated tables (`oidc_settings`, `smtp_settings`, `global_settings`). |
+| `003_auth_source`            | Added the `auth_source` column on `users` (OIDC support).                                      |
+| `0004_audit_and_pat`         | Added the `audit_log` and `personal_access_tokens` tables.                                     |
 
 ### `alembic/env.py`
 
-Particularités de cette configuration :
+Notable aspects of this configuration:
 
-- Ajoute `backend/` à `sys.path` pour que `from app.config import app_settings` fonctionne quel que soit le répertoire courant (le conteneur Docker lance `uvicorn` depuis `/app`, pas depuis `/app/backend`).
-- Réutilise **la même URL de base de données que l'application** (`app_settings.db_path`), en la convertissant du driver asynchrone vers un driver synchrone (`sqlite+aiosqlite://` → `sqlite://`) car Alembic fonctionne en mode synchrone (`create_engine` + `NullPool`).
-- `target_metadata = SQLModel.metadata` : Alembic peut donc générer des migrations automatiquement (`alembic revision --autogenerate`) à partir des modèles définis dans `models.py`.
+- Adds `backend/` to `sys.path` so that `from app.config import app_settings` works regardless of the current directory (the Docker container launches `uvicorn` from `/app`, not from `/app/backend`).
+- Reuses **the same database URL as the application** (`app_settings.db_path`), converting it from the async driver to a sync driver (`sqlite+aiosqlite://` → `sqlite://`) since Alembic runs in synchronous mode (`create_engine` + `NullPool`).
+- `target_metadata = SQLModel.metadata`: Alembic can therefore generate migrations automatically (`alembic revision --autogenerate`) from the models defined in `models.py`.
 
-### Appliquer les migrations
+### Applying migrations
 
 ```bash
 cd backend
 uv run alembic upgrade head
 ```
 
-- **En développement local**, cette commande doit être lancée manuellement avant le premier démarrage (voir [Installation locale](../demarrage/installation-locale.md)).
-- **En production (image Docker)**, elle est exécutée automatiquement à chaque démarrage du conteneur par [`docker/entrypoint.sh`](../deploiement/docker.md#dockerentrypointsh), avant de lancer `uvicorn`.
+- **In local development**, this command must be run manually before the first startup (see [Local installation](../demarrage/installation-locale.md)).
+- **In production (Docker image)**, it is run automatically on every container startup by [`docker/entrypoint.sh`](../deploiement/docker.md#dockerentrypointsh), before launching `uvicorn`.
 
-### Créer une nouvelle migration
+### Creating a new migration
 
 ```bash
 cd backend
-uv run alembic revision --autogenerate -m "description du changement"
+uv run alembic revision --autogenerate -m "description of the change"
 ```
 
-Un hook post-écriture (`alembic.ini`) exécute automatiquement `ruff check --fix` sur le fichier de migration généré.
+A post-write hook (`alembic.ini`) automatically runs `ruff check --fix` on the generated migration file.
 
-## Base de données par défaut
+## Default database
 
-Par défaut, l'application utilise **SQLite** (`DB_PATH=sqlite+aiosqlite:////var/lib/wireguard-ui/wireguard_ui.db`), suffisant pour un déploiement mono-instance. **PostgreSQL** est également supporté : il suffit de fournir une URL `postgres://` ou `postgresql://`, automatiquement convertie vers le driver asynchrone `asyncpg` par le validateur `normalize_db_path` de [`config.py`](backend.md#configpy).
+By default, the application uses **SQLite** (`DB_PATH=sqlite+aiosqlite:////var/lib/wireguard-ui/wireguard_ui.db`), sufficient for a single-instance deployment. **PostgreSQL** is also supported: simply provide a `postgres://` or `postgresql://` URL, automatically converted to the async `asyncpg` driver by the `normalize_db_path` validator in [`config.py`](backend.md#configpy).

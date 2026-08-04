@@ -1,70 +1,70 @@
-# Recommandations production
+# Production recommendations
 
-## Sécurité de base
+## Basic security
 
-- **`SECRET_KEY`** : définissez une valeur longue et aléatoire explicitement. Sans cela, une clé est générée automatiquement et stockée dans `/var/lib/wireguard-ui/secret_key` — cela fonctionne, mais toute réinstallation ou perte du volume de données invalide toutes les sessions, et la clé ne peut pas être partagée entre plusieurs réplicas.
+- **`SECRET_KEY`**: set a long, random value explicitly. Without it, a key is generated automatically and stored in `/var/lib/wireguard-ui/secret_key` — this works, but any reinstall or loss of the data volume invalidates all sessions, and the key cannot be shared across multiple replicas.
 
   ```bash
   openssl rand -base64 64
   ```
 
-- **Identifiants admin** : changez le mot de passe généré automatiquement dès la première connexion (page _Profil_). Envisagez de définir `ADMIN_USERNAME`/`ADMIN_EMAIL` avant le tout premier démarrage si vous ne voulez pas des valeurs par défaut (`admin`/`admin@wg.ui`).
-- **`SWAGGER_ENABLED`** : laissez à `false` (défaut) en production si l'exposition de la documentation OpenAPI n'est pas nécessaire.
+- **Admin credentials**: change the automatically generated password on first login (_Profile_ page). Consider setting `ADMIN_USERNAME`/`ADMIN_EMAIL` before the very first startup if you don't want the default values (`admin`/`admin@wg.ui`).
+- **`SWAGGER_ENABLED`**: leave at `false` (default) in production if exposing the OpenAPI documentation is not needed.
 
-## Derrière un reverse proxy TLS
+## Behind a TLS reverse proxy
 
-Si vous exposez l'interface via Traefik, Nginx, Caddy, etc. :
+If you expose the interface via Traefik, Nginx, Caddy, etc.:
 
-1. Terminez le TLS au niveau du reverse proxy.
-2. Renseignez **`TRUSTED_PROXIES`** avec l'IP ou le sous-réseau du proxy (ex. `172.16.0.0/12` pour un réseau Docker par défaut). Sans cela :
-   - le cookie de session `access_token` ne sera pas marqué `Secure` (HTTPS non détecté) ;
-   - le rate-limiting regroupera **tous** les visiteurs sur l'IP du proxy, ce qui peut bloquer l'accès à tout le monde après quelques requêtes.
-3. Le reverse proxy doit transmettre les en-têtes `X-Forwarded-For` et `X-Forwarded-Proto`.
+1. Terminate TLS at the reverse proxy level.
+2. Set **`TRUSTED_PROXIES`** to the proxy's IP or subnet (e.g. `172.16.0.0/12` for a default Docker network). Without this:
+   - the `access_token` session cookie will not be marked `Secure` (HTTPS not detected);
+   - rate limiting will group **all** visitors under the proxy's IP, which can lock out everyone after a few requests.
+3. The reverse proxy must forward the `X-Forwarded-For` and `X-Forwarded-Proto` headers.
 
-Voir le détail dans [Authentification & sécurité](../fonctions/authentification.md) et [Variables d'environnement](../demarrage/variables-environnement.md#securite-authentification).
+See the details in [Authentication & security](../fonctions/authentification.md) and [Environment variables](../demarrage/variables-environnement.md#security-authentication).
 
 ## Rate limiting
 
-Activé par défaut (`RATE_LIMIT_ENABLED=true`). Ajustez `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_SECONDS` selon votre trafic normal, et gardez `RATE_LIMIT_AUTH_MAX_REQUESTS` bas pour limiter le brute-force sur `/api/auth/login`.
+Enabled by default (`RATE_LIMIT_ENABLED=true`). Adjust `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_SECONDS` to your normal traffic, and keep `RATE_LIMIT_AUTH_MAX_REQUESTS` low to limit brute-force attempts on `/api/auth/login`.
 
-!!! warning "Déploiement mono-worker"
-Le rate-limiter et l'état du service WireGuard sont gérés **en mémoire, par process**. L'image ne doit pas être répliquée horizontalement (plusieurs conteneurs actifs simultanément) sans revoir cette architecture — un seul conteneur `wireguard-ui` doit gérer une interface `wg0` donnée.
+!!! warning "Single-worker deployment"
+The rate-limiter and the WireGuard service state are managed **in memory, per process**. The image must not be scaled horizontally (multiple containers running simultaneously) without revisiting this architecture — a single `wireguard-ui` container must manage a given `wg0` interface.
 
-## Sauvegardes
+## Backups
 
-Deux volumes à sauvegarder régulièrement :
+Two volumes to back up regularly:
 
-| Volume                  | Contenu                                                                        | Criticité                                                 |
-| ----------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| `/var/lib/wireguard-ui` | Base SQLite (utilisateurs, clients, réglages, audit, PAT), clé secrète générée | Élevée — perte = perte de toutes les données applicatives |
-| `/etc/wireguard`        | `wg0.conf`, clés serveur/clients actives                                       | Élevée — perte = reconstruction manuelle des tunnels      |
+| Volume                  | Content                                                                      | Criticality                                    |
+| ----------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------- |
+| `/var/lib/wireguard-ui` | SQLite database (users, clients, settings, audit, PAT), generated secret key | High — loss = loss of all application data     |
+| `/etc/wireguard`        | `wg0.conf`, active server/client keys                                        | High — loss = manual reconstruction of tunnels |
 
-## Base de données en production
+## Database in production
 
-SQLite convient pour un déploiement mono-instance. Pour un environnement plus exigeant (sauvegardes centralisées, réplication), configurez `DB_PATH` vers une instance PostgreSQL :
+SQLite is suitable for a single-instance deployment. For a more demanding environment (centralized backups, replication), point `DB_PATH` to a PostgreSQL instance:
 
 ```env
 DB_PATH=postgresql://user:password@host:5432/wireguard_ui
 ```
 
-L'URL est automatiquement convertie vers le driver asynchrone `asyncpg` — voir [`config.py`](../architecture/backend.md#configpy).
+The URL is automatically converted to the async `asyncpg` driver — see [`config.py`](../architecture/backend.md#configpy).
 
-## Audit et conformité
+## Audit and compliance
 
-- `AUDIT_RETENTION_DAYS` (défaut 90) et `AUDIT_MAX_EVENTS` (défaut 10 000) contrôlent la purge automatique du journal d'audit. Augmentez ces valeurs si une politique de conformité impose une rétention plus longue.
-- Le journal est accessible via `GET /api/audit` (page _Audit_, admin uniquement) — pensez à l'exporter périodiquement si la rétention configurée est courte.
+- `AUDIT_RETENTION_DAYS` (default 90) and `AUDIT_MAX_EVENTS` (default 10,000) control automatic purging of the audit log. Increase these values if a compliance policy requires longer retention.
+- The log is accessible via `GET /api/audit` (_Audit_ page, admin only) — consider exporting it periodically if the configured retention is short.
 
 ## Emails
 
-Configurez SMTP depuis l'interface d'administration (page _SMTP_), pas via l'environnement (seuls `MAIL_FROM`/`MAIL_NAME` sont des variables d'environnement, utilisées comme repli). Testez la configuration avec le bouton _Envoyer un email de test_ avant de compter dessus pour l'enrôlement des clients.
+Configure SMTP from the admin interface (_SMTP_ page), not via the environment (only `MAIL_FROM`/`MAIL_NAME` are environment variables, used as a fallback). Test the configuration with the _Send test email_ button before relying on it for client enrollment.
 
-## Checklist avant mise en production
+## Pre-production checklist
 
-- [ ] `SECRET_KEY` définie explicitement et sauvegardée.
-- [ ] Mot de passe admin changé.
-- [ ] `TRUSTED_PROXIES` renseigné si un reverse proxy est utilisé.
-- [ ] TLS activé au niveau du reverse proxy.
-- [ ] Volumes `wg_config` et `wireguard-ui_data` sauvegardés automatiquement.
-- [ ] `SWAGGER_ENABLED=false` sauf besoin explicite.
-- [ ] SMTP configuré et testé si l'envoi de configuration par email est utilisé.
-- [ ] OIDC configuré si une connexion SSO est requise (voir [Authentification & sécurité](../fonctions/authentification.md#oidc-single-sign-on)).
+- [ ] `SECRET_KEY` explicitly set and backed up.
+- [ ] Admin password changed.
+- [ ] `TRUSTED_PROXIES` set if a reverse proxy is used.
+- [ ] TLS enabled at the reverse proxy level.
+- [ ] `wg_config` and `wireguard-ui_data` volumes backed up automatically.
+- [ ] `SWAGGER_ENABLED=false` unless explicitly needed.
+- [ ] SMTP configured and tested if sending configuration by email is used.
+- [ ] OIDC configured if SSO login is required (see [Authentication & security](../fonctions/authentification.md#oidc-single-sign-on)).

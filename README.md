@@ -1,5 +1,7 @@
 # 🔒 WireGuard UI
 
+_Lire ceci en [français](README.fr.md)._
+
 ![licence] ![python] ![angular] [![ci::status]][ci::github] [![docker::pulls]][docker::hub] [![documentation::badge]][documentation::web]
 
 [licence]: https://img.shields.io/github/license/cyr-ius/wireguard-ui?label=Licence&color=blue
@@ -12,32 +14,32 @@
 [documentation::badge]: https://img.shields.io/badge/Documentation-Wiki-green?logo=helpdesk
 [documentation::web]: https://cyr-ius.github.io/wireguard-ui/
 
-**WireGuard UI** est une interface web pour administrer un serveur WireGuard sans
-manipuler directement les fichiers de configuration (`wg0.conf`, clés, règles
-`iptables`). Gestion des pairs, export de configuration, authentification OIDC,
-journal d'audit — le tout dans une image Docker unique.
+**WireGuard UI** is a web interface for managing a WireGuard server without
+touching configuration files directly (`wg0.conf`, keys, `iptables` rules).
+Peer management, configuration export, OIDC authentication, audit log — all
+in a single Docker image.
 
-<img width="1295" height="948" alt="Tableau de bord WireGuard UI" src="https://github.com/user-attachments/assets/f147aeed-9d02-43c4-b686-aa400d06942c" />
+<img width="1295" height="948" alt="WireGuard UI dashboard" src="https://github.com/user-attachments/assets/f147aeed-9d02-43c4-b686-aa400d06942c" />
 
 ---
 
-## Fonctionnalités
+## Features
 
-- 🔧 Gestion des pairs (création, édition, révocation) avec suggestion d'IP libre
-- 📄 Génération de configuration client, export en fichier `.conf` et QR code
-- ✉️ Envoi de la configuration par email (SMTP configurable depuis l'UI)
-- 🔐 Authentification locale, **OIDC** (SSO) et **Personal Access Tokens** pour l'API
-- 📋 Journal d'audit des actions sensibles, avec rétention configurable
-- 🩺 Healthcheck intégré (`GET /api/health`)
-- 🐳 Image Docker unique, `linux/amd64` / `linux/arm64` (Raspberry Pi, Apple Silicon)
+- 🔧 Peer management (create, edit, revoke) with free IP suggestion
+- 📄 Client configuration generation, export as `.conf` file and QR code
+- ✉️ Send configuration by email (SMTP configurable from the UI)
+- 🔐 Local authentication, **OIDC** (SSO) and **Personal Access Tokens** for the API
+- 📋 Audit log of sensitive actions, with configurable retention
+- 🩺 Built-in healthcheck (`GET /api/health`)
+- 🐳 Single Docker image, `linux/amd64` / `linux/arm64` (Raspberry Pi, Apple Silicon)
 
-Backend FastAPI (async) + frontend Angular (Signals, zoneless) — voir la page
+FastAPI (async) backend + Angular (Signals, zoneless) frontend — see the
 [Architecture](https://cyr-ius.github.io/wireguard-ui/architecture/backend/)
-pour le détail de la stack technique.
+page for the technical stack details.
 
 ---
 
-## Démarrage rapide
+## Quick start
 
 ```bash
 docker run -d \
@@ -52,16 +54,16 @@ docker run -d \
   cyrius44/wireguard-ui:latest
 ```
 
-Un mot de passe admin est généré automatiquement au premier démarrage et
-**affiché une seule fois** dans les logs — l'utilisateur par défaut est `admin` :
+An admin password is generated automatically on first startup and
+**shown only once** in the logs — the default user is `admin`:
 
 ```bash
 docker logs wireguard-ui | grep -A4 "Initial admin account"
 ```
 
-Ouvrez **http://localhost:8000** et connectez-vous avec `admin` et ce mot de passe.
+Open **http://localhost:8000** and log in with `admin` and this password.
 
-Ou avec Docker Compose :
+Or with Docker Compose:
 
 ```yaml
 services:
@@ -86,37 +88,37 @@ volumes:
   wireguard-ui_data:
 ```
 
-> **Note :** `SECRET_KEY` est optionnelle — si absente, l'application génère
-> automatiquement une clé aléatoire et la persiste dans `wireguard-ui_data`. En
-> production, définissez-la explicitement pour partager les sessions entre
-> plusieurs réplicas ou survivre à une perte du volume de données.
+> **Note:** `SECRET_KEY` is optional — if absent, the application automatically
+> generates a random key and persists it in `wireguard-ui_data`. In
+> production, set it explicitly to share sessions across multiple replicas
+> or survive a loss of the data volume.
 
-Pour le guide complet (installation locale sans Docker, variables
-d'environnement, recommandations de production) voir
-**[Démarrage](https://cyr-ius.github.io/wireguard-ui/demarrage/quickstart-docker/)**.
+For the full guide (local installation without Docker, environment
+variables, production recommendations) see
+**[Getting started](https://cyr-ius.github.io/wireguard-ui/demarrage/quickstart-docker/)**.
 
 ---
 
 ## Documentation
 
-La documentation complète — architecture, référence des variables
-d'environnement, routers & services, déploiement — est publiée sur
+The full documentation — architecture, environment variable reference,
+routers & services, deployment — is published at
 **[cyr-ius.github.io/wireguard-ui](https://cyr-ius.github.io/wireguard-ui/)**.
 
-| Vous cherchez...                                  | Allez à...                                                                                             |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Toutes les variables d'environnement              | [Variables d'environnement](https://cyr-ius.github.io/wireguard-ui/demarrage/variables-environnement/) |
-| Installation locale (dev, sans Docker)            | [Installation locale](https://cyr-ius.github.io/wireguard-ui/demarrage/installation-locale/)           |
-| Architecture backend / frontend / base de données | [Architecture](https://cyr-ius.github.io/wireguard-ui/architecture/backend/)                           |
-| Routers, services métier, authentification        | [Fonctions & API](https://cyr-ius.github.io/wireguard-ui/fonctions/routers/)                           |
-| Déploiement & recommandations production          | [Déploiement](https://cyr-ius.github.io/wireguard-ui/deploiement/docker/)                              |
+| Looking for...                             | Go to...                                                                                           |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| All environment variables                  | [Environment variables](https://cyr-ius.github.io/wireguard-ui/demarrage/variables-environnement/) |
+| Local installation (dev, no Docker)        | [Local installation](https://cyr-ius.github.io/wireguard-ui/demarrage/installation-locale/)        |
+| Backend / frontend / database architecture | [Architecture](https://cyr-ius.github.io/wireguard-ui/architecture/backend/)                       |
+| Routers, business services, authentication | [Functions & API](https://cyr-ius.github.io/wireguard-ui/fonctions/routers/)                       |
+| Deployment & production recommendations    | [Deployment](https://cyr-ius.github.io/wireguard-ui/deploiement/docker/)                           |
 
 ---
 
 ## License
 
-MIT — voir [LICENSE](LICENSE) pour le détail.
+MIT — see [LICENSE](LICENSE) for details.
 
 ## About
 
-Auteur : [@cyr-ius](https://github.com/cyr-ius) — Sponsor : [GitHub Sponsors](https://github.com/sponsors/cyr-ius)
+Author: [@cyr-ius](https://github.com/cyr-ius) — Sponsor: [GitHub Sponsors](https://github.com/sponsors/cyr-ius)

@@ -1,97 +1,97 @@
-# Authentification & sécurité
+# Authentication & security
 
-WireGuard UI accepte **trois** modes d'authentification simultanément, résolus dans cet ordre par la dépendance `get_current_user` (`backend/app/auth.py`) :
+WireGuard UI accepts **three** authentication modes simultaneously, resolved in this order by the `get_current_user` dependency (`backend/app/auth.py`):
 
-1. **Cookie de session** (`access_token`, JWT, HttpOnly) — utilisé par le frontend Angular (SPA).
-2. **Header `Authorization: Bearer <JWT>`** — flux OAuth2 password (`/api/auth/token`), essentiellement pour Swagger UI.
-3. **Header `Authorization: Bearer <PAT>`** (préfixe `wgui_pat_...`) — pour les intégrations tierces / scripts.
+1. **Session cookie** (`access_token`, JWT, HttpOnly) — used by the Angular frontend (SPA).
+2. **`Authorization: Bearer <JWT>` header** — OAuth2 password flow (`/api/auth/token`), mainly for Swagger UI.
+3. **`Authorization: Bearer <PAT>` header** (`wgui_pat_...` prefix) — for third-party integrations / scripts.
 
 ```mermaid
 flowchart TD
-    Req["Requête entrante"] --> HasCookie{"Cookie access_token ?"}
-    HasCookie -->|oui| JWT1[Décode JWT]
-    HasCookie -->|non| HasBearer{"Header Bearer ?"}
+    Req["Incoming request"] --> HasCookie{"access_token cookie?"}
+    HasCookie -->|yes| JWT1[Decode JWT]
+    HasCookie -->|no| HasBearer{"Bearer header?"}
     HasBearer -->|"wgui_pat_..."| PAT["resolve_user_from_pat()"]
-    HasBearer -->|JWT| JWT2[Décode JWT]
+    HasBearer -->|JWT| JWT2[Decode JWT]
     HasBearer -->|absent| E401["401 Not authenticated"]
-    JWT1 --> User[Utilisateur résolu]
+    JWT1 --> User[Resolved user]
     JWT2 --> User
     PAT --> User
-    User --> AdminCheck{"Route admin ?"}
-    AdminCheck -->|oui, sans rôle admin| E403["403 Admin privileges required"]
-    AdminCheck -->|ok| Handler["Handler du router"]
+    User --> AdminCheck{"Admin route?"}
+    AdminCheck -->|yes, without admin role| E403["403 Admin privileges required"]
+    AdminCheck -->|ok| Handler["Router handler"]
 ```
 
-## Connexion locale
+## Local login
 
-`POST /api/auth/login` (ou `/token` pour le flux OAuth2 Swagger) :
+`POST /api/auth/login` (or `/token` for the Swagger OAuth2 flow):
 
-1. `local_login_allowed(db)` vérifie que le mode **OIDC-only** n'est pas actif — sinon `403`.
-2. `authenticate_user(db, username, password)` : rejette les comptes `auth_source == "oidc"` (pas de mot de passe local) et vérifie le mot de passe via `verify_password`.
-3. `create_access_token({"sub": user.username})` signe un JWT (`HS256`, `SECRET_KEY`, expiration `ACCESS_TOKEN_EXPIRE_MINUTES`).
-4. `set_auth_cookies()` pose deux cookies :
-   - `access_token` — **HttpOnly**, `SameSite=Lax`, `Secure` si la requête est HTTPS (détecté via `TRUSTED_PROXIES`/`X-Forwarded-Proto`).
-   - `csrf_token` — lisible en JS, valeur aléatoire indépendante du JWT.
-5. Chaque tentative (réussie ou non) est journalisée (`auth.login` / `auth.login_failed`).
+1. `local_login_allowed(db)` checks that **OIDC-only** mode is not active — otherwise `403`.
+2. `authenticate_user(db, username, password)`: rejects `auth_source == "oidc"` accounts (no local password) and verifies the password via `verify_password`.
+3. `create_access_token({"sub": user.username})` signs a JWT (`HS256`, `SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES` expiration).
+4. `set_auth_cookies()` sets two cookies:
+   - `access_token` — **HttpOnly**, `SameSite=Lax`, `Secure` if the request is HTTPS (detected via `TRUSTED_PROXIES`/`X-Forwarded-Proto`).
+   - `csrf_token` — JS-readable, random value independent of the JWT.
+5. Every attempt (successful or not) is logged (`auth.login` / `auth.login_failed`).
 
-### Hachage des mots de passe
+### Password hashing
 
-- `bcrypt`, avec un coût configurable (`BCRYPT_ROUNDS`, défaut 12).
-- Pré-hash SHA-256 + base64 du mot de passe avant `bcrypt` (`_bcrypt_input`), pour contourner la limite de 72 octets de bcrypt sans tronquer silencieusement les mots de passe longs.
-- `verify_password()` reste compatible avec d'anciens hash bcrypt "bruts" (sans le pré-hash SHA-256), pour ne pas invalider les mots de passe existants après une migration de schéma de hachage.
+- `bcrypt`, with a configurable cost (`BCRYPT_ROUNDS`, default 12).
+- SHA-256 + base64 pre-hash of the password before `bcrypt` (`_bcrypt_input`), to work around bcrypt's 72-byte limit without silently truncating long passwords.
+- `verify_password()` remains compatible with older "raw" bcrypt hashes (without the SHA-256 pre-hash), so as not to invalidate existing passwords after a hashing scheme migration.
 
-## Protection CSRF
+## CSRF protection
 
-Cookies en double soumission (_double-submit cookie_) : sur toute méthode non sûre (`POST`/`PUT`/`PATCH`/`DELETE`) d'une route `/api/*` authentifiée **par cookie**, `CsrfMiddleware` exige que le header `X-CSRF-Token` corresponde exactement (`secrets.compare_digest`) au cookie `csrf_token`. Les requêtes authentifiées uniquement par header `Bearer` (sans cookie de session) ne sont pas concernées — elles ne sont pas vulnérables au CSRF.
+Double-submit cookie: for any unsafe method (`POST`/`PUT`/`PATCH`/`DELETE`) on a `/api/*` route authenticated **by cookie**, `CsrfMiddleware` requires the `X-CSRF-Token` header to exactly match (`secrets.compare_digest`) the `csrf_token` cookie. Requests authenticated only by a `Bearer` header (no session cookie) are not affected — they are not vulnerable to CSRF.
 
 ## Rate limiting
 
-`RateLimitMiddleware` applique une fenêtre glissante par IP (`SlidingWindowRateLimiter`) sur tout `/api/*` (hors `/api/health`) :
+`RateLimitMiddleware` applies a per-IP sliding window (`SlidingWindowRateLimiter`) on every `/api/*` route (except `/api/health`):
 
-- Seuil global : `RATE_LIMIT_MAX_REQUESTS` requêtes / `RATE_LIMIT_WINDOW_SECONDS`.
-- Seuil renforcé sur `/api/auth/login` et `/api/auth/token` : `RATE_LIMIT_AUTH_MAX_REQUESTS` (plus bas, pour freiner le brute-force).
-- L'IP utilisée est celle résolue par `client_ip(request)` (`proxy.py`), qui ne fait confiance à `X-Forwarded-For` que si l'appelant figure dans `TRUSTED_PROXIES`.
+- Global threshold: `RATE_LIMIT_MAX_REQUESTS` requests / `RATE_LIMIT_WINDOW_SECONDS`.
+- Stricter threshold on `/api/auth/login` and `/api/auth/token`: `RATE_LIMIT_AUTH_MAX_REQUESTS` (lower, to slow down brute-force attempts).
+- The IP used is the one resolved by `client_ip(request)` (`proxy.py`), which only trusts `X-Forwarded-For` if the caller is listed in `TRUSTED_PROXIES`.
 
-!!! note "Limite d'implémentation"
-Le compteur est **en mémoire**, adapté au déploiement mono-worker de l'image fournie. Pour du multi-process ou multi-réplica, il faudrait un store partagé (Redis).
+!!! note "Implementation limitation"
+The counter is **in-memory**, suited to the single-worker deployment of the provided image. For multi-process or multi-replica setups, a shared store (Redis) would be needed.
 
-## En-têtes de sécurité
+## Security headers
 
-`SecurityHeadersMiddleware` ajoute à chaque réponse : `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` restrictive, `Strict-Transport-Security`, et une **Content-Security-Policy** stricte (`frame-ancestors 'none'`, pas de CDN externe — Swagger UI est auto-hébergé pour cette raison).
+`SecurityHeadersMiddleware` adds to every response: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, a restrictive `Permissions-Policy`, `Strict-Transport-Security`, and a strict **Content-Security-Policy** (`frame-ancestors 'none'`, no external CDN — Swagger UI is self-hosted for this reason).
 
 ## OIDC (Single Sign-On)
 
-Flux _authorization code_, implémenté dans `services/oidc.py` :
+_Authorization code_ flow, implemented in `services/oidc.py`:
 
-1. Le frontend récupère la config publique (`GET /api/oidc/config`), qui inclut les endpoints `authorization`/`end_session` résolus via le **document de découverte** (`{issuer}/.well-known/openid-configuration`).
-2. L'utilisateur est redirigé vers l'IdP, revient sur `/auth/callback?code=...`.
-3. `POST /api/oidc/callback` → `exchange_code()` :
-   - Échange le `code` contre un jeu de tokens à l'endpoint `token_endpoint` (méthode d'authentification client négociée automatiquement : `client_secret_basic`, `client_secret_post`, ou `none`, selon `token_endpoint_auth_methods_supported`).
-   - Récupère les claims d'identité soit via l'**endpoint userinfo** (si disponible), soit en **vérifiant cryptographiquement** l'`id_token` (signature JWKS, audience, issuer) via `verify_id_token()`.
-4. `find_or_create_user()` provisionne l'utilisateur :
-   - Recherche un compte OIDC existant (`auth_source == "oidc"`) par username/email.
-   - **Anti-usurpation** : `local_account_conflict()` refuse (`403`) de connecter une identité OIDC dont le username/email correspond à un compte **local** existant — empêche un IdP compromis ou mal configuré de prendre le contrôle du compte admin local.
-   - À défaut, crée un nouvel utilisateur `auth_source="oidc"` avec le rôle `user` par défaut, un mot de passe local aléatoire inutilisable (`uuid4().hex` haché), et un username unique (`generate_unique_username`).
-   - À chaque connexion suivante, `sync_oidc_user()` resynchronise `first_name`/`last_name`/`email` depuis les claims (l'email n'est mis à jour que s'il est libre, pour ne pas violer la contrainte d'unicité).
-5. Un JWT applicatif standard est émis ensuite exactement comme pour une connexion locale.
+1. The frontend fetches the public config (`GET /api/oidc/config`), which includes the `authorization`/`end_session` endpoints resolved via the **discovery document** (`{issuer}/.well-known/openid-configuration`).
+2. The user is redirected to the IdP, and returns to `/auth/callback?code=...`.
+3. `POST /api/oidc/callback` → `exchange_code()`:
+   - Exchanges the `code` for a set of tokens at the `token_endpoint` (client authentication method negotiated automatically: `client_secret_basic`, `client_secret_post`, or `none`, based on `token_endpoint_auth_methods_supported`).
+   - Retrieves identity claims either via the **userinfo endpoint** (if available), or by **cryptographically verifying** the `id_token` (JWKS signature, audience, issuer) via `verify_id_token()`.
+4. `find_or_create_user()` provisions the user:
+   - Looks for an existing OIDC account (`auth_source == "oidc"`) by username/email.
+   - **Anti-spoofing**: `local_account_conflict()` refuses (`403`) to log in an OIDC identity whose username/email matches an existing **local** account — prevents a compromised or misconfigured IdP from taking over the local admin account.
+   - Otherwise, creates a new `auth_source="oidc"` user with the default `user` role, an unusable random local password (hashed `uuid4().hex`), and a unique username (`generate_unique_username`).
+   - On every subsequent login, `sync_oidc_user()` resynchronizes `first_name`/`last_name`/`email` from the claims (the email is only updated if it's free, so as not to violate the uniqueness constraint).
+5. A standard application JWT is then issued exactly as for a local login.
 
-**Mode OIDC-only** (`OidcSettings.oidc_only=True`) : désactive complètement `/api/auth/login` et `/api/auth/token` (`local_login_allowed()` renvoie `False`). Impossible à activer sans que `enabled=True` également (vérifié côté API).
+**OIDC-only mode** (`OidcSettings.oidc_only=True`): completely disables `/api/auth/login` and `/api/auth/token` (`local_login_allowed()` returns `False`). Cannot be enabled without `enabled=True` also being set (checked API-side).
 
 ## Personal Access Tokens (PAT)
 
-- Chaque utilisateur gère ses propres tokens (`/api/pat`, pas de restriction admin), désactivable globalement via `API_KEYS_ENABLED`.
-- Format : `wgui_pat_<32 octets aléatoires en base64 URL-safe>`.
-- Seul le **hash SHA-256** est stocké (`token_hash`) — le token en clair n'est **jamais** récupérable après sa création (`PatCreateResponse`).
-- Durées disponibles : `7d`, `30d`, `90d`, `1y`, `unlimited`.
-- `resolve_user_from_pat()` vérifie la non-expiration et la non-révocation à chaque requête, et met à jour `last_used_at`.
+- Each user manages their own tokens (`/api/pat`, no admin restriction), can be globally disabled via `API_KEYS_ENABLED`.
+- Format: `wgui_pat_<32 random bytes, URL-safe base64>`.
+- Only the **SHA-256 hash** is stored (`token_hash`) — the raw token is **never** retrievable after creation (`PatCreateResponse`).
+- Available durations: `7d`, `30d`, `90d`, `1y`, `unlimited`.
+- `resolve_user_from_pat()` checks non-expiration and non-revocation on every request, and updates `last_used_at`.
 
-## Comptes administrateurs — garde-fous
+## Administrator accounts — safeguards
 
-Pour ne jamais se retrouver sans administrateur actif, plusieurs vérifications s'appliquent (`services/users.py`) :
+To never end up without an active administrator, several checks apply (`services/users.py`):
 
-- Impossible de supprimer son **propre** compte (`users.py`, `delete_user`).
-- Impossible de désactiver, supprimer ou retirer le rôle `admin` au **dernier** administrateur actif (`ensure_not_last_active_admin` / logique dédiée dans `update_user`).
+- Impossible to delete **your own** account (`users.py`, `delete_user`).
+- Impossible to deactivate, delete, or remove the `admin` role from the **last** active administrator (`ensure_not_last_active_admin` / dedicated logic in `update_user`).
 
-## Journal d'audit
+## Audit log
 
-Toute action sensible (connexion, échec de connexion, déconnexion, changement de mot de passe, CRUD clients/serveur/réglages/utilisateurs, gestion PAT) est journalisée via `services/audit.py`, avec IP source, acteur, cible et succès/échec. Rétention configurable (`AUDIT_RETENTION_DAYS`, `AUDIT_MAX_EVENTS`) — voir [Routers → `audit.py`](routers.md#auditpy-apiaudit-admin-lecture-seule).
+Every sensitive action (login, failed login, logout, password change, client/server/settings/user CRUD, PAT management) is logged via `services/audit.py`, with source IP, actor, target, and success/failure. Configurable retention (`AUDIT_RETENTION_DAYS`, `AUDIT_MAX_EVENTS`) — see [Routers → `audit.py`](routers.md#auditpy-apiaudit-admin-read-only).

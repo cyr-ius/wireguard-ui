@@ -1,27 +1,27 @@
-# Installation locale (développement)
+# Local installation (development)
 
-Le projet est découpé en deux applications indépendantes qui communiquent via une API REST :
+The project is split into two independent applications that communicate via a REST API:
 
-- `backend/` — API FastAPI (Python 3.14+)
-- `frontend/` — application Angular (Node.js 22+)
+- `backend/` — FastAPI API (Python 3.14+)
+- `frontend/` — Angular application (Node.js 22+)
 
-## Prérequis
+## Prerequisites
 
 - **Python 3.14+**
-- [**uv**](https://docs.astral.sh/uv/) — gestionnaire de dépendances/environnement Python utilisé par le projet
-- **Node.js 22+** et npm
-- Les outils WireGuard (`wireguard-tools`, `iptables`) si vous voulez tester les fonctionnalités qui pilotent réellement une interface `wg0` (facultatif pour développer l'UI/API elles-mêmes)
+- [**uv**](https://docs.astral.sh/uv/) — the Python dependency/environment manager used by the project
+- **Node.js 22+** and npm
+- WireGuard tools (`wireguard-tools`, `iptables`) if you want to test the features that actually drive a `wg0` interface (optional for developing the UI/API themselves)
 
-## Étape 1 — Cloner le dépôt
+## Step 1 — Clone the repository
 
 ```bash
 git clone https://github.com/cyr-ius/wireguard-ui.git
 cd wireguard-ui
 ```
 
-## Étape 2 — (Optionnel) Créer un fichier `.env`
+## Step 2 — (Optional) Create a `.env` file
 
-Le backend lit un fichier `.env` à la racine du dépôt via `pydantic-settings` ([config.py](../architecture/backend.md#configpy)). Il n'est pas fourni par défaut (non versionné) — créez-le si vous voulez surcharger les valeurs par défaut :
+The backend reads a `.env` file at the repository root via `pydantic-settings` ([config.py](../architecture/backend.md#configpy)). It is not provided by default (not versioned) — create it if you want to override the default values:
 
 ```env
 ADMIN_USERNAME=admin
@@ -29,40 +29,40 @@ SECRET_KEY=replace-with-a-long-random-secret
 LOG_LEVEL=INFO
 ```
 
-Sans `SECRET_KEY`, une clé aléatoire est générée automatiquement et stockée dans `DATA_DIR/secret_key` (par défaut `/var/lib/wireguard-ui/secret_key` — pensez à définir `DATA_DIR` en local si ce chemin n'est pas accessible en écriture, voir [Variables d'environnement](variables-environnement.md)).
+Without `SECRET_KEY`, a random key is generated automatically and stored in `DATA_DIR/secret_key` (by default `/var/lib/wireguard-ui/secret_key` — set `DATA_DIR` locally if this path is not writable, see [Environment variables](variables-environnement.md)).
 
-## Étape 3 — Installer et lancer le backend
+## Step 3 — Install and run the backend
 
 ```bash
 cd backend
 uv sync --extra dev
 ```
 
-Appliquez les migrations de base de données **avant** le premier lancement (elles ne sont pas exécutées automatiquement par `uvicorn`, contrairement à l'image Docker qui le fait via `docker/entrypoint.sh`) :
+Apply database migrations **before** the first launch (they are not run automatically by `uvicorn`, unlike the Docker image, which does so via `docker/entrypoint.sh`):
 
 ```bash
 uv run alembic upgrade head
 ```
 
-Puis démarrez le serveur de développement :
+Then start the development server:
 
 ```bash
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-!!! note "Commande exécutée depuis `backend/`"
-Le module d'entrée est `app.main:app` (et non `src.main:app`) : la commande doit être lancée avec `backend/` comme répertoire courant, comme dans `.vscode/launch.json` et `AGENTS.md`.
+!!! note "Command run from `backend/`"
+The entry module is `app.main:app` (not `src.main:app`): the command must be run with `backend/` as the current directory, as in `.vscode/launch.json` and `AGENTS.md`.
 
-Au démarrage (fonction `lifespan` de [main.py](../architecture/backend.md#mainpy)) :
+On startup (`lifespan` function in [main.py](../architecture/backend.md#mainpy)):
 
-1. `seed_initial_data()` crée les rôles, l'admin initial et les réglages par défaut s'ils n'existent pas encore.
-2. Si `WIREGUARD_AUTOSTART` est activé (par défaut), l'application tente d'écrire la configuration WireGuard et de démarrer le service (3 tentatives, 5 s d'intervalle) — cela échouera silencieusement (avec un warning en log) si `wg-quick`/`iptables` ne sont pas disponibles dans votre environnement local, sans bloquer le démarrage de l'API.
+1. `seed_initial_data()` creates the roles, the initial admin, and the default settings if they don't already exist.
+2. If `WIREGUARD_AUTOSTART` is enabled (default), the application attempts to write the WireGuard configuration and start the service (3 attempts, 5s apart) — this will fail silently (with a log warning) if `wg-quick`/`iptables` are not available in your local environment, without blocking the API startup.
 
-L'API est alors disponible sur `http://localhost:8000`, avec la documentation Swagger auto-hébergée sur `http://localhost:8000/api/docs` (si `SWAGGER_ENABLED=true`).
+The API is then available at `http://localhost:8000`, with self-hosted Swagger documentation at `http://localhost:8000/api/docs` (if `SWAGGER_ENABLED=true`).
 
-## Étape 4 — Installer et lancer le frontend
+## Step 4 — Install and run the frontend
 
-Dans un second terminal :
+In a second terminal:
 
 ```bash
 cd frontend
@@ -70,7 +70,7 @@ npm ci
 npm start
 ```
 
-`npm start` exécute `ng serve --host 0.0.0.0`. Angular CLI charge automatiquement `frontend/proxy.conf.json` (déclaré dans `angular.json`, section `serve.options.proxyConfig`), qui redirige les appels `/api/*` vers `http://localhost:8000` :
+`npm start` runs `ng serve --host 0.0.0.0`. The Angular CLI automatically loads `frontend/proxy.conf.json` (declared in `angular.json`, `serve.options.proxyConfig` section), which redirects `/api/*` calls to `http://localhost:8000`:
 
 ```json title="frontend/proxy.conf.json"
 {
@@ -82,18 +82,18 @@ npm start
 }
 ```
 
-L'interface est accessible sur `http://localhost:4200` et communique avec le backend démarré à l'étape 3.
+The interface is accessible at `http://localhost:4200` and communicates with the backend started in step 3.
 
-## Étape 5 — Lancer les deux en une fois (VS Code)
+## Step 5 — Run both at once (VS Code)
 
-Le dépôt fournit une configuration de debug prête à l'emploi :
+The repository provides a ready-to-use debug configuration:
 
-- `.vscode/tasks.json` définit les tâches `Backend: alembic upgrade head`, `npm: start - frontend`, etc.
-- `.vscode/launch.json` définit la configuration composée **Full Stack**, qui lance le backend (`FastAPI`, avec migration préalable) et le frontend (`Angular`) simultanément.
+- `.vscode/tasks.json` defines the `Backend: alembic upgrade head`, `npm: start - frontend`, etc. tasks.
+- `.vscode/launch.json` defines the composite **Full Stack** configuration, which launches the backend (`FastAPI`, with a prior migration) and the frontend (`Angular`) simultaneously.
 
-Dans VS Code : onglet _Run and Debug_ → sélectionner **Full Stack** → F5.
+In VS Code: _Run and Debug_ tab → select **Full Stack** → F5.
 
-## Vérifications avant une Pull Request
+## Checks before a Pull Request
 
 ```bash
 # Backend
@@ -107,7 +107,7 @@ cd ../frontend
 npm run build
 ```
 
-## Résumé des commandes
+## Command summary
 
 ```mermaid
 sequenceDiagram

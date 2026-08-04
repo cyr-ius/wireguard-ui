@@ -1,88 +1,88 @@
-# Services métier (`backend/app/services/`)
+# Business services (`backend/app/services/`)
 
-Les services contiennent la logique réutilisable, indépendante de la couche HTTP. Les routers les orchestrent mais n'implémentent jamais eux-mêmes la logique métier.
+Services contain reusable logic, independent of the HTTP layer. Routers orchestrate them but never implement business logic themselves.
 
 ## `wireguard.py`
 
-Toutes les interactions avec les outils système WireGuard (`wg`, `wg-quick`) et réseau (`ip`).
+All interactions with the WireGuard system tools (`wg`, `wg-quick`) and network tools (`ip`).
 
-| Fonction                                                   | Rôle                                                                                                                                                                                                                                |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `_run(*args, stdin=None)`                                  | Exécute une commande **sans shell** (`create_subprocess_exec`), pour qu'aucune valeur dérivée d'une entrée utilisateur (clé, nom, IP) ne puisse être interprétée par un shell. Lève `WireGuardError` en cas de code retour non nul. |
-| `generate_keypair()`                                       | `wg genkey` + `wg pubkey` → paire de clés privée/publique.                                                                                                                                                                          |
-| `get_service_state()`                                      | `running`/`stopped`, déduit de `wg showconf`.                                                                                                                                                                                       |
-| `start_service()` / `stop_service()` / `restart_service()` | Pilotent l'interface via `wg-quick up/down`.                                                                                                                                                                                        |
-| `add_peer()` / `remove_peer()`                             | Ajoute/retire un pair **sans redémarrage** de l'interface (`wg set ... peer ...`), avec ajustement de la route associée.                                                                                                            |
-| `reload_peers()`                                           | Recharge la liste des pairs à chaud (`wg-quick strip` + `wg syncconf`), sans couper les connexions existantes — utilisé après chaque création/modification/suppression de client.                                                   |
-| `get_status()`                                             | Parse la sortie de `wg show` en structure exploitable par l'API (`état`, pairs, transfert, dernier handshake).                                                                                                                      |
-| `build_client_config()`                                    | Génère le contenu textuel du fichier `.conf` d'un client (`[Interface]`/`[Peer]`), à partir du client, du serveur et des réglages globaux.                                                                                          |
-| `build_server_config()`                                    | Génère le contenu de `wg0.conf` côté serveur, incluant tous les pairs **actifs** (`enabled=True`).                                                                                                                                  |
-| `write_server_config()`                                    | Écrit `build_server_config()` sur disque (`/etc/wireguard/wg0.conf`), dans un exécuteur pour ne pas bloquer la boucle asyncio.                                                                                                      |
-| `get_machine_ips()`                                        | Liste les IP non-loopback de la machine hôte (`ip -j address show`, avec repli sur `socket.getaddrinfo`).                                                                                                                           |
+| Function                                                   | Role                                                                                                                                                                                                      |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `_run(*args, stdin=None)`                                  | Runs a command **without a shell** (`create_subprocess_exec`), so that no value derived from user input (key, name, IP) can be interpreted by a shell. Raises `WireGuardError` on a non-zero return code. |
+| `generate_keypair()`                                       | `wg genkey` + `wg pubkey` → private/public key pair.                                                                                                                                                      |
+| `get_service_state()`                                      | `running`/`stopped`, inferred from `wg showconf`.                                                                                                                                                         |
+| `start_service()` / `stop_service()` / `restart_service()` | Control the interface via `wg-quick up/down`.                                                                                                                                                             |
+| `add_peer()` / `remove_peer()`                             | Adds/removes a peer **without restarting** the interface (`wg set ... peer ...`), with adjustment of the associated route.                                                                                |
+| `reload_peers()`                                           | Hot-reloads the peer list (`wg-quick strip` + `wg syncconf`), without dropping existing connections — used after every client create/update/delete.                                                       |
+| `get_status()`                                             | Parses the `wg show` output into a structure usable by the API (state, peers, transfer, last handshake).                                                                                                  |
+| `build_client_config()`                                    | Generates the text content of a client's `.conf` file (`[Interface]`/`[Peer]`), from the client, server, and global settings.                                                                             |
+| `build_server_config()`                                    | Generates the server-side `wg0.conf` content, including all **active** peers (`enabled=True`).                                                                                                            |
+| `write_server_config()`                                    | Writes `build_server_config()` to disk (`/etc/wireguard/wg0.conf`), in an executor so as not to block the asyncio loop.                                                                                   |
+| `get_machine_ips()`                                        | Lists the non-loopback IPs of the host machine (`ip -j address show`, falling back to `socket.getaddrinfo`).                                                                                              |
 
 ## `seed.py`
 
-`seed_initial_data()` — appelé à **chaque démarrage** de l'application (voir [lifespan](../architecture/backend.md#4-cycle-de-vie-lifespan)), idempotent :
+`seed_initial_data()` — called on **every** application startup (see [lifespan](../architecture/backend.md#4-lifecycle-lifespan)), idempotent:
 
-1. `_seed_roles()` : crée les rôles `admin` (`admin-read,admin-write,user-read,user-write`) et `user` (`user-read,user-write`) s'ils n'existent pas.
-2. `_seed_admin()` : **uniquement si aucun utilisateur n'existe encore**, crée le compte admin (`ADMIN_USERNAME`/`ADMIN_EMAIL`) avec un mot de passe aléatoire (`secrets.token_urlsafe(16)`), affiché **une seule fois** dans les logs (niveau `WARNING`).
-3. `_seed_settings()` / `_seed_oidc_settings()` / `_seed_smtp_settings()` : créent les lignes de réglages par défaut si absentes.
+1. `_seed_roles()`: creates the `admin` (`admin-read,admin-write,user-read,user-write`) and `user` (`user-read,user-write`) roles if they don't exist.
+2. `_seed_admin()`: **only if no user exists yet**, creates the admin account (`ADMIN_USERNAME`/`ADMIN_EMAIL`) with a random password (`secrets.token_urlsafe(16)`), shown **once** in the logs (`WARNING` level).
+3. `_seed_settings()` / `_seed_oidc_settings()` / `_seed_smtp_settings()`: create the default settings rows if absent.
 
 ## `audit.py`
 
-- **`log_event(db, action, *, actor=None, target=None, details=None, request=None, success=True)`** : insère un événement (`AuditLog`) et **commite immédiatement**, indépendamment de la transaction de l'appelant — pour que l'événement soit enregistré même si l'action elle-même échoue ensuite. `actor` peut être un objet `User` (son `username` est extrait) ou une chaîne brute (utile pour journaliser un échec de connexion avec un nom d'utilisateur invalide).
-- **`_prune(db)`** : appelée après chaque insertion. Supprime les événements plus anciens que `AUDIT_RETENTION_DAYS`, puis, si le nombre total dépasse encore `AUDIT_MAX_EVENTS`, supprime les plus anciens en excès.
+- **`log_event(db, action, *, actor=None, target=None, details=None, request=None, success=True)`**: inserts an event (`AuditLog`) and **commits immediately**, independently of the caller's transaction — so the event is recorded even if the action itself subsequently fails. `actor` can be a `User` object (its `username` is extracted) or a raw string (useful for logging a failed login attempt with an invalid username).
+- **`_prune(db)`**: called after every insertion. Deletes events older than `AUDIT_RETENTION_DAYS`, then, if the total count still exceeds `AUDIT_MAX_EVENTS`, deletes the oldest excess events.
 
-Actions journalisées dans le code : `auth.login`, `auth.login_failed`, `auth.logout`, `auth.password_changed`, `client.created/updated/deleted`, `server.updated/reset/apply/service.<action>`, `global_settings.updated/reset`, `smtp_settings.updated`, `oidc_settings.updated/reset`, `user.created/updated/deleted`, `pat.created/revoked`.
+Actions logged in the code: `auth.login`, `auth.login_failed`, `auth.logout`, `auth.password_changed`, `client.created/updated/deleted`, `server.updated/reset/apply/service.<action>`, `global_settings.updated/reset`, `smtp_settings.updated`, `oidc_settings.updated/reset`, `user.created/updated/deleted`, `pat.created/revoked`.
 
 ## `pat.py`
 
-Génération et validation des Personal Access Tokens.
+Generation and validation of Personal Access Tokens.
 
-- **`generate_raw_token()`** : `wgui_pat_` + 32 octets aléatoires en `token_urlsafe`. Renvoie `(raw_token, prefix)` — le préfixe (17 premiers caractères env.) sert d'identifiant lisible sans exposer le secret.
-- **`hash_token(raw_token)`** : SHA-256 du token — **seul le hash est stocké en base** (pas de sel : les tokens sont déjà à haute entropie).
-- **`expires_at_for(duration)`** : convertit un code (`7d`, `30d`, `90d`, `1y`, `unlimited`) en date d'expiration.
-- **`resolve_user_from_pat(db, raw_token)`** : retrouve l'utilisateur actif propriétaire d'un token valide (non expiré, non révoqué), met à jour `last_used_at`. Utilisé par `auth.py` (`get_current_user`) lorsqu'un token commence par le préfixe `wgui_pat_`.
+- **`generate_raw_token()`**: `wgui_pat_` + 32 random bytes as `token_urlsafe`. Returns `(raw_token, prefix)` — the prefix (about the first 17 characters) serves as a human-readable identifier without exposing the secret.
+- **`hash_token(raw_token)`**: SHA-256 of the token — **only the hash is stored in the database** (no salt: tokens already have high entropy).
+- **`expires_at_for(duration)`**: converts a code (`7d`, `30d`, `90d`, `1y`, `unlimited`) into an expiration date.
+- **`resolve_user_from_pat(db, raw_token)`**: finds the active user owning a valid token (not expired, not revoked), updates `last_used_at`. Used by `auth.py` (`get_current_user`) when a token starts with the `wgui_pat_` prefix.
 
 ## `users.py`
 
-- **`load_roles(db, role_ids)`** : résout une liste d'ID de rôles en objets `Role` ; lève `400` si la liste est vide.
-- **`count_active_admins(db)`** : compte les utilisateurs actifs ayant le rôle `admin`.
-- **`ensure_not_last_active_admin(db, user)`** : lève `400` si `user` est le **dernier** administrateur actif — appelé avant toute suppression/désactivation/rétrogradation.
+- **`load_roles(db, role_ids)`**: resolves a list of role IDs into `Role` objects; raises `400` if the list is empty.
+- **`count_active_admins(db)`**: counts active users with the `admin` role.
+- **`ensure_not_last_active_admin(db, user)`**: raises `400` if `user` is the **last** active administrator — called before any deletion/deactivation/demotion.
 
-## `auth.py` (service, à ne pas confondre avec `app/auth.py`)
+## `auth.py` (service, not to be confused with `app/auth.py`)
 
-- **`local_login_allowed(db)`** : renvoie `False` si le mode OIDC-only est activé (`OidcSettings.enabled and oidc_only`), bloquant alors la connexion locale par mot de passe.
-- **`authenticate_user(db, username, password)`** : vérifie les identifiants ; rejette explicitement les comptes `auth_source == "oidc"` (ils n'ont pas de mot de passe local exploitable) avec le même message générique que des identifiants invalides, pour ne pas divulguer la méthode d'authentification d'un compte.
+- **`local_login_allowed(db)`**: returns `False` if OIDC-only mode is enabled (`OidcSettings.enabled and oidc_only`), thereby blocking local password login.
+- **`authenticate_user(db, username, password)`**: verifies credentials; explicitly rejects `auth_source == "oidc"` accounts (they have no usable local password) with the same generic message as invalid credentials, so as not to disclose an account's authentication method.
 
 ## `oidc.py`
 
-Toute la logique OIDC / OpenID Connect. Détaillé dans [Authentification & sécurité](authentification.md#oidc-single-sign-on).
+All OIDC / OpenID Connect logic. Detailed in [Authentication & security](authentification.md#oidc-single-sign-on).
 
 ## `smtp.py` / `settings.py`
 
-CRUD des réglages _singleton_ `SmtpSettings` et `GlobalSettings` :
+CRUD for the _singleton_ `SmtpSettings` and `GlobalSettings` settings:
 
-- `get_or_create_smtp_settings(db)` / `get_or_create_settings(db)` : récupère la ligne existante ou la crée avec des valeurs par défaut.
-- `build_smtp_response()` : construit le schéma de réponse en **excluant systématiquement le mot de passe**.
-- `build_smtp_update_dict()` : construit le dictionnaire de mise à jour en **conservant le mot de passe existant** si le payload n'en fournit pas de nouveau (évite d'écraser un secret déjà enregistré par une valeur vide).
-- `SMTP_DEFAULTS` / `SETTINGS_DEFAULTS` : valeurs utilisées par les endpoints `DELETE /reset`.
+- `get_or_create_smtp_settings(db)` / `get_or_create_settings(db)`: retrieves the existing row or creates it with default values.
+- `build_smtp_response()`: builds the response schema, **always excluding the password**.
+- `build_smtp_update_dict()`: builds the update dictionary, **keeping the existing password** if the payload doesn't provide a new one (avoids overwriting an already-saved secret with an empty value).
+- `SMTP_DEFAULTS` / `SETTINGS_DEFAULTS`: values used by the `DELETE /reset` endpoints.
 
 ## `email.py`
 
-- **`send_client_config_email()`** : envoie l'email de configuration à un client — rend le template Jinja2 correspondant à la langue (`client_config_en/fr/es.html`, dans `backend/app/templates/`), génère le QR code inline, joint le fichier `.conf` en pièce jointe.
-- **`_resolve_mail_from()`** : détermine l'adresse expéditrice valide (`from_address` puis repli sur `username` SMTP), lève une erreur claire si aucune des deux n'est une adresse email valide.
-- Utilise `fastapi-mail` pour l'envoi SMTP réel (TLS/SSL configurables).
+- **`send_client_config_email()`**: sends the configuration email to a client — renders the Jinja2 template matching the language (`client_config_en/fr/es.html`, in `backend/app/templates/`), generates the inline QR code, attaches the `.conf` file.
+- **`_resolve_mail_from()`**: determines the valid sender address (`from_address`, falling back to the SMTP `username`), raises a clear error if neither is a valid email address.
+- Uses `fastapi-mail` for actual SMTP sending (configurable TLS/SSL).
 
 ## `ip_suggestion.py`
 
-**`suggest_next_ip(server_cidr, allocated_ips)`** : calcule la prochaine IP libre dans le réseau du serveur — réserve l'adresse du serveur lui-même (premier hôte utilisable du CIDR), exclut les IP déjà allouées aux clients, renvoie la première adresse encore libre (ou `None` si le réseau est plein ou le CIDR invalide).
+**`suggest_next_ip(server_cidr, allocated_ips)`**: computes the next free IP in the server's network — reserves the server's own address (first usable host of the CIDR), excludes IPs already allocated to clients, returns the first still-free address (or `None` if the network is full or the CIDR is invalid).
 
 ## `qr.py`
 
-**`generate_qr_code_base64(content)`** : génère un QR code PNG à partir du contenu texte d'un fichier `.conf`, encodé en base64 — utilisé à la fois par l'API (`GET /api/clients/{id}/config`) et par l'email de configuration.
+**`generate_qr_code_base64(content)`**: generates a PNG QR code from the text content of a `.conf` file, base64-encoded — used both by the API (`GET /api/clients/{id}/config`) and by the configuration email.
 
-## Vue d'ensemble des dépendances
+## Dependency overview
 
 ```mermaid
 flowchart TD

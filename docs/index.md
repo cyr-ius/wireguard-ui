@@ -1,50 +1,50 @@
 # WireGuard UI
 
-**WireGuard UI** est une interface web permettant d'administrer un serveur WireGuard sans manipuler directement les fichiers de configuration (`wg0.conf`, clés, règles `iptables`).
+**WireGuard UI** is a web interface for administering a WireGuard server without directly manipulating configuration files (`wg0.conf`, keys, `iptables` rules).
 
-## Fonctionnalités principales
+## Main features
 
-- Gestion des pairs (clients) : création, édition, révocation, avec suggestion automatique d'IP libre.
-- Génération de configuration client, export en fichier `.conf` et en QR code.
-- Envoi de la configuration par email (SMTP configurable depuis l'interface).
-- Authentification locale (mot de passe), **OIDC** (SSO) et **Personal Access Tokens (PAT)** pour l'API.
-- Journal d'audit des actions sensibles (connexions, gestion des utilisateurs, changements de configuration…), avec rétention configurable.
-- Healthcheck intégré (`GET /api/health`).
-- Image Docker unique, prête pour la production.
+- Peer (client) management: creation, editing, revocation, with automatic free IP suggestion.
+- Client configuration generation, export as a `.conf` file and as a QR code.
+- Sending the configuration by email (SMTP configurable from the interface).
+- Local (password) authentication, **OIDC** (SSO) and **Personal Access Tokens (PAT)** for the API.
+- Audit log of sensitive actions (logins, user management, configuration changes…), with configurable retention.
+- Built-in healthcheck (`GET /api/health`).
+- Single Docker image, production-ready.
 
-## Stack technique
+## Technical stack
 
-| Couche              | Technologie                                                          |
-| ------------------- | -------------------------------------------------------------------- |
-| **Frontend**        | Angular 21+ — Signals, Signal Forms, Zoneless, composants standalone |
-| **Style**           | Bootstrap 5 + Bootstrap Icons                                        |
-| **Backend**         | FastAPI + Python 3.14 (entièrement asynchrone)                       |
-| **Validation**      | Pydantic v2 / SQLModel                                               |
-| **Base de données** | SQLite (par défaut) ou PostgreSQL, migrations via Alembic            |
-| **Conteneur**       | Image unique — le backend sert aussi le build Angular                |
-| **Plateformes**     | `linux/amd64`, `linux/arm64` (Raspberry Pi, Apple Silicon)           |
+| Layer          | Technology                                                           |
+| -------------- | -------------------------------------------------------------------- |
+| **Frontend**   | Angular 21+ — Signals, Signal Forms, Zoneless, standalone components |
+| **Style**      | Bootstrap 5 + Bootstrap Icons                                        |
+| **Backend**    | FastAPI + Python 3.14 (fully asynchronous)                           |
+| **Validation** | Pydantic v2 / SQLModel                                               |
+| **Database**   | SQLite (default) or PostgreSQL, migrations via Alembic               |
+| **Container**  | Single image — the backend also serves the Angular build             |
+| **Platforms**  | `linux/amd64`, `linux/arm64` (Raspberry Pi, Apple Silicon)           |
 
-## Comment lire cette documentation
+## How to read this documentation
 
-- Commencez par **[Démarrage rapide (Docker)](demarrage/quickstart-docker.md)** si vous voulez simplement lancer l'application.
-- Consultez **[Installation locale (dev)](demarrage/installation-locale.md)** si vous développez sur le projet.
-- La section **[Architecture](architecture/backend.md)** explique comment le code est organisé, côté backend comme côté frontend.
-- La section **[Fonctions & API](fonctions/routers.md)** détaille le rôle de chaque router et service métier.
-- La section **[Déploiement](deploiement/docker.md)** couvre Docker et les recommandations de mise en production.
+- Start with **[Quick start (Docker)](demarrage/quickstart-docker.md)** if you simply want to launch the application.
+- See **[Local installation (dev)](demarrage/installation-locale.md)** if you are developing on the project.
+- The **[Architecture](architecture/backend.md)** section explains how the code is organized, both backend and frontend.
+- The **[Functions & API](fonctions/routers.md)** section details the role of each router and business service.
+- The **[Deployment](deploiement/docker.md)** section covers Docker and production recommendations.
 
-!!! info "Schéma général"
+!!! info "General diagram"
 `mermaid
     flowchart LR
-        subgraph Client["Navigateur"]
+        subgraph Client["Browser"]
             UI[Angular SPA]
         end
-        subgraph Serveur["Conteneur wireguard-ui"]
+        subgraph Serveur["wireguard-ui container"]
             API[FastAPI backend]
             DB[(SQLite / PostgreSQL)]
             WG[wg-quick / iptables]
         end
-        UI -- "HTTP /api/*\n(cookies JWT + CSRF)" --> API
+        UI -- "HTTP /api/*\n(JWT + CSRF cookies)" --> API
         API --> DB
         API -- "subprocess" --> WG
-        WG -- "UDP 51820" --> Peers["Pairs WireGuard"]
+        WG -- "UDP 51820" --> Peers["WireGuard peers"]
     `

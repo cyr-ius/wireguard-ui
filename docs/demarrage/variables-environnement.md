@@ -1,66 +1,66 @@
-# Variables d'environnement
+# Environment variables
 
-Toutes les variables sont lues par `AppSettings` (`backend/app/config.py`, `pydantic-settings`), soit depuis l'environnement, soit depuis un fichier `.env` à la racine du dépôt. Les noms ne sont pas sensibles à la casse.
+All variables are read by `AppSettings` (`backend/app/config.py`, `pydantic-settings`), either from the environment or from a `.env` file at the repository root. Names are case-insensitive.
 
-## Sécurité / authentification
+## Security / authentication
 
-| Variable                       | Défaut                     | Description                                                                                                                                                                                                         |
-| ------------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ADMIN_USERNAME`               | `admin`                    | Identifiant du compte administrateur créé au premier démarrage.                                                                                                                                                     |
-| `ADMIN_EMAIL`                  | `admin@wg.ui`              | Email associé à ce compte.                                                                                                                                                                                          |
-| `SECRET_KEY`                   | _(généré automatiquement)_ | Clé de signature des JWT. **Obligatoire en production** ; si absente, une clé aléatoire est générée et persistée dans `DATA_DIR/secret_key`.                                                                        |
-| `ACCESS_TOKEN_EXPIRE_MINUTES`  | `60`                       | Durée de vie des tokens JWT (minutes).                                                                                                                                                                              |
-| `BCRYPT_ROUNDS`                | `12`                       | Coût de hachage bcrypt des mots de passe.                                                                                                                                                                           |
-| `RATE_LIMIT_ENABLED`           | `true`                     | Active le rate-limiting par IP sur l'API.                                                                                                                                                                           |
-| `RATE_LIMIT_MAX_REQUESTS`      | `100`                      | Nombre max de requêtes par IP sur `/api/*` par fenêtre glissante.                                                                                                                                                   |
-| `RATE_LIMIT_WINDOW_SECONDS`    | `60`                       | Durée de la fenêtre glissante (secondes).                                                                                                                                                                           |
-| `RATE_LIMIT_AUTH_MAX_REQUESTS` | `5`                        | Limite plus stricte sur `/api/auth/login` et `/api/auth/token`, pour freiner le brute-force.                                                                                                                        |
-| `TRUSTED_PROXIES`              | _(vide)_                   | IP/CIDR des reverse-proxies de confiance, séparés par des virgules (ex. `172.16.0.0/12`). Nécessaire pour que les en-têtes `X-Forwarded-For`/`X-Forwarded-Proto` soient pris en compte — voir l'encadré ci-dessous. |
+| Variable                       | Default                     | Description                                                                                                                                                                              |
+| ------------------------------ | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ADMIN_USERNAME`               | `admin`                     | Username of the administrator account created on first startup.                                                                                                                          |
+| `ADMIN_EMAIL`                  | `admin@wg.ui`               | Email associated with this account.                                                                                                                                                      |
+| `SECRET_KEY`                   | _(generated automatically)_ | JWT signing key. **Required in production**; if absent, a random key is generated and persisted in `DATA_DIR/secret_key`.                                                                |
+| `ACCESS_TOKEN_EXPIRE_MINUTES`  | `60`                        | Lifetime of JWT tokens (minutes).                                                                                                                                                        |
+| `BCRYPT_ROUNDS`                | `12`                        | bcrypt hashing cost for passwords.                                                                                                                                                       |
+| `RATE_LIMIT_ENABLED`           | `true`                      | Enables per-IP rate limiting on the API.                                                                                                                                                 |
+| `RATE_LIMIT_MAX_REQUESTS`      | `100`                       | Max number of requests per IP on `/api/*` within a sliding window.                                                                                                                       |
+| `RATE_LIMIT_WINDOW_SECONDS`    | `60`                        | Duration of the sliding window (seconds).                                                                                                                                                |
+| `RATE_LIMIT_AUTH_MAX_REQUESTS` | `5`                         | Stricter limit on `/api/auth/login` and `/api/auth/token`, to slow down brute-force attempts.                                                                                            |
+| `TRUSTED_PROXIES`              | _(empty)_                   | IP/CIDR of trusted reverse proxies, comma-separated (e.g. `172.16.0.0/12`). Required for the `X-Forwarded-For`/`X-Forwarded-Proto` headers to be taken into account — see the box below. |
 
-!!! danger "TRUSTED_PROXIES derrière un reverse proxy"
-Sans cette variable renseignée, deux effets de bord apparaissent derrière un reverse proxy TLS :
+!!! danger "TRUSTED_PROXIES behind a reverse proxy"
+Without this variable set, two side effects appear behind a TLS reverse proxy:
 
-    - le cookie de session n'est pas marqué `Secure` (le proxy TLS n'est pas détecté) ;
-    - le rate-limiting regroupe **tous** les clients sur l'IP du proxy, ce qui peut bloquer tout le monde après quelques requêtes.
+    - the session cookie is not marked `Secure` (the TLS proxy is not detected);
+    - rate limiting groups **all** clients under the proxy's IP, which can block everyone after a few requests.
 
 ## API / Application
 
-| Variable               | Défaut        | Description                                                                                 |
-| ---------------------- | ------------- | ------------------------------------------------------------------------------------------- |
-| `LOG_LEVEL`            | `INFO`        | Niveau de logs (`DEBUG`, `INFO`, `WARNING`…).                                               |
-| `APP_VERSION`          | `Development` | Version affichée par l'application.                                                         |
-| `SWAGGER_ENABLED`      | `false`       | Expose `/api/docs` (Swagger UI auto-hébergé) et `/api/openapi.json`.                        |
-| `API_KEYS_ENABLED`     | `true`        | Active la création de Personal Access Tokens (PAT) depuis le profil utilisateur.            |
-| `AUDIT_MAX_EVENTS`     | `10000`       | Nombre max d'événements conservés dans le journal d'audit (purge des plus anciens au-delà). |
-| `AUDIT_RETENTION_DAYS` | `90`          | Durée de rétention du journal d'audit, en jours.                                            |
+| Variable               | Default       | Description                                                                  |
+| ---------------------- | ------------- | ---------------------------------------------------------------------------- |
+| `LOG_LEVEL`            | `INFO`        | Log level (`DEBUG`, `INFO`, `WARNING`…).                                     |
+| `APP_VERSION`          | `Development` | Version displayed by the application.                                        |
+| `SWAGGER_ENABLED`      | `false`       | Exposes `/api/docs` (self-hosted Swagger UI) and `/api/openapi.json`.        |
+| `API_KEYS_ENABLED`     | `true`        | Enables creating Personal Access Tokens (PAT) from the user profile.         |
+| `AUDIT_MAX_EVENTS`     | `10000`       | Max number of events kept in the audit log (oldest ones purged beyond this). |
+| `AUDIT_RETENTION_DAYS` | `90`          | Audit log retention duration, in days.                                       |
 
-## Base de données
+## Database
 
-| Variable   | Défaut                                                      | Description                                                                                                                                                                          |
-| ---------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DB_PATH`  | `sqlite+aiosqlite:////var/lib/wireguard-ui/wireguard_ui.db` | URL de connexion SQLAlchemy async. Accepte aussi un chemin brut, une URL `sqlite:///`, ou `postgres://`/`postgresql://` (converties automatiquement vers le driver async `asyncpg`). |
-| `DATA_DIR` | `/var/lib/wireguard-ui`                                     | Répertoire de données applicatives (DB par défaut, clé secrète générée).                                                                                                             |
+| Variable   | Default                                                     | Description                                                                                                                                                             |
+| ---------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DB_PATH`  | `sqlite+aiosqlite:////var/lib/wireguard-ui/wireguard_ui.db` | Async SQLAlchemy connection URL. Also accepts a raw path, a `sqlite:///` URL, or `postgres://`/`postgresql://` (automatically converted to the async `asyncpg` driver). |
+| `DATA_DIR` | `/var/lib/wireguard-ui`                                     | Application data directory (default DB, generated secret key).                                                                                                          |
 
 ## WireGuard
 
-| Variable              | Défaut | Description                                                                                                                                       |
-| --------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `WIREGUARD_AUTOSTART` | `true` | Démarre automatiquement le service WireGuard au lancement de l'application (voir [lifespan](../architecture/backend.md#4-cycle-de-vie-lifespan)). |
+| Variable              | Default | Description                                                                                                                                 |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `WIREGUARD_AUTOSTART` | `true`  | Automatically starts the WireGuard service when the application launches (see [lifespan](../architecture/backend.md#4-lifecycle-lifespan)). |
 
 ## Email
 
-| Variable    | Défaut           | Description                                      |
-| ----------- | ---------------- | ------------------------------------------------ |
-| `MAIL_FROM` | `no-reply@wg.ui` | Adresse expéditrice des emails de configuration. |
-| `MAIL_NAME` | `WireGuardUI`    | Nom affiché comme expéditeur.                    |
+| Variable    | Default          | Description                             |
+| ----------- | ---------------- | --------------------------------------- |
+| `MAIL_FROM` | `no-reply@wg.ui` | Sender address of configuration emails. |
+| `MAIL_NAME` | `WireGuardUI`    | Name displayed as sender.               |
 
-> Les autres réglages SMTP (serveur, port, identifiants, TLS/SSL) se configurent depuis l'interface d'administration (page _SMTP_), pas via l'environnement — voir [`services/smtp.py`](../fonctions/services.md#smtppy-settingspy).
+> Other SMTP settings (server, port, credentials, TLS/SSL) are configured from the admin interface (_SMTP_ page), not via the environment — see [`services/smtp.py`](../fonctions/services.md#smtppy-settingspy).
 
-## Réglages système (hôte Docker)
+## System settings (Docker host)
 
-Ces `sysctl` ne sont pas des variables de l'application mais doivent être activés sur le conteneur pour que WireGuard fonctionne :
+These `sysctl` are not application variables but must be enabled on the container for WireGuard to work:
 
-| Sysctl                               | Rôle                                                                               |
-| ------------------------------------ | ---------------------------------------------------------------------------------- |
-| `net.ipv4.ip_forward=1`              | Nécessaire pour relayer (router) le trafic des pairs vers l'interface principale.  |
-| `net.ipv4.conf.all.src_valid_mark=1` | Nécessaire pour la validation des sources après marquage de paquets par WireGuard. |
+| Sysctl                               | Role                                                              |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| `net.ipv4.ip_forward=1`              | Required to relay (route) peer traffic to the main interface.     |
+| `net.ipv4.conf.all.src_valid_mark=1` | Required for source validation after packet marking by WireGuard. |

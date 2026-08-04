@@ -1,19 +1,19 @@
 # Docker & Docker Compose
 
-## Image publiée vs build local
+## Published image vs local build
 
-Deux façons d'obtenir l'image :
+Two ways to obtain the image:
 
-- **Image publiée** : `cyrius44/wireguard-ui:latest` (multi-arch `linux/amd64`/`linux/arm64`) — voir [Démarrage rapide](../demarrage/quickstart-docker.md).
-- **Build local** : `docker-compose.yaml` à la racine du dépôt construit l'image depuis le `Dockerfile` local.
+- **Published image**: `cyrius44/wireguard-ui:latest` (multi-arch `linux/amd64`/`linux/arm64`) — see [Quick start](../demarrage/quickstart-docker.md).
+- **Local build**: `docker-compose.yaml` at the repository root builds the image from the local `Dockerfile`.
 
 ```bash
 docker compose up -d --build
 ```
 
-## `Dockerfile` — build multi-stage
+## `Dockerfile` — multi-stage build
 
-### Stage 1 — build du frontend Angular
+### Stage 1 — Angular frontend build
 
 ```dockerfile
 FROM node:22-alpine AS frontend-builder
@@ -24,9 +24,9 @@ COPY frontend/ ./
 RUN npm run build
 ```
 
-Sortie : `frontend/dist/wireguard-ui/browser`.
+Output: `frontend/dist/wireguard-ui/browser`.
 
-### Stage 2 — image finale (backend + assets)
+### Stage 2 — final image (backend + assets)
 
 ```dockerfile
 FROM python:3.14-alpine
@@ -53,13 +53,13 @@ EXPOSE 8000/tcp 51820/udp
 CMD ["/entrypoint.sh"]
 ```
 
-Points clés :
+Key points:
 
-- **`wireguard-tools`**, **`iptables`** : nécessaires pour que `wg`/`wg-quick` et les règles NAT fonctionnent dans le conteneur.
-- **`uv sync --frozen --no-dev`** : installe exactement les dépendances verrouillées dans `uv.lock`, sans les outils de dev (`ruff`, `mypy`…).
-- Le build Angular (`./frontend`) et le code backend (`./backend`) sont copiés côte à côte sous `/app`, ce qui correspond à la disposition attendue par `main.py` (`serve_spa` remonte à `parents[2]` puis descend dans `frontend/`).
-- **`HEALTHCHECK`** intégré sur `/api/health`.
-- Deux volumes déclarés : `/etc/wireguard` (config WireGuard) et `/var/lib/wireguard-ui` (données applicatives).
+- **`wireguard-tools`**, **`iptables`**: required for `wg`/`wg-quick` and NAT rules to work inside the container.
+- **`uv sync --frozen --no-dev`**: installs exactly the dependencies locked in `uv.lock`, without dev tools (`ruff`, `mypy`…).
+- The Angular build (`./frontend`) and the backend code (`./backend`) are copied side by side under `/app`, matching the layout expected by `main.py` (`serve_spa` walks up to `parents[2]` then down into `frontend/`).
+- Built-in **`HEALTHCHECK`** on `/api/health`.
+- Two declared volumes: `/etc/wireguard` (WireGuard config) and `/var/lib/wireguard-ui` (application data).
 
 ## `docker/entrypoint.sh`
 
@@ -74,9 +74,9 @@ cd /app
 exec uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --workers 1
 ```
 
-C'est **ce script**, et non `main.py`, qui applique les migrations de base de données à chaque démarrage du conteneur — voir [Base de données & migrations](../architecture/base-de-donnees.md#appliquer-les-migrations). `--workers 1` : un seul worker Uvicorn, cohérent avec le rate-limiter et le service WireGuard qui sont gérés **en mémoire, par process** (pas de coordination multi-worker prévue).
+It is **this script**, not `main.py`, that applies database migrations on every container startup — see [Database & migrations](../architecture/base-de-donnees.md#applying-migrations). `--workers 1`: a single Uvicorn worker, consistent with the rate-limiter and the WireGuard service, which are managed **in memory, per process** (no multi-worker coordination planned).
 
-## `docker-compose.yaml` (build local)
+## `docker-compose.yaml` (local build)
 
 ```yaml
 services:
@@ -104,10 +104,10 @@ volumes:
   wg_data:
 ```
 
-!!! tip "Ajouter des variables"
-Ce fichier ne définit que `LOG_LEVEL`. Ajoutez `ADMIN_USERNAME`, `SECRET_KEY`, etc. dans la section `environment:`, ou créez un fichier `.env` à côté du `docker-compose.yaml` (Docker Compose le charge automatiquement) — voir [Variables d'environnement](../demarrage/variables-environnement.md).
+!!! tip "Adding variables"
+This file only defines `LOG_LEVEL`. Add `ADMIN_USERNAME`, `SECRET_KEY`, etc. in the `environment:` section, or create a `.env` file next to `docker-compose.yaml` (Docker Compose loads it automatically) — see [Environment variables](../demarrage/variables-environnement.md).
 
-## Séquence de démarrage du conteneur
+## Container startup sequence
 
 ```mermaid
 sequenceDiagram
@@ -117,12 +117,12 @@ sequenceDiagram
     participant Uvicorn
     participant App as lifespan (main.py)
 
-    Docker->>Entrypoint: exécute /entrypoint.sh
+    Docker->>Entrypoint: runs /entrypoint.sh
     Entrypoint->>Alembic: alembic upgrade head
-    Alembic-->>Entrypoint: schéma à jour
+    Alembic-->>Entrypoint: schema up to date
     Entrypoint->>Uvicorn: exec uvicorn backend.app.main:app
     Uvicorn->>App: lifespan startup
     App->>App: seed_initial_data()
-    App->>App: auto_start_wireguard() si WIREGUARD_AUTOSTART
-    App-->>Uvicorn: prêt à recevoir des requêtes
+    App->>App: auto_start_wireguard() if WIREGUARD_AUTOSTART
+    App-->>Uvicorn: ready to receive requests
 ```

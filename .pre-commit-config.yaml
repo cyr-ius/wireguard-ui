@@ -35,11 +35,11 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=mailserver
+          - --ignore-words-list=wireguard-ui,fonctions
           - --skip="./.*,*.csv,*.json,*.ambr"
           - --quiet-level=2
         exclude_types: [csv, json, html]
-        exclude: .devcontainer|.agents|swagger|docs
+        exclude: .devcontainer|.agents|swagger|docs|README.fr.md
 
   # ── TypeScript / Angular: Prettier ───────────────────────────────────────
   - repo: https://github.com/pre-commit/mirrors-prettier

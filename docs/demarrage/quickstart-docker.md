@@ -1,13 +1,13 @@
-# Démarrage rapide (Docker)
+# Quick start (Docker)
 
-C'est la méthode recommandée pour utiliser WireGuard UI en production ou pour le tester rapidement.
+This is the recommended method for using WireGuard UI in production or for a quick try-out.
 
-## Prérequis
+## Prerequisites
 
-- Docker (et Docker Compose si vous utilisez la méthode Compose).
-- Les capacités réseau nécessaires pour manipuler des interfaces WireGuard : le conteneur doit tourner avec `NET_ADMIN` et certains `sysctl` activés (voir ci-dessous).
+- Docker (and Docker Compose if you use the Compose method).
+- The network capabilities needed to manipulate WireGuard interfaces: the container must run with `NET_ADMIN` and certain `sysctl` enabled (see below).
 
-## Étape 1 — Docker CLI
+## Step 1 — Docker CLI
 
 ```bash
 docker run -d \
@@ -24,9 +24,9 @@ docker run -d \
   cyrius44/wireguard-ui:latest
 ```
 
-Ouvrez ensuite **http://localhost:8000**.
+Then open **http://localhost:8000**.
 
-## Étape 2 — Docker Compose (alternative)
+## Step 2 — Docker Compose (alternative)
 
 ```yaml
 services:
@@ -58,23 +58,23 @@ volumes:
 docker compose up -d
 ```
 
-## Étape 3 — Récupérer le mot de passe admin
+## Step 3 — Retrieve the admin password
 
-Au tout premier démarrage, le backend exécute `seed_initial_data()` ([services/seed.py](../fonctions/services.md#seedpy)) qui crée :
+On the very first startup, the backend runs `seed_initial_data()` ([services/seed.py](../fonctions/services.md#seedpy)), which creates:
 
-- les rôles `admin` et `user` ;
-- un compte administrateur (`ADMIN_USERNAME`, par défaut `admin`) avec un **mot de passe généré aléatoirement** ;
-- les réglages globaux, OIDC et SMTP par défaut.
+- the `admin` and `user` roles;
+- an administrator account (`ADMIN_USERNAME`, `admin` by default) with a **randomly generated password**;
+- the default global, OIDC and SMTP settings.
 
-Ce mot de passe n'est affiché **qu'une seule fois**, dans les logs du conteneur :
+This password is shown **only once**, in the container logs:
 
 ```bash
 docker logs wireguard-ui
 ```
 
-Changez-le immédiatement depuis la page **Profil** une fois connecté.
+Change it immediately from the **Profile** page once logged in.
 
-## Étape 4 — Vérifier que le service est en bonne santé
+## Step 4 — Check that the service is healthy
 
 ```bash
 curl http://localhost:8000/api/health
@@ -84,42 +84,42 @@ curl http://localhost:8000/api/health
 { "status": "healthy", "app": "WireGuard UI", "version": "..." }
 ```
 
-## Pourquoi ces `cap_add` / `sysctl` sont nécessaires
+## Why these `cap_add` / `sysctl` are necessary
 
-| Paramètre                            | Rôle                                                                                              |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `--cap-add NET_ADMIN`                | Autorise la création/gestion de l'interface `wg0` et des règles `iptables` depuis le conteneur.   |
-| `net.ipv4.ip_forward=1`              | Active le routage IP nécessaire pour relayer le trafic des pairs vers le réseau.                  |
-| `net.ipv4.conf.all.src_valid_mark=1` | Nécessaire pour que WireGuard puisse valider les sources après le marquage de paquets (`fwmark`). |
+| Parameter                            | Role                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------- |
+| `--cap-add NET_ADMIN`                | Allows creating/managing the `wg0` interface and `iptables` rules from the container. |
+| `net.ipv4.ip_forward=1`              | Enables IP routing needed to relay peer traffic to the network.                       |
+| `net.ipv4.conf.all.src_valid_mark=1` | Required so WireGuard can validate sources after packet marking (`fwmark`).           |
 
-## Ports exposés
+## Exposed ports
 
-| Port        | Usage                                  |
-| ----------- | -------------------------------------- |
-| `8000/tcp`  | Interface web + API REST               |
-| `51820/udp` | Port d'écoute WireGuard pour les pairs |
+| Port        | Usage                              |
+| ----------- | ---------------------------------- |
+| `8000/tcp`  | Web interface + REST API           |
+| `51820/udp` | WireGuard listening port for peers |
 
-## Volumes persistants
+## Persistent volumes
 
-| Volume              | Point de montage        | Contenu                                     |
-| ------------------- | ----------------------- | ------------------------------------------- |
-| `wg_config`         | `/etc/wireguard`        | Configuration WireGuard (`wg0.conf`, clés)  |
-| `wireguard-ui_data` | `/var/lib/wireguard-ui` | Base de données SQLite, clé secrète générée |
+| Volume              | Mount point             | Content                                    |
+| ------------------- | ----------------------- | ------------------------------------------ |
+| `wg_config`         | `/etc/wireguard`        | WireGuard configuration (`wg0.conf`, keys) |
+| `wireguard-ui_data` | `/var/lib/wireguard-ui` | SQLite database, generated secret key      |
 
-!!! tip "SECRET_KEY recommandée en production"
-Sans `SECRET_KEY` défini explicitement, l'application en génère une automatiquement au démarrage et la persiste dans `/var/lib/wireguard-ui/secret_key` — aucun blocage. En production, définissez tout de même une valeur longue et aléatoire vous-même pour partager les sessions entre plusieurs réplicas ou survivre à une perte du volume de données — voir [Variables d'environnement](variables-environnement.md) et [Recommandations production](../deploiement/production.md).
+!!! tip "SECRET_KEY recommended in production"
+Without an explicitly defined `SECRET_KEY`, the application generates one automatically at startup and persists it in `/var/lib/wireguard-ui/secret_key` — no blocking occurs. In production, still set a long, random value yourself to share sessions across multiple replicas or survive a loss of the data volume — see [Environment variables](variables-environnement.md) and [Production recommendations](../deploiement/production.md).
 
-## Étape suivante
+## Next step
 
-Une fois l'interface accessible, la première configuration côté administrateur consiste à :
+Once the interface is accessible, the first configuration steps on the administrator side are:
 
-1. Se connecter avec le compte admin.
-2. Configurer le **serveur WireGuard** — page _Serveur_ : adresse réseau (CIDR), port d'écoute, puis cliquer sur **Generate Key Pair** pour générer la paire de clés (privée/publique) du serveur. Cette étape est indispensable : tant qu'aucune clé n'est générée (ou renseignée manuellement), la configuration ne peut pas être enregistrée ni appliquée.
-3. Renseigner l'**adresse d'endpoint** — page _Global Settings_, champ **Endpoint Address** : il s'agit du nom d'hôte public (ex. `vpn.exemple.com`) ou de l'adresse IP publique par laquelle les clients WireGuard joindront le serveur. Sans cette valeur, les fichiers de configuration générés pour les clients seront incorrects et ces derniers ne pourront pas se connecter — pensez-y avant de créer des pairs.
-4. Créer les premiers **pairs (clients)** — page _Clients_.
-5. Éventuellement configurer **SMTP** (envoi de la config par email) et **OIDC** (SSO).
+1. Log in with the admin account.
+2. Configure the **WireGuard server** — _Server_ page: network address (CIDR), listening port, then click **Generate Key Pair** to generate the server's key pair (private/public). This step is mandatory: as long as no key has been generated (or manually entered), the configuration cannot be saved or applied.
+3. Fill in the **endpoint address** — _Global Settings_ page, **Endpoint Address** field: this is the public hostname (e.g. `vpn.example.com`) or public IP address by which WireGuard clients will reach the server. Without this value, the configuration files generated for clients will be incorrect and clients will not be able to connect — set it before creating peers.
+4. Create the first **peers (clients)** — _Clients_ page.
+5. Optionally configure **SMTP** (sending config by email) and **OIDC** (SSO).
 
-!!! warning "Ordre important"
-Générez toujours les **clés du serveur** et renseignez l'**adresse d'endpoint** avant de créer des clients. Un pair créé avant que ces deux éléments soient définis produira une configuration `.conf`/QR code invalide (clé publique du serveur ou endpoint manquants), qu'il faudra régénérer et renvoyer au client une fois le serveur correctement configuré.
+!!! warning "Important order"
+Always generate the **server keys** and fill in the **endpoint address** before creating clients. A peer created before these two elements are defined will produce an invalid `.conf`/QR code configuration (missing server public key or endpoint), which will need to be regenerated and resent to the client once the server is properly configured.
 
-Ces écrans correspondent aux routers documentés dans [Routers (endpoints)](../fonctions/routers.md) (`server.py` pour les clés, `settings.py` pour l'endpoint).
+These screens correspond to the routers documented in [Routers (endpoints)](../fonctions/routers.md) (`server.py` for the keys, `settings.py` for the endpoint).
