@@ -47,7 +47,6 @@ docker run -d \
   --sysctl net.ipv4.conf.all.src_valid_mark=1 \
   -p 8000:8000 \
   -p 51820:51820/udp \
-  -e SECRET_KEY=your-secret-key \
   -v wg_config:/etc/wireguard \
   -v wireguard-ui_data:/var/lib/wireguard-ui \
   cyrius44/wireguard-ui:latest
@@ -78,8 +77,6 @@ services:
     ports:
       - "8000:8000"
       - "51820:51820/udp"
-    environment:
-      - SECRET_KEY=your-secret-key
     volumes:
       - wg_config:/etc/wireguard
       - wireguard-ui_data:/var/lib/wireguard-ui
@@ -89,8 +86,10 @@ volumes:
   wireguard-ui_data:
 ```
 
-> **Note :** `SECRET_KEY` doit être remplacé par une valeur longue et aléatoire —
-> l'application refuse de démarrer avec sa valeur par défaut en production.
+> **Note :** `SECRET_KEY` est optionnelle — si absente, l'application génère
+> automatiquement une clé aléatoire et la persiste dans `wireguard-ui_data`. En
+> production, définissez-la explicitement pour partager les sessions entre
+> plusieurs réplicas ou survivre à une perte du volume de données.
 
 Pour le guide complet (installation locale sans Docker, variables
 d'environnement, recommandations de production) voir

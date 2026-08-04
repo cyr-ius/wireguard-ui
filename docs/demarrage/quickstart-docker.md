@@ -106,8 +106,8 @@ curl http://localhost:8000/api/health
 | `wg_config`         | `/etc/wireguard`        | Configuration WireGuard (`wg0.conf`, clés)  |
 | `wireguard-ui_data` | `/var/lib/wireguard-ui` | Base de données SQLite, clé secrète générée |
 
-!!! warning "SECRET_KEY obligatoire"
-Sans `SECRET_KEY` défini explicitement, l'application en génère une automatiquement et la persiste dans `/var/lib/wireguard-ui/secret_key`. En production, définissez une valeur longue et aléatoire vous-même — voir [Variables d'environnement](variables-environnement.md) et [Recommandations production](../deploiement/production.md).
+!!! tip "SECRET_KEY recommandée en production"
+Sans `SECRET_KEY` défini explicitement, l'application en génère une automatiquement au démarrage et la persiste dans `/var/lib/wireguard-ui/secret_key` — aucun blocage. En production, définissez tout de même une valeur longue et aléatoire vous-même pour partager les sessions entre plusieurs réplicas ou survivre à une perte du volume de données — voir [Variables d'environnement](variables-environnement.md) et [Recommandations production](../deploiement/production.md).
 
 ## Étape suivante
 
