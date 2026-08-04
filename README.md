@@ -1,51 +1,43 @@
-# WireGuard UI
+# 🔒 WireGuard UI
 
-![license](https://img.shields.io/github/license/cyr-ius/wireguard-ui?label=Licence&color=blue)
-![python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)
-![angular](https://img.shields.io/badge/Angular-22-blue?logo=angular)
-[![ci::status]][ci::github]
-[![docker::pulls]][docker::hub]
-[![documentation::badge]][documentation::web]
+![licence] ![python] ![angular] [![ci::status]][ci::github] [![docker::pulls]][docker::hub] [![documentation::badge]][documentation::web]
 
-[ci::status]: https://img.shields.io/github/actions/workflow/status/cyr-ius/wireguard-ui/docker-publish.yml?logo=github
+[licence]: https://img.shields.io/github/license/cyr-ius/wireguard-ui?label=Licence&color=blue
+[python]: https://img.shields.io/badge/Python-3.14%2B-blue?logo=python
+[angular]: https://img.shields.io/badge/Angular-22-blue?logo=angular
+[ci::status]: https://img.shields.io/github/actions/workflow/status/cyr-ius/wireguard-ui/docker-publish.yml?color=blue&logo=github
 [ci::github]: https://github.com/cyr-ius/wireguard-ui/actions
 [docker::pulls]: https://img.shields.io/docker/pulls/cyrius44/wireguard-ui.svg?logo=docker
 [docker::hub]: https://hub.docker.com/r/cyrius44/wireguard
 [documentation::badge]: https://img.shields.io/badge/Documentation-Wiki-green?logo=helpdesk
 [documentation::web]: https://cyr-ius.github.io/wireguard-ui/
 
-Interface web pour administrer un serveur WireGuard sans manipuler directement les fichiers de configuration.
+**WireGuard UI** est une interface web pour administrer un serveur WireGuard sans
+manipuler directement les fichiers de configuration (`wg0.conf`, clés, règles
+`iptables`). Gestion des pairs, export de configuration, authentification OIDC,
+journal d'audit — le tout dans une image Docker unique.
 
-## ✨ Fonctionnalités
+<img width="1295" height="948" alt="Tableau de bord WireGuard UI" src="https://github.com/user-attachments/assets/f147aeed-9d02-43c4-b686-aa400d06942c" />
 
-- Gestion des pairs (création, édition, révocation).
-- Génération de configuration client.
-- Export via QR code et fichier.
-- Authentification administrateur, OIDC, et Personal Access Tokens (PAT).
-- Journal d'audit des actions réalisées (connexions, gestion des utilisateurs,
-  changements de configuration…), avec rétention configurable.
-- Healthcheck API intégré (`/api/health`).
-- Déploiement simple avec Docker / Docker Compose.
-- Envoie de mail pour l'enrollement
+---
 
-<img width="1295" height="948" alt="image" src="https://github.com/user-attachments/assets/f147aeed-9d02-43c4-b686-aa400d06942c" />
-<img width="1033" height="461" alt="image" src="https://github.com/user-attachments/assets/7beb9fea-089c-4ff4-a275-907674390f1c" />
-<img width="1033" height="947" alt="image" src="https://github.com/user-attachments/assets/6bc9e2f8-0380-44e5-b1db-19aa5304cb44" />
+## Fonctionnalités
 
-## 🧱 Stack technique
+- 🔧 Gestion des pairs (création, édition, révocation) avec suggestion d'IP libre
+- 📄 Génération de configuration client, export en fichier `.conf` et QR code
+- ✉️ Envoi de la configuration par email (SMTP configurable depuis l'UI)
+- 🔐 Authentification locale, **OIDC** (SSO) et **Personal Access Tokens** pour l'API
+- 📋 Journal d'audit des actions sensibles, avec rétention configurable
+- 🩺 Healthcheck intégré (`GET /api/health`)
+- 🐳 Image Docker unique, `linux/amd64` / `linux/arm64` (Raspberry Pi, Apple Silicon)
 
-| Layer          | Technology                                                          |
-| -------------- | ------------------------------------------------------------------- |
-| **Frontend**   | Angular 21 — Signals, Signal Forms, Zoneless, standalone components |
-| **Styling**    | Bootstrap 5 + Bootstrap Icons                                       |
-| **Backend**    | FastAPI + Python 3.14 (fully async)                                 |
-| **Validation** | Pydantic v2                                                         |
-| **Container**  | Single image — supervisord orchestrates all processes               |
-| **Platforms**  | `linux/amd64`, `linux/arm64` (Raspberry Pi, Apple Silicon)          |
+Backend FastAPI (async) + frontend Angular (Signals, zoneless) — voir la page
+[Architecture](https://cyr-ius.github.io/wireguard-ui/architecture/backend/)
+pour le détail de la stack technique.
 
-## 🚀 Démarrage rapide
+---
 
-### Docker CLI
+## Démarrage rapide
 
 ```bash
 docker run -d \
@@ -55,16 +47,22 @@ docker run -d \
   --sysctl net.ipv4.conf.all.src_valid_mark=1 \
   -p 8000:8000 \
   -p 51820:51820/udp \
-  -e ADMIN_USERNAME=admin \
   -e SECRET_KEY=your-secret-key \
   -v wg_config:/etc/wireguard \
   -v wireguard-ui_data:/var/lib/wireguard-ui \
   cyrius44/wireguard-ui:latest
 ```
 
-Open **http://localhost:8000** and log in as the admin user. The admin password is generated automatically at first launch and printed in the container logs — check them with `docker logs wireguard-ui`.
+Un mot de passe admin est généré automatiquement au premier démarrage et
+**affiché une seule fois** dans les logs — l'utilisateur par défaut est `admin` :
 
-### Docker Compose
+```bash
+docker logs wireguard-ui | grep -A4 "Initial admin account"
+```
+
+Ouvrez **http://localhost:8000** et connectez-vous avec `admin` et ce mot de passe.
+
+Ou avec Docker Compose :
 
 ```yaml
 services:
@@ -81,7 +79,6 @@ services:
       - "8000:8000"
       - "51820:51820/udp"
     environment:
-      - ADMIN_USERNAME=admin
       - SECRET_KEY=your-secret-key
     volumes:
       - wg_config:/etc/wireguard
@@ -92,214 +89,35 @@ volumes:
   wireguard-ui_data:
 ```
 
-### Lancer l’application
+> **Note :** `SECRET_KEY` doit être remplacé par une valeur longue et aléatoire —
+> l'application refuse de démarrer avec sa valeur par défaut en production.
 
-```bash
-docker compose up -d --build
-```
-
----
-
-## 🌐 Ports
-
-- `8000` — Wireguard UI + API
-- `51820` — Wireguard port for clients
-
-## 🩺 Santé de service
-
-`GET /api/health` returns a JSON status payload.
-
-## 🔐 Security Notes
-
-- `SECRET_KEY` must be set to a non-default value or the app will refuse to start.
-- The admin password is generated automatically on first launch and printed once in the logs. Save it right away.
-- If you expose the UI publicly, enable HTTPS at the reverse proxy level.
-
-## 🔐 Variables d’environnement importantes
-
-### Sécurité / Auth
-
-- `ADMIN_USERNAME` : identifiant admin initial.
-- `ADMIN_EMAIL` : email admin initial.
-- `SECRET_KEY` : clé de signature JWT (**obligatoire en production**).
-- `ACCESS_TOKEN_EXPIRE_MINUTES` : durée de vie des tokens.
-- `BCRYPT_ROUNDS` : coût de hash des mots de passe.
-- `RATE_LIMIT_ENABLED` : active le rate-limiting par IP sur l'API (activé par
-  défaut ; mettre à `false` pour le désactiver entièrement).
-- `RATE_LIMIT_MAX_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` : nombre max de requêtes
-  par IP sur `/api/*` et durée de la fenêtre glissante en secondes
-  (défaut : 100 / 60).
-- `RATE_LIMIT_AUTH_MAX_REQUESTS` : limite plus stricte, appliquée aux endpoints
-  d'authentification (`/api/auth/login`, `/api/auth/token`) pour freiner le
-  brute-force. Même fenêtre que ci-dessus (défaut : 5).
-- `TRUSTED_PROXIES` : IP/CIDR des reverse-proxies de confiance, séparés par des
-  virgules (ex. `172.16.0.0/12`). **À renseigner derrière un reverse-proxy** :
-  les en-têtes `X-Forwarded-For` / `X-Forwarded-Proto` ne sont pris en compte
-  que si la requête provient d'une de ces adresses. Sans cela, le cookie de
-  session n'est pas marqué `Secure` (proxy TLS non détecté) et le rate-limit
-  regroupe tous les clients sur l'IP du proxy. Vide par défaut
-  (aucun proxy de confiance).
-
-### API / Application
-
-- `LOG_LEVEL` : niveau de logs (`INFO`, `DEBUG`, etc.).
-- `APP_VERSION` : version exposée par l’application.
-- `SWAGGER_ENABLED` : expose la documentation Swagger (`/api/docs`) et le schéma OpenAPI (`/api/openapi.json`). Mettre à `false` pour les désactiver (activé par défaut).
-- `API_KEYS_ENABLED` : active la création de Personal Access Tokens (PAT) depuis
-  le profil utilisateur, utilisables en `Authorization: Bearer <token>` pour
-  appeler l'API REST (activé par défaut ; mettre à `false` pour masquer la
-  fonctionnalité et refuser l'émission de nouveaux tokens).
-- `AUDIT_MAX_EVENTS` : nombre maximum d'évènements conservés dans le journal
-  d'audit ; les plus anciens sont purgés au-delà (défaut : 10000).
-- `AUDIT_RETENTION_DAYS` : durée de rétention en jours du journal d'audit
-  (défaut : 90).
-
-### Base de données
-
-- `DB_PATH` : URL de connexion SQLAlchemy.
-  - Par défaut : `sqlite+aiosqlite:////var/lib/wireguard-ui/wireguard_ui.db`
-
-### WireGuard
-
-- `WIREGUARD_AUTOSTART` : active le démarrage automatique WireGuard au lancement.
-
-### Email (envoi de configuration / notifications)
-
-- `MAIL_FROM` : adresse expéditrice.
-- `MAIL_NAME` : nom expéditeur.
-
-### Systctl
-
-- `net.ipv4.ip_forward=1` : nécessaire pour forwwarder les appels vers la carte principale
-- `net.ipv4.conf.all.src_valid_mark=1` : nécessaire pour l'identification des sources
-
-> D’autres réglages SMTP sont configurables depuis l’interface d’administration.
+Pour le guide complet (installation locale sans Docker, variables
+d'environnement, recommandations de production) voir
+**[Démarrage](https://cyr-ius.github.io/wireguard-ui/demarrage/quickstart-docker/)**.
 
 ---
 
-## 📦 Persistance des données
+## Documentation
 
-Deux volumes sont nécessaires :
+La documentation complète — architecture, référence des variables
+d'environnement, routers & services, déploiement — est publiée sur
+**[cyr-ius.github.io/wireguard-ui](https://cyr-ius.github.io/wireguard-ui/)**.
 
-| Volume              | Point de montage        | Contenu                                    |
-| ------------------- | ----------------------- | ------------------------------------------ |
-| `wg_config`         | `/etc/wireguard`        | Configuration WireGuard (`wg0.conf`, clés) |
-| `wireguard-ui_data` | `/var/lib/wireguard-ui` | Base SQLite, données applicatives          |
-
-## 🛡️ Recommandations production
-
-- Remplacer `SECRET_KEY` par une valeur longue et aléatoire.
-- Changer immédiatement les identifiants admin par défaut.
-- Utiliser un reverse proxy TLS (Traefik, Nginx, Caddy) et renseigner
-  `TRUSTED_PROXIES` avec son IP/sous-réseau (cf. Variables d'environnement).
-- Sauvegarder régulièrement les volumes `/etc/wireguard` et `/var/lib/wireguard-ui`.
+| Vous cherchez...                                  | Allez à...                                                                                             |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Toutes les variables d'environnement              | [Variables d'environnement](https://cyr-ius.github.io/wireguard-ui/demarrage/variables-environnement/) |
+| Installation locale (dev, sans Docker)            | [Installation locale](https://cyr-ius.github.io/wireguard-ui/demarrage/installation-locale/)           |
+| Architecture backend / frontend / base de données | [Architecture](https://cyr-ius.github.io/wireguard-ui/architecture/backend/)                           |
+| Routers, services métier, authentification        | [Fonctions & API](https://cyr-ius.github.io/wireguard-ui/fonctions/routers/)                           |
+| Déploiement & recommandations production          | [Déploiement](https://cyr-ius.github.io/wireguard-ui/deploiement/docker/)                              |
 
 ---
 
-## 📋 Development
+## License
 
-### 1) Cloner le dépôt
+MIT — voir [LICENSE](LICENSE) pour le détail.
 
-```bash
-git clone https://github.com/cyr-ius/wireguard-ui.git
-cd wireguard-ui
-```
+## About
 
-### 2) (Optionnel) Créer un fichier `.env`
-
-Le `docker-compose.yaml` fournit déjà des valeurs par défaut, mais il est recommandé de les surcharger en production :
-
-```env
-ADMIN_USERNAME=admin
-SECRET_KEY=replace-with-a-long-random-secret
-LOG_LEVEL=INFO
-```
-
-## 🧪 Développement local (sans Docker)
-
-Le projet est découpé en deux applications :
-
-- `backend/` (API FastAPI)
-- `frontend/` (Angular)
-
-### Prérequis
-
-- Python **3.14+**
-- [uv](https://docs.astral.sh/uv/) (gestion des dépendances Python)
-- Node.js **22+** et npm
-
-### 1) Installer les dépendances backend
-
-Depuis la racine du dépôt :
-
-```bash
-cd backend
-uv sync --extra dev
-```
-
-### 2) Lancer le backend
-
-```bash
-uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 3) Installer les dépendances frontend
-
-Dans un autre terminal :
-
-```bash
-cd frontend
-npm ci
-```
-
-### 4) Lancer le frontend
-
-```bash
-npm start
-```
-
-Par défaut, le frontend est accessible sur `http://localhost:4200`.
-
-## 🤝 Contribuer
-
-Les contributions sont bienvenues : bugfix, amélioration UX, sécurité, documentation.
-
-### Workflow recommandé
-
-1. Forker le dépôt et créer une branche :
-   ```bash
-   git checkout -b feat/ma-feature
-   ```
-2. Développer avec des commits atomiques et des messages explicites.
-3. Vérifier localement avant PR :
-
-   ```bash
-   # Backend
-   cd backend
-   uv run ruff check src
-   uv run mypy src
-
-   # Frontend
-   cd ../frontend
-   npm run build
-   ```
-
-4. Ouvrir une Pull Request avec :
-   - le contexte / problème,
-   - la solution proposée,
-   - les tests effectués,
-   - les éventuels impacts (migration, compatibilité, sécurité).
-
-### Bonnes pratiques
-
-- Éviter les changements hors-sujet dans une même PR.
-- Préférer les PR petites et faciles à relire.
-- Mettre à jour la documentation si comportement fonctionnel modifié.
-
-## 🤖 Instructions pour agents IA
-
-Un fichier `AGENTS.md` est fourni à la racine pour aider les agents (Codex, assistants IA, etc.) à installer les dépendances et lancer les vérifications nécessaires à l’analyse du projet.
-
-## 📄 Licence
-
-MIT — voir [LICENSE](LICENSE).
+Auteur : [@cyr-ius](https://github.com/cyr-ius) — Sponsor : [GitHub Sponsors](https://github.com/sponsors/cyr-ius)
