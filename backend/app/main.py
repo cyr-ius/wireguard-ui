@@ -19,7 +19,18 @@ from .config import app_settings
 from .database import engine
 from .exceptions import http_exception_handler, validation_exception_handler
 from .helpers import resolve_safe_path
-from .routers import auth, clients, oidc, server, settings, smtp, status, users
+from .routers import (
+    audit,
+    auth,
+    clients,
+    oidc,
+    pat,
+    server,
+    settings,
+    smtp,
+    status,
+    users,
+)
 from .security import CsrfMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from .services.seed import seed_initial_data
 from .services.wireguard import WireGuardError, start_service, write_server_config
@@ -87,6 +98,8 @@ app.include_router(oidc.router, prefix="/api/oidc", tags=["OIDC"])
 app.include_router(status.router, prefix="/api/status", tags=["Status"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(smtp.router, prefix="/api/smtp", tags=["SMTP"])
+app.include_router(audit.router, prefix="/api/audit", tags=["Audit"])
+app.include_router(pat.router, prefix="/api/pat", tags=["Personal Access Tokens"])
 
 # ── Self-hosted static assets (Swagger UI, no Internet dependency) ─────────────
 static_dir = Path(__file__).resolve().parent / "static"

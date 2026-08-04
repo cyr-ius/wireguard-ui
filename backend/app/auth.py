@@ -12,7 +12,11 @@ from typing import Literal
 
 import bcrypt
 from fastapi import Depends, HTTPException, Request, Response, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    OAuth2PasswordBearer,
+)
 from jose import JWTError, jwt
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
@@ -22,6 +26,7 @@ from .config import app_settings
 from .database import get_db
 from .models import User
 from .proxy import is_https
+from .services.pat import TOKEN_PREFIX, resolve_user_from_pat
 
 SECRET_KEY = app_settings.secret_key
 ALGORITHM = app_settings.jwt_algorithm
@@ -41,6 +46,11 @@ COOKIE_SAMESITE: Literal["lax"] = "lax"
 # auto_error=False so the Bearer header stays optional: the browser SPA
 # authenticates via the HttpOnly cookie, while API clients may still use Bearer.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=False)
+
+# Second scheme purely so Swagger's Authorize dialog also offers a plain
+# "paste a Bearer token" option — needed to authorize with a Personal Access
+# Token, which has no username/password to feed the OAuth2 password flow.
+bearer_scheme = HTTPBearer(auto_error=False, description="JWT or Personal Access Token")
 
 
 def _cookie_secure(request: Request) -> bool:
@@ -123,10 +133,15 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 async def get_token(
     request: Request,
-    bearer: str | None = Depends(oauth2_scheme),
+    bearer: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    oauth_bearer: str | None = Depends(oauth2_scheme),
 ) -> str:
-    """Return the JWT from the session cookie, falling back to the Bearer header."""
-    token = request.cookies.get(ACCESS_COOKIE) or bearer
+    """Return the session JWT or PAT, from the cookie or either Bearer scheme."""
+    token = (
+        request.cookies.get(ACCESS_COOKIE)
+        or (bearer.credentials if bearer else None)
+        or oauth_bearer
+    )
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,12 +155,19 @@ async def get_current_user(
     token: str = Depends(get_token),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Decode the JWT and return the authenticated User, raise 401 if invalid."""
+    """Resolve the authenticated User from a JWT session or a PAT, raise 401 if invalid."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    if token.startswith(TOKEN_PREFIX):
+        user = await resolve_user_from_pat(db, token)
+        if user is None:
+            raise credentials_exception
+        return user
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str | None = payload.get("sub")
@@ -161,6 +183,21 @@ async def get_current_user(
     if user is None or user.active is False:
         raise credentials_exception
     return user
+
+
+async def get_current_user_optional(request: Request, db: AsyncSession) -> User | None:
+    """Best-effort resolve the current user from the session cookie; None if absent/invalid.
+
+    For endpoints (like logout) that must succeed even when the session has
+    already expired, but still want to attribute an audit event when possible.
+    """
+    token = request.cookies.get(ACCESS_COOKIE)
+    if not token:
+        return None
+    try:
+        return await get_current_user(token, db)
+    except HTTPException:
+        return None
 
 
 async def get_current_admin(

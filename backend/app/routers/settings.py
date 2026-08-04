@@ -1,12 +1,13 @@
 """Global settings router."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..auth import get_current_admin
 from ..database import get_db
 from ..models import User
 from ..schemas import SettingsResponse, SettingsUpdate
+from ..services.audit import log_event
 from ..services.settings import SETTINGS_DEFAULTS, get_or_create_settings
 
 router = APIRouter()
@@ -24,7 +25,8 @@ async def get_settings(
 @router.patch("", response_model=SettingsResponse)
 async def update_settings(
     data: SettingsUpdate,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> SettingsResponse:
     """Partially update global settings."""
@@ -33,12 +35,14 @@ async def update_settings(
     db.add(s)
     await db.commit()
     await db.refresh(s)
+    await log_event(db, "global_settings.updated", actor=current_admin, request=request)
     return s
 
 
 @router.delete("/reset", status_code=204)
 async def reset_settings(
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Reset global network settings to their defaults."""
@@ -47,3 +51,4 @@ async def reset_settings(
     db.add(s)
     await db.commit()
     await db.refresh(s)
+    await log_event(db, "global_settings.reset", actor=current_admin, request=request)

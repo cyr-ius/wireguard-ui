@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -26,6 +26,7 @@ from ..schemas import (
     SendClientEmailRequest,
     SuggestIpResponse,
 )
+from ..services.audit import log_event
 from ..services.email import SupportedLanguage, send_client_config_email
 from ..services.ip_suggestion import suggest_next_ip
 from ..services.qr import generate_qr_code_base64
@@ -56,7 +57,8 @@ async def list_clients(
 async def create_client(
     data: ClientCreate,
     background_tasks: BackgroundTasks,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> ClientResponse:
     """Create a new WireGuard client peer and optionally send a config email."""
@@ -137,6 +139,13 @@ async def create_client(
                 client.name,
             )
 
+    await log_event(
+        db,
+        "client.created",
+        actor=current_admin,
+        target=f"client:{client.name}",
+        request=request,
+    )
     return client  # type: ignore[return-value]
 
 
@@ -192,7 +201,8 @@ async def get_client(
 async def update_client(
     client_id: int,
     data: ClientUpdate,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> ClientResponse:
     """Partially update a client's configuration."""
@@ -232,19 +242,28 @@ async def update_client(
             status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
         ) from exc
 
+    await log_event(
+        db,
+        "client.updated",
+        actor=current_admin,
+        target=f"client:{c.name}",
+        request=request,
+    )
     return c  # type: ignore[return-value]
 
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_client(
     client_id: int,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Delete a client and remove its peer configuration."""
     c = await db.get(WireGuardClient, client_id)
     if not c:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Client not found")
+    client_name = c.name
     await db.delete(c)
     await db.commit()
 
@@ -255,6 +274,14 @@ async def delete_client(
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
         ) from exc
+
+    await log_event(
+        db,
+        "client.deleted",
+        actor=current_admin,
+        target=f"client:{client_name}",
+        request=request,
+    )
 
 
 @router.get("/{client_id}/config", response_model=ClientConfigResponse)

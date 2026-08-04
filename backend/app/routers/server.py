@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import delete, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -10,6 +10,7 @@ from ..auth import get_current_admin
 from ..database import get_db
 from ..models import User, WireGuardServer
 from ..schemas import KeyPairResponse, ServerCreate, ServerResponse
+from ..services.audit import log_event
 from ..services.wireguard import (
     WireGuardError,
     generate_keypair,
@@ -39,7 +40,8 @@ async def get_server(
 @router.put("", response_model=ServerResponse)
 async def upsert_server(
     data: ServerCreate,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Create or replace the WireGuard server configuration."""
@@ -69,17 +71,20 @@ async def upsert_server(
             detail="Failed to apply WireGuard configuration. Check server logs.",
         )
 
+    await log_event(db, "server.updated", actor=current_admin, request=request)
     return server
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
 async def reset_server(
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Remove the saved WireGuard server configuration."""
     await db.exec(delete(WireGuardServer))
     await db.commit()
+    await log_event(db, "server.reset", actor=current_admin, request=request)
 
 
 @router.post("/keypair", response_model=KeyPairResponse)
@@ -92,7 +97,11 @@ async def gen_keypair(_: User = Depends(get_current_admin)):
 
 
 @router.post("/apply", status_code=status.HTTP_204_NO_CONTENT)
-async def apply_config(_: User = Depends(get_current_admin)):
+async def apply_config(
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
     """Write config to disk and restart WireGuard."""
     try:
         await write_server_config()
@@ -109,10 +118,16 @@ async def apply_config(_: User = Depends(get_current_admin)):
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to apply WireGuard configuration. Check server logs.",
         )
+    await log_event(db, "server.apply", actor=current_admin, request=request)
 
 
 @router.post("/service/{action}", status_code=status.HTTP_204_NO_CONTENT)
-async def control_service(action: str, _: User = Depends(get_current_admin)):
+async def control_service(
+    action: str,
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
     """start | stop | restart the WireGuard interface."""
     try:
         match action:
@@ -134,3 +149,6 @@ async def control_service(action: str, _: User = Depends(get_current_admin)):
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="WireGuard service action failed. Check server logs.",
         )
+    await log_event(
+        db, f"server.service.{action}", actor=current_admin, request=request
+    )

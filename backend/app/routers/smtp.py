@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import cast
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi_mail import (
     ConnectionConfig,
     FastMail,
@@ -21,6 +21,7 @@ from ..auth import get_current_admin
 from ..database import get_db
 from ..models import SmtpSettings, User
 from ..schemas import SmtpSettingsResponse, SmtpSettingsUpdate, SmtpTestRequest
+from ..services.audit import log_event
 from ..services.email import _resolve_mail_from
 from ..services.smtp import (
     SMTP_DEFAULTS,
@@ -45,7 +46,8 @@ async def get_smtp_settings(
 @router.put("", response_model=SmtpSettingsResponse)
 async def update_smtp_settings(
     payload: SmtpSettingsUpdate,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> SmtpSettingsResponse:
     """Update SMTP settings, preserving the password if not provided."""
@@ -55,6 +57,7 @@ async def update_smtp_settings(
     await db.commit()
     await db.refresh(smtp)
     logger.info("SMTP settings updated: server=%s, port=%s", smtp.server, smtp.port)
+    await log_event(db, "smtp_settings.updated", actor=current_admin, request=request)
     return build_smtp_response(smtp)
 
 

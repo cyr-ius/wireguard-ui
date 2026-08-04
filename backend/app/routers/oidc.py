@@ -14,6 +14,7 @@ from ..schemas import (
     TokenResponse,
     UserResponse,
 )
+from ..services.audit import log_event
 from ..services.oidc import (
     OIDC_DEFAULT,
     exchange_code,
@@ -36,7 +37,8 @@ async def get_oidc_settings(
 @router.put("/settings", response_model=OidcSettingsResponse)
 async def update_oidc_settings(
     payload: OidcSettingsUpdate,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Update OIDC settings, validating OIDC-only mode requirements."""
@@ -63,6 +65,7 @@ async def update_oidc_settings(
     db.add(settings)
     await db.commit()
     await db.refresh(settings)
+    await log_event(db, "oidc_settings.updated", actor=current_admin, request=request)
     return to_oidc_response(settings)
 
 
@@ -109,12 +112,15 @@ async def oidc_callback(
     user = await exchange_code(db, body.code)
     token = create_access_token({"sub": user.username})
     set_auth_cookies(response, request, token)
+    await log_event(db, "auth.login", actor=user, details="oidc", request=request)
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
 
 @router.delete("/reset", status_code=status.HTTP_204_NO_CONTENT)
 async def reset_oidc_settings(
-    _: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
 ):
     """Reset OIDC settings to their defaults."""
     settings = await get_or_create_oidc_settings(db)
@@ -122,3 +128,4 @@ async def reset_oidc_settings(
     db.add(settings)
     await db.commit()
     await db.refresh(settings)
+    await log_event(db, "oidc_settings.reset", actor=current_admin, request=request)

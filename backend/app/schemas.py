@@ -328,6 +328,59 @@ class OidcCallbackRequest(SQLModel):
     code: str = Field(..., min_length=1)
 
 
+# ── Audit log ─────────────────────────────────────────────────────────────────
+
+
+class AuditLogResponse(SQLModel):
+    id: int
+    created_at: datetime
+    action: str
+    actor_username: str | None = None
+    target: str | None = None
+    details: str | None = None
+    ip_address: str | None = None
+    success: bool
+    model_config = {"from_attributes": True}
+
+
+class AuditLogPage(SQLModel):
+    items: list[AuditLogResponse]
+    total: int
+
+
+# ── Personal Access Tokens ───────────────────────────────────────────────────
+
+PatDuration = Literal["7d", "30d", "90d", "1y", "unlimited"]
+
+
+class PatCreate(SQLModel):
+    name: str = Field(..., min_length=1, max_length=255)
+    duration: PatDuration = "30d"
+
+
+class PatResponse(SQLModel):
+    id: int
+    name: str
+    token_prefix: str
+    created_at: datetime
+    expires_at: datetime | None = None
+    last_used_at: datetime | None = None
+    revoked: bool
+    model_config = {"from_attributes": True}
+
+
+class PatCreateResponse(SQLModel):
+    token: str
+    pat: PatResponse
+
+
+# ── App config ────────────────────────────────────────────────────────────────
+
+
+class AppConfigResponse(SQLModel):
+    api_keys_enabled: bool
+
+
 # ── Status ────────────────────────────────────────────────────────────────────
 
 

@@ -1,6 +1,6 @@
 """User management router — admin only."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -9,7 +9,12 @@ from ..auth import get_current_admin, hash_password
 from ..database import get_db
 from ..models import Role, User
 from ..schemas import RoleResponse, UserCreate, UserResponse, UserUpdate
-from ..services.users import load_roles
+from ..services.audit import log_event
+from ..services.users import (
+    count_active_admins,
+    ensure_not_last_active_admin,
+    load_roles,
+)
 
 router = APIRouter()
 
@@ -37,7 +42,8 @@ async def list_roles(
 @router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     data: UserCreate,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new user with hashed password and assigned roles."""
@@ -58,7 +64,15 @@ async def create_user(
     result = await db.exec(
         select(User).where(User.id == user.id).options(selectinload(User.roles))  # type: ignore[arg-type]
     )
-    return result.one()
+    created = result.one()
+    await log_event(
+        db,
+        "user.created",
+        actor=current_admin,
+        target=f"user:{created.username}",
+        request=request,
+    )
+    return created
 
 
 @router.get("/{user_id}", response_model=UserResponse)
@@ -82,7 +96,8 @@ async def get_user(
 async def update_user(
     user_id: int,
     data: UserUpdate,
-    _: User = Depends(get_current_admin),
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Partially update a user's profile and roles."""
@@ -118,8 +133,30 @@ async def update_user(
                 status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Email already in use"
             )
 
-    if "role_ids" in payload:
-        u.roles = await load_roles(db, payload.pop("role_ids"))
+    new_roles = (
+        await load_roles(db, payload["role_ids"]) if "role_ids" in payload else None
+    )
+
+    # Guard against locking every admin out: block deactivating or demoting
+    # this user if they are currently the last active administrator.
+    was_active_admin = u.active and u.has_role("admin")
+    if was_active_admin:
+        will_be_active = payload.get("active", u.active)
+        will_be_admin = (
+            any(r.name == "admin" for r in new_roles) if new_roles is not None else True
+        )
+        if (
+            not (will_be_active and will_be_admin)
+            and await count_active_admins(db) <= 1
+        ):
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail="Cannot deactivate or demote the last active administrator",
+            )
+
+    if new_roles is not None:
+        u.roles = new_roles
+        payload.pop("role_ids")
 
     new_password = payload.pop("password", None)
     if new_password:
@@ -135,22 +172,43 @@ async def update_user(
     db.add(u)
     await db.commit()
     await db.refresh(u)
+    await log_event(
+        db,
+        "user.updated",
+        actor=current_admin,
+        target=f"user:{u.username}",
+        request=request,
+    )
     return u
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     user_id: int,
+    request: Request,
     current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Delete a user, preventing self-deletion."""
+    """Delete a user, preventing self-deletion and removal of the last admin."""
     if user_id == current_admin.id:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, detail="Cannot delete your own account"
         )
-    u = await db.get(User, user_id)
+    u = (
+        await db.exec(
+            select(User).where(User.id == user_id).options(selectinload(User.roles))  # type: ignore[arg-type]
+        )
+    ).one_or_none()
     if not u:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User not found")
+    await ensure_not_last_active_admin(db, u)
+    username = u.username
     await db.delete(u)
     await db.commit()
+    await log_event(
+        db,
+        "user.deleted",
+        actor=current_admin,
+        target=f"user:{username}",
+        request=request,
+    )

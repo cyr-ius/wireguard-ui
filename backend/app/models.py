@@ -175,6 +175,43 @@ class SmtpSettings(SQLModel, table=True):
         return f"<SmtpSettings server={self.server}>"
 
 
+class AuditLog(SQLModel, table=True):
+    """Append-only record of security-relevant actions performed in the app."""
+
+    __tablename__ = "audit_log"  # type: ignore
+
+    id: int | None = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default_factory=utc_now, index=True)
+    action: str = Field(max_length=100, index=True)
+    actor_username: str | None = Field(default=None, max_length=255, index=True)
+    target: str | None = Field(default=None, max_length=255)
+    details: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    ip_address: str | None = Field(default=None, max_length=64)
+    success: bool = Field(default=True)
+
+    def __repr__(self) -> str:
+        return f"<AuditLog {self.action} by {self.actor_username}>"
+
+
+class PersonalAccessToken(SQLModel, table=True):
+    """Long-lived Bearer token a user can issue to call the REST API directly."""
+
+    __tablename__ = "personal_access_tokens"  # type: ignore
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id", index=True)
+    name: str = Field(max_length=255)
+    token_prefix: str = Field(max_length=16, index=True)
+    token_hash: str = Field(max_length=64, unique=True, index=True)
+    created_at: datetime = Field(default_factory=utc_now)
+    expires_at: datetime | None = Field(default=None)
+    last_used_at: datetime | None = Field(default=None)
+    revoked: bool = Field(default=False)
+
+    def __repr__(self) -> str:
+        return f"<PersonalAccessToken {self.token_prefix} user_id={self.user_id}>"
+
+
 class GlobalSettings(SQLModel, table=True):
     """Global application and VPN settings (single row)."""
 

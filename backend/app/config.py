@@ -45,9 +45,18 @@ class AppSettings(BaseSettings):
     # socket peer / real scheme are used.
     trusted_proxies: str = ""
     rate_limit_enabled: bool = True
-    rate_limit_window: int = 60
-    rate_limit_max: int = 100
+    rate_limit_window: int = Field(
+        default=60, validation_alias="RATE_LIMIT_WINDOW_SECONDS"
+    )
+    rate_limit_max: int = Field(default=100, validation_alias="RATE_LIMIT_MAX_REQUESTS")
     rate_limit_auth_max: int = 5
+
+    # Audit log retention: events beyond either bound are pruned after each write.
+    audit_max_events: int = 10000
+    audit_retention_days: int = 90
+
+    # Personal Access Tokens: lets admins hide/disable PAT issuance fleet-wide.
+    api_keys_enabled: bool = True
 
     @field_validator("db_path", mode="before")
     @classmethod
