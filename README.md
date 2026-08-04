@@ -21,7 +21,9 @@ Interface web pour administrer un serveur WireGuard sans manipuler directement l
 - Gestion des pairs (création, édition, révocation).
 - Génération de configuration client.
 - Export via QR code et fichier.
-- Authentification administrateur.
+- Authentification administrateur, OIDC, et Personal Access Tokens (PAT).
+- Journal d'audit des actions réalisées (connexions, gestion des utilisateurs,
+  changements de configuration…), avec rétention configurable.
 - Healthcheck API intégré (`/api/health`).
 - Déploiement simple avec Docker / Docker Compose.
 - Envoie de mail pour l'enrollement
@@ -143,6 +145,14 @@ docker compose up -d --build
 - `LOG_LEVEL` : niveau de logs (`INFO`, `DEBUG`, etc.).
 - `APP_VERSION` : version exposée par l’application.
 - `SWAGGER_ENABLED` : expose la documentation Swagger (`/api/docs`) et le schéma OpenAPI (`/api/openapi.json`). Mettre à `false` pour les désactiver (activé par défaut).
+- `API_KEYS_ENABLED` : active la création de Personal Access Tokens (PAT) depuis
+  le profil utilisateur, utilisables en `Authorization: Bearer <token>` pour
+  appeler l'API REST (activé par défaut ; mettre à `false` pour masquer la
+  fonctionnalité et refuser l'émission de nouveaux tokens).
+- `AUDIT_MAX_EVENTS` : nombre maximum d'évènements conservés dans le journal
+  d'audit ; les plus anciens sont purgés au-delà (défaut : 10000).
+- `AUDIT_RETENTION_DAYS` : durée de rétention en jours du journal d'audit
+  (défaut : 90).
 
 ### Base de données
 
