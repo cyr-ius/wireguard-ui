@@ -5,7 +5,7 @@
       "source": "angular/angular",
       "sourceType": "github",
       "skillPath": "skills/dev-skills/angular-developer/SKILL.md",
-      "computedHash": "400d674a14120ccaa435a263cd6551e5f5ddb84d99df8622689da46fe9e5902c"
+      "computedHash": "ded1e95fb8d75d60901201665c6ab7e348eec3b79a6c53824c4a30a487d99f58"
     },
     "development-standards": {
       "source": "cyr-ius/angular-fastapi-scaffold",
