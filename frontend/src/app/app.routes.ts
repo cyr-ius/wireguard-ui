@@ -7,6 +7,7 @@
 import { Routes } from "@angular/router";
 import { adminGuard } from "./core/guards/admin.guard";
 import { authGuard } from "./core/guards/auth.guard";
+import { setupCompleteGuard, setupRequiredGuard } from "./core/guards/setup.guard";
 
 export const routes: Routes = [
   {
@@ -24,42 +25,48 @@ export const routes: Routes = [
     children: [
       { path: "", redirectTo: "status", pathMatch: "full" },
       {
+        path: "setup",
+        canActivate: [setupCompleteGuard],
+        loadComponent: () => import("./features/setup/setup.component").then((m) => m.SetupComponent),
+      },
+      {
         path: "status",
+        canActivate: [setupRequiredGuard],
         loadComponent: () => import("./features/status/status.component").then((m) => m.StatusComponent),
       },
       {
         path: "clients",
-        canActivate: [adminGuard],
+        canActivate: [adminGuard, setupRequiredGuard],
         loadComponent: () => import("./features/clients/clients.component").then((m) => m.ClientsComponent),
       },
       {
         path: "server",
-        canActivate: [adminGuard],
+        canActivate: [adminGuard, setupRequiredGuard],
         loadComponent: () => import("./features/server/server.component").then((m) => m.ServerComponent),
       },
       {
         path: "settings",
-        canActivate: [adminGuard],
+        canActivate: [adminGuard, setupRequiredGuard],
         loadComponent: () => import("./features/settings/settings.component").then((m) => m.SettingsComponent),
       },
       {
         path: "users",
-        canActivate: [adminGuard],
+        canActivate: [adminGuard, setupRequiredGuard],
         loadComponent: () => import("./features/users/users.component").then((m) => m.UsersComponent),
       },
       {
         path: "audit",
-        canActivate: [adminGuard],
+        canActivate: [adminGuard, setupRequiredGuard],
         loadComponent: () => import("./features/audit/audit.component").then((m) => m.AuditComponent),
       },
       {
         path: "oidc",
-        canActivate: [adminGuard],
+        canActivate: [adminGuard, setupRequiredGuard],
         loadComponent: () => import("./features/oidc/oidc.component").then((m) => m.OidcComponent),
       },
       {
         path: "smtp",
-        canActivate: [adminGuard],
+        canActivate: [adminGuard, setupRequiredGuard],
         loadComponent: () => import("./features/smtp/smtp.component").then((m) => m.SmtpComponent),
       },
       {

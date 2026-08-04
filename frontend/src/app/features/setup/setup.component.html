@@ -1,0 +1,174 @@
+<!-- Mandatory onboarding wizard - forces server keys + endpoint address before the app is usable -->
+<div class="page-container setup-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><i class="bi bi-signpost-2-fill me-2"></i>Configuration initiale</h1>
+      <p class="page-subtitle">
+        Avant de pouvoir utiliser WireGuard UI, générez la paire de clés du serveur puis renseignez
+        l'adresse d'endpoint publique.
+      </p>
+    </div>
+  </div>
+
+  <div-error [errorRef]="error()"></div-error>
+
+  @if (checking()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p>Vérification de la configuration...</p>
+    </div>
+  } @else {
+    <ol class="setup-steps">
+      <li [class.active]="step() === 1" [class.done]="step() === 2">
+        <span class="step-index">
+          @if (step() === 2) {
+            <i class="bi bi-check-lg"></i>
+          } @else {
+            1
+          }
+        </span>
+        Clés du serveur
+      </li>
+      <li [class.active]="step() === 2">
+        <span class="step-index">2</span>
+        Adresse d'endpoint
+      </li>
+    </ol>
+
+    @if (step() === 1) {
+      <form [formRoot]="serverForm" class="config-form">
+        <div class="config-card">
+          <h2 class="section-title"><i class="bi bi-ethernet me-2"></i>Interface WireGuard</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Adresse réseau (CIDR) *</label>
+              <input
+                type="text"
+                class="form-control"
+                [formField]="serverForm.address"
+                placeholder="192.168.1.0/24"
+              />
+              <form-extra-fields [fieldRef]="serverForm.address"></form-extra-fields>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Port d'écoute *</label>
+              <input
+                type="number"
+                class="form-control"
+                [formField]="serverForm.listen_port"
+                placeholder="51820"
+              />
+              <form-extra-fields [fieldRef]="serverForm.listen_port"></form-extra-fields>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <label class="form-label mb-0">Paire de clés</label>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                (click)="generateKeypair()"
+              >
+                <i class="bi bi-key-fill me-1"></i>Générer la paire de clés
+              </button>
+            </div>
+            <div class="form-row">
+              <div class="form-group mb-0">
+                <label class="form-label">Clé privée *</label>
+                <div class="input-group">
+                  <input
+                    [type]="showPrivateKey() ? 'text' : 'password'"
+                    class="form-control font-mono"
+                    [class.is-warning]="!serverForm.private_key().value()"
+                    [formField]="serverForm.private_key"
+                    placeholder="Clé privée du serveur"
+                  />
+                  <form-extra-fields [fieldRef]="serverForm.private_key"></form-extra-fields>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    (click)="showPrivateKey.update((v) => !v)"
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-eye]="!showPrivateKey()"
+                      [class.bi-eye-slash]="showPrivateKey()"
+                    ></i>
+                  </button>
+                </div>
+              </div>
+              <div class="form-group mb-0">
+                <label class="form-label">Clé publique *</label>
+                <input
+                  type="text"
+                  class="form-control font-mono"
+                  [class.is-warning]="!serverForm.public_key().value()"
+                  [formField]="serverForm.public_key"
+                  placeholder="Clé publique du serveur"
+                />
+              </div>
+            </div>
+            <small class="text-muted">
+              Indispensable : sans clés, aucun client ne pourra établir de tunnel avec ce serveur.
+            </small>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="serverForm().invalid() || serverForm().submitting()"
+          >
+            @if (serverForm().submitting()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Continuer <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      </form>
+    }
+
+    @if (step() === 2) {
+      <form [formRoot]="endpointForm" class="config-form">
+        <div class="config-card">
+          <h2 class="section-title"><i class="bi bi-globe me-2"></i>Adresse d'endpoint</h2>
+          <div class="form-group">
+            <label class="form-label">Endpoint Address *</label>
+            <input
+              type="text"
+              class="form-control"
+              [class.is-warning]="!endpointForm.endpoint_address().value()"
+              [formField]="endpointForm.endpoint_address"
+              placeholder="vpn.exemple.com ou IP publique"
+            />
+            <form-extra-fields [fieldRef]="endpointForm.endpoint_address"></form-extra-fields>
+            <small class="text-muted">
+              Nom d'hôte public ou adresse IP par laquelle les clients WireGuard joindront ce
+              serveur. Sans cette valeur, les fichiers de configuration générés pour les clients
+              seront invalides.
+            </small>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline-secondary" (click)="backToServerStep()">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="endpointForm().invalid() || endpointForm().submitting()"
+          >
+            @if (endpointForm().submitting()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            <i class="bi bi-check-lg me-1"></i>Terminer la configuration
+          </button>
+        </div>
+      </form>
+    }
+  }
+</div>
