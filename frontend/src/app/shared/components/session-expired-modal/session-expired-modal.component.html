@@ -1,0 +1,14 @@
+@if (isVisible()) {
+  <div class="modal-overlay" (click)="backToLogin()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="confirm-icon"><i class="bi bi-shield-exclamation text-warning"></i></div>
+      <h2 class="confirm-title">Session Expired</h2>
+      <p class="confirm-msg">
+        Your session has expired or is no longer valid. Please sign in again to continue.
+      </p>
+      <button class="btn btn-primary" (click)="backToLogin()">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Back to Login
+      </button>
+    </div>
+  </div>
+}

@@ -5,11 +5,13 @@ import { catchError, throwError } from "rxjs";
 
 import { ApiError } from "../models/api-error.model";
 import { AuthService } from "../services/auth.service";
+import { SessionExpiredService } from "../services/session-expired.service";
 // import { NotificationService } from "../services/notification.service";
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   // const notify = inject(NotificationService);
   const auth = inject(AuthService);
+  const sessionExpired = inject(SessionExpiredService);
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
@@ -20,6 +22,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       switch (err.status) {
         case 401:
+          // A 401 while we believed we were logged in means the session
+          // expired server-side (cookie/JWT no longer valid); show the modal
+          // before returning to the login page. A 401 on an anonymous
+          // request (e.g. bad login credentials) is left to the caller.
+          if (auth.isAuthenticated()) {
+            sessionExpired.show();
+          }
           auth.logout();
           break;
         case 403:
