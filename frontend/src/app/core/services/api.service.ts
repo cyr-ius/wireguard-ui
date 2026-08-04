@@ -2,7 +2,9 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { map, Observable } from "rxjs";
 import {
+  AppConfigResponse,
   AppVersionResponse,
+  AuditLogPage,
   ClientConfig,
   ClientCreate,
   ClientUpdate,
@@ -10,6 +12,9 @@ import {
   KeyPair,
   OidcAdminSettings,
   OidcPublicConfig,
+  Pat,
+  PatCreate,
+  PatCreateResponse,
   Role,
   SendClientEmailRequest,
   ServerCreate,
@@ -215,6 +220,32 @@ export class ApiService {
   resetOidcSettings(): Observable<void> {
     return this.http.delete<void>("/api/oidc/reset");
   }
+
+  // ── App config ────────────────────────────────────────────────────────────
+
+  getAppConfig(): Observable<AppConfigResponse> {
+    return this.http.get<AppConfigResponse>("/api/auth/config");
+  }
+
+  // ── Audit log ─────────────────────────────────────────────────────────────
+
+  getAuditLog(limit: number, offset: number): Observable<AuditLogPage> {
+    return this.http.get<AuditLogPage>("/api/audit", { params: { limit, offset } });
+  }
+
+  // ── Personal Access Tokens ───────────────────────────────────────────────
+
+  getTokens(): Observable<Pat[]> {
+    return this.http.get<Pat[]>("/api/pat");
+  }
+
+  createToken(data: PatCreate): Observable<PatCreateResponse> {
+    return this.http.post<PatCreateResponse>("/api/pat", data);
+  }
+
+  revokeToken(id: number): Observable<void> {
+    return this.http.delete<void>("/api/pat/" + id);
+  }
 }
 
 // ── Service facades ──────────────────────────────────────────────────────────
@@ -366,5 +397,31 @@ export class OidcService {
 
   resetAdminSettings(): Observable<void> {
     return this.api.resetOidcSettings();
+  }
+}
+
+@Injectable({ providedIn: "root" })
+export class AuditService {
+  private readonly api = inject(ApiService);
+
+  list(limit: number, offset: number): Observable<AuditLogPage> {
+    return this.api.getAuditLog(limit, offset);
+  }
+}
+
+@Injectable({ providedIn: "root" })
+export class PatService {
+  private readonly api = inject(ApiService);
+
+  list(): Observable<Pat[]> {
+    return this.api.getTokens();
+  }
+
+  create(data: PatCreate): Observable<PatCreateResponse> {
+    return this.api.createToken(data);
+  }
+
+  revoke(id: number): Observable<void> {
+    return this.api.revokeToken(id);
   }
 }

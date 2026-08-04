@@ -1,0 +1,73 @@
+.page-container {
+  max-width: 1200px;
+}
+
+.content-card {
+  overflow: hidden;
+}
+
+.audit-table {
+  font-size: 0.85rem;
+}
+.audit-table th {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-subtle);
+  padding: 0.875rem 1rem;
+  border-bottom: 2px solid var(--panel-bg-alt);
+  background: var(--panel-bg-alt);
+}
+.audit-table td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  color: var(--text-secondary);
+}
+.audit-table tr:hover td {
+  background: var(--panel-bg-alt);
+}
+
+.status-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 20px;
+  padding: 0.2rem 0.6rem;
+}
+.status-pill.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+.status-pill.inactive {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted);
+}
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.8rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 700px) {
+  .audit-table .text-nowrap {
+    white-space: normal;
+  }
+}

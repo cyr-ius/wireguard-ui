@@ -246,3 +246,51 @@ export interface AppVersionResponse {
   repository: string;
   version: string;
 }
+
+// ─── App config ───────────────────────────────────────────────────────────────
+
+export interface AppConfigResponse {
+  api_keys_enabled: boolean;
+}
+
+// ─── Audit log ────────────────────────────────────────────────────────────────
+
+export interface AuditLogEntry {
+  id: number;
+  created_at: string;
+  action: string;
+  actor_username?: string | null;
+  target?: string | null;
+  details?: string | null;
+  ip_address?: string | null;
+  success: boolean;
+}
+
+export interface AuditLogPage {
+  items: AuditLogEntry[];
+  total: number;
+}
+
+// ─── Personal Access Tokens ──────────────────────────────────────────────────
+
+export type PatDuration = "7d" | "30d" | "90d" | "1y" | "unlimited";
+
+export interface PatCreate {
+  name: string;
+  duration: PatDuration;
+}
+
+export interface Pat {
+  id: number;
+  name: string;
+  token_prefix: string;
+  created_at: string;
+  expires_at?: string | null;
+  last_used_at?: string | null;
+  revoked: boolean;
+}
+
+export interface PatCreateResponse {
+  token: string;
+  pat: Pat;
+}

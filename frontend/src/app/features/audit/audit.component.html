@@ -1,0 +1,79 @@
+<!-- Audit log page - admin only -->
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><i class="bi bi-journal-text me-2"></i>Audit Log</h1>
+      <p class="page-subtitle">Security-relevant actions performed in this application</p>
+    </div>
+    <button class="btn btn-outline-primary" (click)="load()">
+      <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+    </button>
+  </div>
+
+  <div-error [errorRef]="error()"></div-error>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p>Loading audit log...</p>
+    </div>
+  } @else {
+    <div class="content-card">
+      <div class="table-responsive">
+        <table class="table audit-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Action</th>
+              <th>User</th>
+              <th>Target</th>
+              <th>IP</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of entries(); track entry.id) {
+              <tr>
+                <td class="text-nowrap">{{ entry.created_at | date: "short" }}</td>
+                <td class="text-capitalize">{{ actionLabel(entry.action) }}</td>
+                <td>{{ entry.actor_username || "—" }}</td>
+                <td>{{ entry.target || "—" }}</td>
+                <td>{{ entry.ip_address || "—" }}</td>
+                <td>
+                  <span
+                    class="status-pill"
+                    [class.active]="entry.success"
+                    [class.inactive]="!entry.success"
+                  >
+                    {{ entry.success ? "Success" : "Failed" }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">No audit events recorded yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-bar">
+        <span class="text-muted">{{ total() }} event(s)</span>
+        <div class="pagination-controls">
+          <button
+            class="btn btn-sm btn-secondary"
+            [disabled]="!hasPrevious()"
+            (click)="previousPage()"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span>Page {{ page() + 1 }} / {{ pageCount() }}</span>
+          <button class="btn btn-sm btn-secondary" [disabled]="!hasNext()" (click)="nextPage()">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

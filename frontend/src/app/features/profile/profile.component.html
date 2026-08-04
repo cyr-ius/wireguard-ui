@@ -94,4 +94,149 @@
       </div>
     }
   </form>
+
+  @if (apiKeysEnabled()) {
+    <div class="config-card pat-card">
+      <div class="pat-header">
+        <h2 class="section-title mb-0"><i class="bi bi-key me-2"></i>Personal Access Tokens</h2>
+        <button class="btn btn-primary btn-sm" (click)="openCreateTokenModal()">
+          <i class="bi bi-plus-lg me-1"></i>New Token
+        </button>
+      </div>
+      <p class="text-muted">
+        Personal Access Tokens let you call the REST API as yourself, using an
+        <code>Authorization: Bearer &lt;token&gt;</code> header instead of a session cookie.
+      </p>
+
+      <div-error [errorRef]="tokensError()"></div-error>
+
+      @if (createdToken()) {
+        <div class="alert alert-warning token-reveal" role="alert">
+          <p class="mb-2">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+            Copy this token now — it will not be shown again.
+          </p>
+          <code class="token-value">{{ createdToken() }}</code>
+          <div class="mt-2">
+            <button class="btn btn-secondary btn-sm" (click)="dismissCreatedToken()">Done</button>
+          </div>
+        </div>
+      }
+
+      @if (tokens().length) {
+        <div class="table-responsive">
+          <table class="table pat-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Token</th>
+                <th>Expires</th>
+                <th>Last used</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (token of tokens(); track token.id) {
+                <tr>
+                  <td>{{ token.name }}</td>
+                  <td>
+                    <code>{{ token.token_prefix }}…</code>
+                  </td>
+                  <td>
+                    {{ token.expires_at ? (token.expires_at | date: "mediumDate") : "Never" }}
+                  </td>
+                  <td>{{ token.last_used_at ? (token.last_used_at | date: "short") : "Never" }}</td>
+                  <td>
+                    <button
+                      class="action-btn danger"
+                      (click)="revokeTarget.set(token)"
+                      title="Revoke"
+                    >
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="text-muted mb-0">No Personal Access Tokens yet.</p>
+      }
+    </div>
+  }
 </div>
+
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateTokenModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">New Personal Access Token</h2>
+        <button class="modal-close" (click)="closeCreateTokenModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-form">
+        <div-error [errorRef]="tokensError()"></div-error>
+        <div class="form-group">
+          <label class="form-label">Name *</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. CI pipeline"
+            [value]="newTokenName()"
+            (input)="newTokenName.set($any($event.target).value)"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expiration</label>
+          <select
+            class="form-control"
+            [value]="newTokenDuration()"
+            (change)="newTokenDuration.set($any($event.target).value)"
+          >
+            <option value="7d">7 days</option>
+            <option value="30d">30 days</option>
+            <option value="90d">90 days</option>
+            <option value="1y">1 year</option>
+            <option value="unlimited">Unlimited (never expires)</option>
+          </select>
+          @if (newTokenDuration() === "unlimited") {
+            <p class="form-error mt-1">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>
+              A token that never expires is a standing credential: anyone who obtains it can call
+              the API as you indefinitely. Prefer a limited duration when possible.
+            </p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeCreateTokenModal()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary" (click)="createToken()">
+            Create Token
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (revokeTarget()) {
+  <div class="modal-overlay" (click)="revokeTarget.set(null)">
+    <div class="modal-panel confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon">
+        <i class="bi bi-key text-danger"></i>
+      </div>
+      <h2 class="confirm-title">Revoke Token</h2>
+      <p class="confirm-msg">
+        Revoke <strong>{{ revokeTarget()!.name }}</strong
+        >? Any client using it will immediately lose access.
+      </p>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-secondary" (click)="revokeTarget.set(null)">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmRevokeToken()">Revoke</button>
+      </div>
+    </div>
+  </div>
+}
