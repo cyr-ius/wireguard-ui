@@ -3,10 +3,15 @@
  * Sidebar items are conditionally shown based on user role (mirrors backend guards).
  */
 
-import { Component, computed, inject, signal } from "@angular/core";
+import { Component, computed, DestroyRef, inject, signal } from "@angular/core";
 import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { ThemeMode, ThemeService } from "../../../core/services/theme.service";
+
+// Below this viewport width the sidebar auto-collapses to the icon rail;
+// the user can still expand it manually, and it re-collapses next time the
+// breakpoint is crossed. Mirrors the CSS breakpoint in layout.component.css.
+const COLLAPSE_BREAKPOINT = "(max-width: 900px)";
 
 @Component({
   selector: "app-layout",
@@ -18,7 +23,18 @@ import { ThemeMode, ThemeService } from "../../../core/services/theme.service";
 export class LayoutComponent {
   readonly auth = inject(AuthService);
   readonly theme = inject(ThemeService);
-  readonly sidebarCollapsed = signal(false);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly narrowViewport =
+    typeof window !== "undefined" ? window.matchMedia(COLLAPSE_BREAKPOINT) : null;
+  readonly sidebarCollapsed = signal(this.narrowViewport?.matches ?? false);
+
+  constructor() {
+    if (!this.narrowViewport) return;
+    const onChange = (event: MediaQueryListEvent) => this.sidebarCollapsed.set(event.matches);
+    this.narrowViewport.addEventListener("change", onChange);
+    this.destroyRef.onDestroy(() => this.narrowViewport?.removeEventListener("change", onChange));
+  }
   readonly themeButtonIcon = computed(() => {
     const mode = this.theme.mode();
     if (mode === "dark") {

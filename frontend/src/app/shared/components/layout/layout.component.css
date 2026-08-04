@@ -14,6 +14,18 @@
 .app-shell.sidebar-collapsed {
   grid-template-columns: 72px 1fr;
 }
+
+/* Below this width LayoutComponent auto-collapses the sidebar (see
+   COLLAPSE_BREAKPOINT in layout.component.ts); the rail shrinks a little
+   further on very narrow phones to leave more room for page content. */
+@media (max-width: 420px) {
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: 56px 1fr;
+  }
+  .app-shell.sidebar-collapsed .nav-item {
+    padding: 0.625rem 0.4rem;
+  }
+}
 .app-shell.sidebar-collapsed .brand-text,
 .app-shell.sidebar-collapsed .nav-label,
 .app-shell.sidebar-collapsed .nav-section-label,
@@ -345,7 +357,9 @@
 /* Main content */
 .main-content {
   overflow-y: auto;
+  overflow-x: hidden;
   background: var(--page-bg);
+  min-width: 0;
 }
 .main-content::-webkit-scrollbar {
   width: 6px;

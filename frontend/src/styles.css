@@ -269,6 +269,15 @@ input:-webkit-autofill:focus {
   .config-form .form-row {
     grid-template-columns: 1fr;
   }
+
+  .page-container {
+    padding: 1.25rem;
+  }
+
+  .page-container .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 /* Dark theme readability overrides for pages that still used light cards */
