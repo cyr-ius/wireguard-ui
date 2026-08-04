@@ -1,5 +1,19 @@
 # WireGuard UI
 
+![license](https://img.shields.io/github/license/cyr-ius/wireguard-ui?label=Licence&color=blue)
+![python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)
+![angular](https://img.shields.io/badge/Angular-22-blue?logo=angular)
+[![ci::status]][ci::github]
+[![docker::pulls]][docker::hub]
+[![documentation::badge]][documentation::web]
+
+[ci::status]: https://img.shields.io/github/actions/workflow/status/cyr-ius/wireguard-ui/docker-publish.yml?logo=github
+[ci::github]: https://github.com/cyr-ius/wireguard-ui/actions
+[docker::pulls]: https://img.shields.io/docker/pulls/cyrius44/wireguard-ui.svg?logo=docker
+[docker::hub]: https://hub.docker.com/r/cyrius44/wireguard
+[documentation::badge]: https://img.shields.io/badge/Documentation-Wiki-green?logo=helpdesk
+[documentation::web]: https://cyr-ius.github.io/wireguard-ui/
+
 Interface web pour administrer un serveur WireGuard sans manipuler directement les fichiers de configuration.
 
 ## ✨ Fonctionnalités
