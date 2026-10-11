@@ -8,7 +8,7 @@ dependencies = [
     "fastapi[standard]==0.142.2",
     "pydantic[email]",
     "pydantic-settings",
-    "sqlmodel==0.0.47",
+    "sqlmodel==0.0.48",
     "sqlalchemy[asyncio]",
     "alembic",
     "python-jose[cryptography]",
