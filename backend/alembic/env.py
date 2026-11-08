@@ -10,11 +10,11 @@ _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _backend_dir not in sys.path:
     sys.path.insert(0, _backend_dir)
 
-from sqlalchemy import create_engine
-from sqlalchemy.pool import NullPool
-from sqlmodel import SQLModel
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.pool import NullPool  # noqa: E402
+from sqlmodel import SQLModel  # noqa: E402
 
-from alembic import context
+from alembic import context  # noqa: E402
 
 config = context.config
 

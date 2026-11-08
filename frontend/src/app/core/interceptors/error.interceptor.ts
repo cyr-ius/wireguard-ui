@@ -35,7 +35,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           // notify.error("Access denied");
           break;
         case 422:
-          // Validation : les détails sont renvoyés au composant
+          // Validation: the details are returned to the component
           break;
         case 0:
           // notify.error("Server unreachable. Check your connection.");
