@@ -1,0 +1,39 @@
+---
+name: Publish
+
+# A X.Y.Z tag (pushed by hand or dispatched by release-please.yml): check, then
+# publish the Docker image and the GitHub release.
+on:
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  check-version:
+    needs: ci
+    uses: cyr-ius/.github/.github/workflows/web-check-version.yml@v1
+    with:
+      files: backend/pyproject.toml frontend/package.json
+
+  docker:
+    needs: check-version
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker.yml
+    with:
+      push: true
+    secrets: inherit
+
+  github-release:
+    needs: docker
+    permissions:
+      contents: write
+    uses: cyr-ius/.github/.github/workflows/gh-release.yml@v1

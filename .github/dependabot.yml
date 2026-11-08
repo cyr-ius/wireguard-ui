@@ -6,10 +6,12 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
+    target-branch: "dev"
     directory: "/"
     schedule:
       interval: "weekly"
   - package-ecosystem: "uv"
+    target-branch: "dev"
     directory: "/backend"
     schedule:
       interval: "weekly"
@@ -25,6 +27,7 @@ updates:
           - "sqlalchemy"
           - "alembic"
   - package-ecosystem: "npm"
+    target-branch: "dev"
     directory: "/frontend"
     schedule:
       interval: "weekly"

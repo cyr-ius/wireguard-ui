@@ -1,0 +1,39 @@
+---
+name: Docker image
+
+# Every pull request builds and smoke-tests the image. A release (publish.yml on
+# a X.Y.Z tag) or a manual run with "push" publishes it to GitHub Container
+# Registry and Docker Hub (repository secret DOCKERHUB_TOKEN).
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      push:
+        description: "Publish the images (tagged with the branch name)"
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      push:
+        description: "Publish the images"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  docker:
+    permissions:
+      contents: read
+      packages: write
+    uses: cyr-ius/.github/.github/workflows/web-docker.yml@v1
+    with:
+      image: wireguard-ui
+      title: "WireguardUI"
+      description: "WireGuardUI - Secure tunnel management"
+      smoke-port: 8000
+      push: ${{ inputs.push == true }}
+      dockerhub-readme: true
+    secrets:
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
