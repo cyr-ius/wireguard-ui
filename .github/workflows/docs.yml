@@ -28,4 +28,4 @@ jobs:
       contents: read
       pages: write
       id-token: write
-    uses: cyr-ius/.github/.github/workflows/web-docs.yml@v1
+    uses: cyr-ius/.github/.github/workflows/web-docs.yml@feat/web-family

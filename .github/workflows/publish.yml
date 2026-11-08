@@ -18,7 +18,7 @@ jobs:
 
   check-version:
     needs: ci
-    uses: cyr-ius/.github/.github/workflows/web-check-version.yml@v1
+    uses: cyr-ius/.github/.github/workflows/web-check-version.yml@feat/web-family
     with:
       files: backend/pyproject.toml frontend/package.json
 
@@ -36,4 +36,4 @@ jobs:
     needs: docker
     permissions:
       contents: write
-    uses: cyr-ius/.github/.github/workflows/gh-release.yml@v1
+    uses: cyr-ius/.github/.github/workflows/gh-release.yml@feat/web-family

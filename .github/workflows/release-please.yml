@@ -13,4 +13,4 @@ jobs:
       contents: write
       pull-requests: write
       actions: write
-    uses: cyr-ius/.github/.github/workflows/web-release-please.yml@v1
+    uses: cyr-ius/.github/.github/workflows/web-release-please.yml@feat/web-family

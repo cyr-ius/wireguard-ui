@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: cyr-ius/.github/.github/workflows/web-docker.yml@v1
+    uses: cyr-ius/.github/.github/workflows/web-docker.yml@feat/web-family
     with:
       image: wireguard-ui
       title: "WireguardUI"
