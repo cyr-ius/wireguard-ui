@@ -5,7 +5,7 @@
     "ghcr.io/devcontainers/features/python:1": {},
     "ghcr.io/devcontainers-extra/features/prek:1": {},
     "ghcr.io/devcontainers-extra/features/uv:1": {},
-    "ghcr.io/devcontainers/features/node:2.1.0": {}
+    "ghcr.io/devcontainers/features/node:2.1.1": {}
   },
   "runArgs": [
     "--cap-add",
