@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: cyr-ius/.github/.github/workflows/web-ci.yml@feat/web-family
+    uses: cyr-ius/.github/.github/workflows/web-ci.yml@v1
     with:
       backend-dir: backend
       # pre-commit hooks (ruff, prettier, codespell...) on every file

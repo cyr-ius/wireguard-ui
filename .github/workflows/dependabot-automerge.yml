@@ -11,4 +11,4 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: cyr-ius/.github/.github/workflows/dependabot-automerge.yml@feat/web-family
+    uses: cyr-ius/.github/.github/workflows/dependabot-automerge.yml@v1

@@ -14,4 +14,4 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    uses: cyr-ius/.github/.github/workflows/stale.yml@feat/web-family
+    uses: cyr-ius/.github/.github/workflows/stale.yml@v1
