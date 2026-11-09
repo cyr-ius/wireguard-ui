@@ -14,3 +14,5 @@ jobs:
       pull-requests: write
       actions: write
     uses: cyr-ius/.github/.github/workflows/web-release-please.yml@v1
+    secrets:
+      dev-sync-key: ${{ secrets.DEV_SYNC_KEY }}
