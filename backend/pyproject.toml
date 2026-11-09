@@ -1,6 +1,6 @@
 [project]
 name = "app"
-version = "2.6.2"
+version = "3.0.0"
 description = "My Project"
 requires-python = ">=3.14"
 
