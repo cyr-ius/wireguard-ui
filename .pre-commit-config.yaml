@@ -39,7 +39,8 @@ repos:
           - --skip="./.*,*.csv,*.json,*.ambr"
           - --quiet-level=2
         exclude_types: [csv, json, html]
-        exclude: .devcontainer|.agents|swagger|docs|README.fr.md
+        # CHANGELOG.md is written by Release Please: its pull request must pass as generated
+        exclude: .devcontainer|.agents|swagger|docs|README.fr.md|^CHANGELOG\.md$
 
   # ── TypeScript / Angular: Prettier ───────────────────────────────────────
   - repo: https://github.com/pre-commit/mirrors-prettier
@@ -48,4 +49,5 @@ repos:
       - id: prettier
         args: ["--print-width=100"]
         types_or: [javascript, html, css, scss, json, yaml, markdown]
-        exclude: node_modules|.agents|swagger
+        # CHANGELOG.md is written by Release Please: its pull request must pass as generated
+        exclude: node_modules|.agents|swagger|^CHANGELOG\.md$
