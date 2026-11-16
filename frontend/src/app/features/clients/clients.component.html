@@ -397,8 +397,7 @@
           } @else {
             <p class="email-description">
               An email with the WireGuard configuration file and QR code will be sent to
-              <strong>{{ emailTarget()!.email }}</strong
-              >.
+              <strong>{{ emailTarget()!.email }}</strong>.
             </p>
             <div-error [errorRef]="emailError()"></div-error>
             <div class="form-group mb-4">
@@ -445,8 +444,7 @@
         <h2 class="confirm-title">Delete Client</h2>
         <p class="confirm-msg">
           Are you sure you want to delete
-          <strong>{{ deleteTarget()!.name }}</strong
-          >? This cannot be undone.
+          <strong>{{ deleteTarget()!.name }}</strong>? This cannot be undone.
         </p>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="deleteTarget.set(null)">Cancel</button>
