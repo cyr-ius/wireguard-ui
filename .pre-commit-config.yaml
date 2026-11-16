@@ -47,6 +47,9 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
+        # Pin prettier itself: the mirror's 4.0.0-alpha.8 pulls an unpinned
+        # @prettier/cli, so a fresh install formats differently from a cached one
+        additional_dependencies: ["prettier@3.10.1"]
         args: ["--print-width=100"]
         types_or: [javascript, html, css, scss, json, yaml, markdown]
         # CHANGELOG.md is written by Release Please: its pull request must pass as generated
